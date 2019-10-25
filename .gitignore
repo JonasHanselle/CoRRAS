@@ -110,3 +110,6 @@ aslib_data*
 
 # pylint
 .pylintrc
+
+# vscode
+.vscode
