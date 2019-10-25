@@ -2,9 +2,23 @@ import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 
+class PLNegativeLogLikelihood:
+    
+    def __init__(self, dataset=None, ):
+        pass
+
+    def negative_log_likelihood(self):
+        return None
+
+    def first_derivative(self):
+        return None
+
+    def second_derivative(self):
+        return None
+
 class LogLinearModel:
 
-    def __init__(self):
+    def __init__(self, regression_penalty="absolute"):
         self.weights = None
 
     def fit(self, data : ASRankingScenario):
@@ -27,6 +41,7 @@ class LogLinearModel:
         Returns:
             pd.DataFrame -- Ranking of algorithms
         """
-        utility_scores = np.dot(self.weights.transpose(), features)
+        # compute utility scores
+        utility_scores = np.exp(np.dot(self.weights.transpose(), features))
         print(utility_scores)
         return None
