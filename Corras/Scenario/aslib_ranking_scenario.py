@@ -25,8 +25,8 @@ class ASRankingScenario(scenario.ASlibScenario):
             performances = self.performance_data
             rankings = performances.rank(axis=1).astype(int)
             self.performance_rankings = rankings
-            self.performance_rankings_inverse = pd.DataFrame(data=self.performance_rankings.values.argsort(
-            ), index=self.performance_rankings.index, columns=self.performance_rankings.columns)
+            inverse_rankings = np.add(self.performance_rankings.values.argsort(),1) 
+            self.performance_rankings_inverse = pd.DataFrame(data=inverse_rankings, index=self.performance_rankings.index, columns=self.performance_rankings.columns)
 
     def get_split(self, indx=1):
         """Get split for cross-validation TODO inherit docstring
