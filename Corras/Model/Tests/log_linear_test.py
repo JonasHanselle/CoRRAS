@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
 from sklearn.preprocessing import StandardScaler
@@ -18,13 +19,50 @@ class TestLogLinearModel(unittest.TestCase):
         self.test_scen.remove_duplicates()
         self.train_scen.remove_duplicates()
 
-    # def test_fit(self):
-    #     model = ll.LogLinearModel()
-    #     model.fit(self.test_scen)
-    #     assert(True)
+    def test_fit(self):
+        model = ll.LogLinearModel()
+        model.fit(self.test_scen)
+        assert(True)
+
+
+    def test_nll(self):
+        features_train = [[5,1,7], [1,8,7], [11,8,0],[4,2,3],[1,5,2],[6,4,9],[2,8,3]]
+        features_test =  [[3,8,4], [8,4,1], [2,6,9]]
+        def create_ranking(feature_list):
+            rankings = []
+            for features in feature_list:
+                if features[0] > features[2] and features[1] > features[2]:
+                    print("case 1")
+                    rankings.append([2,1,3])
+                elif features[0] < features[2] and features[1] < features[2]:
+                    print("case 2")
+                    rankings.append([1,2,3])
+                else:
+                    print("case 3")
+                    rankings.append([3,2,1])
+            return rankings
+        print("train data")
+        rankings_train = create_ranking(features_train)
+        print("test data")
+        rankings_test = create_ranking(features_test)
+    
+        train_inst = pd.DataFrame(data=features_train,columns=["a","b","c"])
+        test_inst = pd.DataFrame(data=features_test,columns=["a","b","c"])
+        train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1","alg2","alg3"])
+        test_ranking = pd.DataFrame(data=rankings_test,columns=["alg1","alg2","alg3"])
+
+        print(train_inst)
+        print(test_inst)
+        print(train_ranking)
+        print(test_ranking)
+
+        model = ll.LogLinearModel()
+
+        # TODO test model 
+
 
     def test_gradient(self):
-        nll = ll.PLNegativeLogLikelihood()
+        nll = ll.PLNegativeLogLikelihood() 
         num_labels = len(self.train_scen.algorithms)
         num_features = len(self.train_scen.features)
         self.weights = np.random.rand(num_labels, num_features)
