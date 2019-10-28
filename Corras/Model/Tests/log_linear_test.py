@@ -18,10 +18,10 @@ class TestLogLinearModel(unittest.TestCase):
         self.test_scen.remove_duplicates()
         self.train_scen.remove_duplicates()
 
-    def test_fit(self):
-        model = ll.LogLinearModel()
-        model.fit(self.test_scen)
-        assert(True)
+    # def test_fit(self):
+    #     model = ll.LogLinearModel()
+    #     model.fit(self.test_scen)
+    #     assert(True)
 
     def test_gradient(self):
         nll = ll.PLNegativeLogLikelihood()
@@ -30,7 +30,7 @@ class TestLogLinearModel(unittest.TestCase):
         self.weights = np.random.rand(num_labels, num_features)
         # take some direction
         d = np.eye(N=1, M=len(self.weights.flatten()), k=5)
-        epsilon = 0.0001
+        epsilon = 0.01
         gradient = nll.first_derivative(self.train_scen.performance_rankings,self.train_scen.performance_rankings_inverse,self.train_scen.feature_data, self.weights)
         print("gradient", gradient)
         gradient_step = np.dot(d,gradient.flatten())
@@ -38,6 +38,10 @@ class TestLogLinearModel(unittest.TestCase):
         def f(w):
             return nll.negative_log_likelihood(self.train_scen.performance_rankings,self.train_scen.feature_data,w)
         w = self.weights
+        print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
+        print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
+        print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
+        print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
         local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
         print("local finite approximation", local_finite_approx)
         self.assertAlmostEqual(gradient_step[0], local_finite_approx)
