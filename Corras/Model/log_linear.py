@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
+from scipy.optimize import minimize
 
 
 class PLNegativeLogLikelihood:
@@ -34,8 +35,8 @@ class PLNegativeLogLikelihood:
             outer_sum += inner_sum
         return -outer_sum               
         
-    def first_derivative(self, rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
-        """Computes the first gradient 
+    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+        """Computes the the gradient vectors of the nll 
         
         Arguments:
             rankings {pd.DataFrame} -- [description]
@@ -45,11 +46,37 @@ class PLNegativeLogLikelihood:
         Returns:
             [type] -- [description]
         """
-        return None
-
-    def second_derivative(self):
-        return None
-
+        gradients = np.zeros_like(weights)
+        for a in range(0,gradients.shape[0]):
+            for index, ranking in rankings.iterrows():
+                current_features = features.loc[index].values
+                if inverse_rankings.loc[index][a] >= 1:
+                    gradients[a] += current_features
+            for index, ranking in rankings.iterrows():
+                current_features = features.loc[index].values
+                for m in range(0,len(ranking)):
+                    if inverse_rankings.loc[index][a] >= m:
+                        denominator = 0
+                        for j in range(m,len(ranking)):
+                            denominator += np.exp(np.dot(weights[ranking[j]-1],current_features))
+                        numerator = np.exp(np.dot(weights[a],current_features)) * current_features
+                        fraction = numerator / denominator
+                        gradients[a] -= fraction
+        return np.negative(gradients)
+        
+    def second_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+        """Computes the the gradient vector of the nll 
+        
+        Arguments:
+            rankings {pd.DataFrame} -- [description]
+            features {pd.DataFrame} -- [description]
+            weights {np.ndarray} -- [description]
+        
+        Returns:
+            [type] -- [description]
+        """
+        hessian = np.zeros(shape=(weights.shape[1],weights.shape[1]))
+        return hessian
 
 class LogLinearModel:
 
@@ -66,18 +93,22 @@ class LogLinearModel:
         self.dataset = dataset
         num_labels = len(dataset.algorithms)
         num_features = len(dataset.features)
-        self.weights = np.ones(shape=(num_labels, num_features))
-
-        # Start gradient descent
-        minibatch_size = 1
-        learning_rate = 0.1
-        max_iter = 1
+        self.weights = np.zeros(shape=(num_labels, num_features))
         nll = PLNegativeLogLikelihood()
-        for i in range(0, max_iter):
-            print(i)
-            minibatch = dataset.performance_rankings.sample(minibatch_size)
-            nll_value = nll.negative_log_likelihood(minibatch, dataset.feature_data, self.weights)
-            print("nll", nll_value)
+        
+        # minimize nnl
+        def f(x):
+            x = np.reshape(x,(num_labels, num_features))
+            return nll.negative_log_likelihood(dataset.performance_rankings,dataset.feature_data, x)
+
+        def f_prime(x):
+            x = np.reshape(x,(num_labels, num_features))
+            return nll.first_derivative(dataset.performance_rankings, dataset.performance_rankings_inverse,dataset.feature_data,x).flatten()
+
+        flat_weights = self.weights.flatten()
+        print(flat_weights.shape)
+        result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
+        print("Result", result)
 
     def predict(self, features: np.ndarray):
         """Predict a label ranking.
