@@ -37,6 +37,10 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         rankings_train = np.asarray(rankings_train)
         rankings_test = np.asarray(rankings_test)
 
+        scaler = StandardScaler()
+        features_train = scaler.fit_transform(features_train)
+        features_test = scaler.transform(features_test)
+
         self.train_inst = pd.DataFrame(data=features_train,columns=["a","b","c"])
         self.test_inst = pd.DataFrame(data=features_test,columns=["a","b","c"])
         self.train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1","alg2","alg3"])
@@ -52,37 +56,38 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         print(self.test_ranking_inverse)
 
 
-    def test_fit(self):
-        # test model 
-        model = ll.LogLinearModel()
-        model.fit(self.train_ranking, self.train_ranking_inverse, self.train_inst)        
-        for index, row in self.test_inst.iterrows():
-            print("True Ranking", self.test_ranking.loc[index].values)
-            print("Prediction", model.predict(row.values))
-            print("\n")
+    # def test_fit(self):
+    #     # test model 
+    #     model = ll.LogLinearModel()
+    #     model.fit(self.train_ranking, self.train_ranking_inverse, self.train_inst)        
+    #     for index, row in self.test_inst.iterrows():
+    #         print("True Ranking", self.test_ranking.loc[index].values)
+    #         print("Prediction", model.predict(row.values))
+    #         print("\n")
 
-    # def test_gradient(self):
-    #     nll = ll.PLNegativeLogLikelihood() 
-    #     num_labels = len(self.train_scen.algorithms)
-    #     num_features = len(self.train_scen.features)
-    #     self.weights = np.random.rand(num_labels, num_features)
-    #     # take some direction
-    #     d = np.eye(N=1, M=len(self.weights.flatten()), k=5)
-    #     epsilon = 0.01
-    #     gradient = nll.first_derivative(self.train_scen.performance_rankings,self.train_scen.performance_rankings_inverse,self.train_scen.feature_data, self.weights)
-    #     print("gradient", gradient)
-    #     gradient_step = np.dot(d,gradient.flatten())
-    #     print("step", np.dot(d,gradient.flatten()))
-    #     def f(w):
-    #         return nll.negative_log_likelihood(self.train_scen.performance_rankings,self.train_scen.feature_data,w)
-    #     w = self.weights
-    #     print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
-    #     print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
-    #     print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
-    #     print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
-    #     local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
-    #     print("local finite approximation", local_finite_approx)
-    #     self.assertAlmostEqual(gradient_step[0], local_finite_approx)
+    def test_gradient(self):
+        nll = ll.PLNegativeLogLikelihood() 
+        num_labels = len(self.train_ranking.columns)
+        num_features = len(self.train_inst.columns)+1
+        # self.weights = np.random.rand(num_labels, num_features)
+        self.weights = np.ones((num_labels, num_features))
+        # take some direction
+        d = np.eye(N=1, M=len(self.weights.flatten()), k=5)
+        epsilon = 0.001
+        gradient = nll.first_derivative(self.train_ranking,self.train_ranking_inverse,self.train_inst, self.weights)
+        print("gradient", gradient)
+        gradient_step = np.dot(d,gradient.flatten())
+        print("step", np.dot(d,gradient.flatten()))
+        def f(w):
+            return nll.negative_log_likelihood(self.train_ranking,self.train_inst,w)
+        w = self.weights
+        print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
+        print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
+        print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
+        print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
+        local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
+        print("local finite approximation", local_finite_approx)
+        self.assertAlmostEqual(gradient_step[0], local_finite_approx)
 
 if __name__ == "__main__":
     unittest.main()
