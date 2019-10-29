@@ -23,7 +23,8 @@ class PLNegativeLogLikelihood:
         outer_sum = 0
         for index, ranking in rankings.iterrows():
             # print("index", index)
-            feature_values = features.loc[index].values
+            # add one column for bias
+            feature_values = np.hstack((features.loc[index].values, [1]))
             # print("features", feature_values)
             # print("feature values",  feature_values)
             inner_sum = 0
@@ -124,7 +125,9 @@ class LogLinearModel:
             [type] -- [description]
         """
         num_labels = len(rankings.columns)
-        num_features = len(features.columns)
+        # add one column for bias
+        num_features = len(features.columns)+1
+
         self.weights = np.zeros(shape=(num_labels, num_features))
         nll = PLNegativeLogLikelihood()
         
@@ -153,8 +156,8 @@ class LogLinearModel:
             pd.DataFrame -- Ranking of algorithms
         """
         # compute utility scores
+        features = np.hstack((features,[1]))
         utility_scores = np.exp(np.dot(self.weights, features))
-        print(utility_scores)
         ranking = np.argsort(utility_scores)+1
         ranking = ranking[::-1]
         return ranking

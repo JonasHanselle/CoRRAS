@@ -5,27 +5,10 @@ import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
 from sklearn.preprocessing import StandardScaler
 
-class TestLogLinearModel(unittest.TestCase):
+class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
-        super(TestLogLinearModel, self).__init__(*args, **kwargs)
-        self.scenario = scen.ASRankingScenario()
-        self.scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
-        self.scenario.compute_rankings()
-        # preprocessing of data
-        self.scaler = StandardScaler()
-        self.scenario.feature_data[self.scenario.feature_data.columns] = self.scaler.fit_transform(self.scenario.feature_data[self.scenario.feature_data.columns])
-        self.test_scen, self.train_scen = self.scenario.get_split(indx=5)
-        self.test_scen.remove_duplicates()
-        self.train_scen.remove_duplicates()
-
-    # def test_fit(self):
-    #     model = ll.LogLinearModel()
-    #     model.fit(self.test_scen)
-    #     assert(True)
-
-
-    def test_nll(self):
+        super(TestLogLinearModelSynthetic, self).__init__(*args, **kwargs)
         features_train = np.random.randint(low=0, high=30, size=(250,3))
         features_test = np.random.randint(low=0, high=30, size=(10,3))
         def create_ranking(feature_list):
@@ -54,28 +37,29 @@ class TestLogLinearModel(unittest.TestCase):
         rankings_train = np.asarray(rankings_train)
         rankings_test = np.asarray(rankings_test)
 
-        train_inst = pd.DataFrame(data=features_train,columns=["a","b","c"])
-        test_inst = pd.DataFrame(data=features_test,columns=["a","b","c"])
-        train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1","alg2","alg3"])
-        test_ranking = pd.DataFrame(data=rankings_test,columns=["alg1","alg2","alg3"])
-        train_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_train)+1,columns=["alg1","alg2","alg3"])
-        test_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_test)+1,columns=["alg1","alg2","alg3"])
+        self.train_inst = pd.DataFrame(data=features_train,columns=["a","b","c"])
+        self.test_inst = pd.DataFrame(data=features_test,columns=["a","b","c"])
+        self.train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1","alg2","alg3"])
+        self.test_ranking = pd.DataFrame(data=rankings_test,columns=["alg1","alg2","alg3"])
+        self.train_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_train)+1,columns=["alg1","alg2","alg3"])
+        self.test_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_test)+1,columns=["alg1","alg2","alg3"])
 
-        print(train_inst)
-        print(test_inst)
-        print(train_ranking)
-        print(test_ranking)
-        print(train_ranking_inverse)
-        print(test_ranking_inverse)
+        print(self.train_inst)
+        print(self.test_inst)
+        print(self.train_ranking)
+        print(self.test_ranking)
+        print(self.train_ranking_inverse)
+        print(self.test_ranking_inverse)
 
+
+    def test_fit(self):
         # test model 
         model = ll.LogLinearModel()
-        model.fit(train_ranking, train_ranking_inverse, train_inst)        
-        for index, row in test_inst.iterrows():
-            print("True Ranking", test_ranking.loc[index].values)
+        model.fit(self.train_ranking, self.train_ranking_inverse, self.train_inst)        
+        for index, row in self.test_inst.iterrows():
+            print("True Ranking", self.test_ranking.loc[index].values)
             print("Prediction", model.predict(row.values))
             print("\n")
-
 
     # def test_gradient(self):
     #     nll = ll.PLNegativeLogLikelihood() 
