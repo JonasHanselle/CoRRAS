@@ -24,6 +24,7 @@ class PLNegativeLogLikelihood:
         for index, ranking in rankings.iterrows():
             # print("index", index)
             feature_values = features.loc[index].values
+            # print("features", feature_values)
             # print("feature values",  feature_values)
             inner_sum = 0
             for m in range(0,len(ranking)):
@@ -33,7 +34,7 @@ class PLNegativeLogLikelihood:
                     remaining_sum += np.exp(np.dot(weights[ranking[j]-1],feature_values))
                 inner_sum += np.log(np.exp(np.dot(weights[ranking[m]-1],feature_values))) - np.log(remaining_sum)
             outer_sum += inner_sum
-        return -outer_sum               
+        return -outer_sum
         
     def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Computes the the gradient vectors of the nll 
@@ -84,31 +85,63 @@ class LogLinearModel:
         self.weights = None
         self.dataset = None
 
-    def fit(self, dataset: ASRankingScenario):
-        """Fits a label ranking model based on a log-linear utility function.
+    # def fit(self, dataset: ASRankingScenario):
+    #     """Fits a label ranking model based on a log-linear utility function.
 
+    #     Arguments:
+    #         data {ASRankingScenario} -- Training data set
+    #     """
+    #     self.dataset = dataset
+    #     num_labels = len(dataset.algorithms)
+    #     num_features = len(dataset.features)
+    #     self.weights = np.zeros(shape=(num_labels, num_features))
+    #     nll = PLNegativeLogLikelihood()
+        
+    #     # minimize nnl
+    #     def f(x):
+    #         x = np.reshape(x,(num_labels, num_features))
+    #         return nll.negative_log_likelihood(dataset.performance_rankings,dataset.feature_data, x)
+
+    #     def f_prime(x):
+    #         x = np.reshape(x,(num_labels, num_features))
+    #         return nll.first_derivative(dataset.performance_rankings, dataset.performance_rankings_inverse,dataset.feature_data,x).flatten()
+
+    #     flat_weights = self.weights.flatten()
+    #     print(flat_weights.shape)
+    #     result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
+    #     print("Result", result)
+
+
+    def fit(self, rankings : pd.DataFrame, inverse_rankings : pd.DataFrame, features : pd.DataFrame):
+        """[summary]
+        
         Arguments:
-            data {ASRankingScenario} -- Training data set
+            rankings {pd.DataFrame} -- [description]
+            inverse_rankings {pd.DataFrame} -- [description]
+            features {pd.DataFrame} -- [description]
+        
+        Returns:
+            [type] -- [description]
         """
-        self.dataset = dataset
-        num_labels = len(dataset.algorithms)
-        num_features = len(dataset.features)
+        num_labels = len(rankings.columns)
+        num_features = len(features.columns)
         self.weights = np.zeros(shape=(num_labels, num_features))
         nll = PLNegativeLogLikelihood()
         
         # minimize nnl
         def f(x):
             x = np.reshape(x,(num_labels, num_features))
-            return nll.negative_log_likelihood(dataset.performance_rankings,dataset.feature_data, x)
+            return nll.negative_log_likelihood(rankings,features, x)
 
-        def f_prime(x):
-            x = np.reshape(x,(num_labels, num_features))
-            return nll.first_derivative(dataset.performance_rankings, dataset.performance_rankings_inverse,dataset.feature_data,x).flatten()
+        # def f_prime(x):
+        #     x = np.reshape(x,(num_labels, num_features))
+        #     return nll.first_derivative(rankings, inverse_rankings,features,x).flatten()
 
         flat_weights = self.weights.flatten()
         print(flat_weights.shape)
-        result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
+        result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 100, "disp" : True})
         print("Result", result)
+        self.weights = np.reshape(result.x, (num_labels, num_features))
 
     def predict(self, features: np.ndarray):
         """Predict a label ranking.
@@ -120,6 +153,8 @@ class LogLinearModel:
             pd.DataFrame -- Ranking of algorithms
         """
         # compute utility scores
-        utility_scores = np.exp(np.dot(self.weights.transpose(), features))
+        utility_scores = np.exp(np.dot(self.weights, features))
         print(utility_scores)
-        return None
+        ranking = np.argsort(utility_scores)+1
+        ranking = ranking[::-1]
+        return ranking
