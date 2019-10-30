@@ -25,10 +25,11 @@ class RegressionSquaredError:
             current_performances = row.values
             feature_values = np.hstack((features.loc[index].values, [1]))
             utilities = np.exp(np.dot(weights, feature_values))
+            inverse_utilities = np.reciprocal(utilities)
             # TODO change to inverse for use in combined regression and ranking
             # print("utilities", utilities)
             # print("performances", current_performances)
-            loss += np.sum(np.sum(np.square(np.subtract(performances,utilities))))
+            loss += np.sum(np.square(np.subtract(current_performances,inverse_utilities)))
         return loss
         
     def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
@@ -160,7 +161,7 @@ class LogLinearModel:
     #     result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
     #     print("Result", result)
 
-    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame):
+    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances : pd.DataFrame, lambda_value = 0.5):
         """[summary]
 
         Arguments:
@@ -177,43 +178,46 @@ class LogLinearModel:
 
         self.weights = np.zeros(shape=(num_labels, num_features))
         nll = PLNegativeLogLikelihood()
+        se = RegressionSquaredError()
 
         # minimize nnl
         def f(x):
             x = np.reshape(x, (num_labels, num_features))
-            return nll.negative_log_likelihood(rankings, features, x)
-
-        def f_prime(x):
-            x = np.reshape(x,(num_labels, num_features))
-            return nll.first_derivative(rankings, inverse_rankings,features,x).flatten()
+            if lambda_value == 0:
+                return se.squared_error(performances,features,x)
+            elif lambda_value == 1:
+                return lambda_value * nll.negative_log_likelihood(rankings, features, x)   
+            return lambda_value * nll.negative_log_likelihood(rankings, features, x) + (1 - lambda_value) * se.squared_error(performances,features,x)
 
         flat_weights = self.weights.flatten()
         print(flat_weights.shape)
         result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=None, options={"maxiter": 10, "disp": True})
-        print("Result", result)
-        self.weights = np.reshape(result.x, (num_labels, num_features))
-        print("Weights", self.weights)
-
-    def fit_regression(self, performances: pd.DataFrame, features: pd.DataFrame):
-        num_labels = len(performances.columns)
-        # add one column for bias
-        num_features = len(features.columns)+1
-
-        self.weights = np.zeros(shape=(num_labels, num_features))
-        se = RegressionSquaredError()
-
-        # minimize squared error
-        def g(x):
-            x = np.reshape(x, (num_labels, num_features))
-            return se.squared_error(performances,features,x)
-        
-        flat_weights = self.weights.flatten()
-        result = minimize(g, flat_weights, method="L-BFGS-B",
                           jac=None, options={"maxiter": 100, "disp": True})
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
         print("Weights", self.weights)
+
+    # def fit_regression(self, performances: pd.DataFrame, features: pd.DataFrame):
+    #     num_labels = len(performances.columns)
+    #     # add one column for bias
+    #     num_features = len(features.columns)+1
+
+    #     self.weights = np.zeros(shape=(num_labels, num_features))
+    #     se = RegressionSquaredError()
+
+    #     # minimize squared error
+    #     def g(x):
+    #         # print("Shape of x", x.shape)
+    #         x = np.reshape(x, (num_labels, num_features))
+    #         # print("Shape of x afterwards", x.shape)
+    #         return se.squared_error(performances,features,x)
+        
+    #     flat_weights = self.weights.flatten()
+    #     result = minimize(g, flat_weights, method="L-BFGS-B",
+    #                       jac=None, options={"maxiter": 100, "disp": True})
+    #     print("Result", result)
+    #     self.weights = np.reshape(result.x, (num_labels, num_features))
+    #     print("Weights", self.weights)
 
     def predict(self, features: np.ndarray):
         """Predict a label ranking.
@@ -231,7 +235,21 @@ class LogLinearModel:
         ranking = ranking[::-1]
         return ranking
 
-    def predict_regression(self, features: np.ndarray):
+    def predict_performances(self, features: np.ndarray):
+        """Predict a vector of performance values.
+
+        Arguments:
+            features {np.ndarray} -- Instance feature values
+
+        Returns:
+            pd.DataFrame -- Ranking of algorithms
+        """
+        # compute utility scores
+        features = np.hstack((features, [1]))
+        utility_scores = np.exp(np.dot(self.weights, features))
+        return np.reciprocal(utility_scores)
+
+    def predict_ranking(self, features: np.ndarray):
         """Predict a label ranking.
 
         Arguments:
@@ -243,4 +261,10 @@ class LogLinearModel:
         # compute utility scores
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
-        return utility_scores
+        # utility_scores = np.reciprocal(utility_scores)
+        ordering = np.argsort(utility_scores) + 1 
+        ranking = np.argsort(ordering) + 1  
+        print("util",utility_scores)
+        print("ordering",ordering)
+        print("ranking",ranking)
+        return ranking[::-1]
