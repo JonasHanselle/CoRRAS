@@ -21,6 +21,12 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
                 performance_1 = 5 * features[0] + 2 * features[1] + 7 * features[2] + 42
                 performance_2 =  3 * features[1] + 5 * features[3] + 14
                 performance_3 = 2 * features[0] + 4 * features[1] + 11 * features[3] + 77
+                # performance_1 = features[0]
+                # performance_2 =  15
+                # performance_3 = 0
+                # performance_1 = 5
+                # performance_2 =  50
+                # performance_3 = 25
                 performances.append([performance_1, performance_2, performance_3])
             return performances
 
@@ -90,7 +96,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def test_regression(self):
         model = ll.LogLinearModel()
-        model.fit(self.train_ranking,self.train_ranking_inverse,self.train_inst,self.train_performances,lambda_value=0)        
+        model.fit(self.train_ranking,self.train_ranking_inverse,self.train_inst,self.train_performances,lambda_value=0.999)        
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))

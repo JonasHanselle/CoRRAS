@@ -197,28 +197,6 @@ class LogLinearModel:
         self.weights = np.reshape(result.x, (num_labels, num_features))
         print("Weights", self.weights)
 
-    # def fit_regression(self, performances: pd.DataFrame, features: pd.DataFrame):
-    #     num_labels = len(performances.columns)
-    #     # add one column for bias
-    #     num_features = len(features.columns)+1
-
-    #     self.weights = np.zeros(shape=(num_labels, num_features))
-    #     se = RegressionSquaredError()
-
-    #     # minimize squared error
-    #     def g(x):
-    #         # print("Shape of x", x.shape)
-    #         x = np.reshape(x, (num_labels, num_features))
-    #         # print("Shape of x afterwards", x.shape)
-    #         return se.squared_error(performances,features,x)
-        
-    #     flat_weights = self.weights.flatten()
-    #     result = minimize(g, flat_weights, method="L-BFGS-B",
-    #                       jac=None, options={"maxiter": 100, "disp": True})
-    #     print("Result", result)
-    #     self.weights = np.reshape(result.x, (num_labels, num_features))
-    #     print("Weights", self.weights)
-
     def predict(self, features: np.ndarray):
         """Predict a label ranking.
 
@@ -261,10 +239,4 @@ class LogLinearModel:
         # compute utility scores
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
-        # utility_scores = np.reciprocal(utility_scores)
-        ordering = np.argsort(utility_scores) + 1 
-        ranking = np.argsort(ordering) + 1  
-        print("util",utility_scores)
-        print("ordering",ordering)
-        print("ranking",ranking)
-        return ranking[::-1]
+        return np.argsort(np.argsort(utility_scores)[::-1]) + 1  
