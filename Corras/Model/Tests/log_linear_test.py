@@ -24,81 +24,28 @@ class TestLogLinearModel(unittest.TestCase):
     #     model.fit(self.test_scen)
     #     assert(True)
 
-
-    def test_nll(self):
-        features_train = np.random.randint(low=0, high=30, size=(250,3))
-        features_test = np.random.randint(low=0, high=30, size=(10,3))
-        def create_ranking(feature_list):
-            rankings = []
-            for features in feature_list:
-                if features[0] > 15:
-                    rankings.append([1,2,3])
-                # elif features[0] < 15 and features[1] < 15 and features[2] < 15:
-                #     rankings.append([1,3,2])
-                # elif features[0] > 15 and features[1] < 15 and features[2] > 15:
-                #     rankings.append([2,1,3])
-                # elif features[0] > 15 and features[1] < 15 and features[2] < 15:
-                #     rankings.append([2,3,1])
-                # elif features[0] < 15 and features[1] > 15 and features[2] > 15:
-                #     rankings.append([3,1,2])
-                else:
-                    rankings.append([3,2,1])
-            return rankings
-        print("train data")
-        rankings_train = create_ranking(features_train)
-        print("test data")
-        rankings_test = create_ranking(features_test)
-    
-        features_train = np.asarray(features_train, dtype=np.float64)
-        features_test = np.asarray(features_test, dtype=np.float64)
-        rankings_train = np.asarray(rankings_train)
-        rankings_test = np.asarray(rankings_test)
-
-        train_inst = pd.DataFrame(data=features_train,columns=["a","b","c"])
-        test_inst = pd.DataFrame(data=features_test,columns=["a","b","c"])
-        train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1","alg2","alg3"])
-        test_ranking = pd.DataFrame(data=rankings_test,columns=["alg1","alg2","alg3"])
-        train_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_train)+1,columns=["alg1","alg2","alg3"])
-        test_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_test)+1,columns=["alg1","alg2","alg3"])
-
-        print(train_inst)
-        print(test_inst)
-        print(train_ranking)
-        print(test_ranking)
-        print(train_ranking_inverse)
-        print(test_ranking_inverse)
-
-        # test model 
-        model = ll.LogLinearModel()
-        model.fit(train_ranking, train_ranking_inverse, train_inst)        
-        for index, row in test_inst.iterrows():
-            print("True Ranking", test_ranking.loc[index].values)
-            print("Prediction", model.predict(row.values))
-            print("\n")
-
-
-    # def test_gradient(self):
-    #     nll = ll.PLNegativeLogLikelihood() 
-    #     num_labels = len(self.train_scen.algorithms)
-    #     num_features = len(self.train_scen.features)
-    #     self.weights = np.random.rand(num_labels, num_features)
-    #     # take some direction
-    #     d = np.eye(N=1, M=len(self.weights.flatten()), k=5)
-    #     epsilon = 0.01
-    #     gradient = nll.first_derivative(self.train_scen.performance_rankings,self.train_scen.performance_rankings_inverse,self.train_scen.feature_data, self.weights)
-    #     print("gradient", gradient)
-    #     gradient_step = np.dot(d,gradient.flatten())
-    #     print("step", np.dot(d,gradient.flatten()))
-    #     def f(w):
-    #         return nll.negative_log_likelihood(self.train_scen.performance_rankings,self.train_scen.feature_data,w)
-    #     w = self.weights
-    #     print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
-    #     print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
-    #     print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
-    #     print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
-    #     local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
-    #     print("local finite approximation", local_finite_approx)
-    #     self.assertAlmostEqual(gradient_step[0], local_finite_approx)
+    def test_gradient(self):
+        nll = ll.PLNegativeLogLikelihood() 
+        num_labels = len(self.train_scen.algorithms)
+        num_features = len(self.train_scen.features)+1
+        self.weights = np.random.rand(num_labels, num_features)
+        # take some direction
+        d = np.eye(N=1, M=len(self.weights.flatten()), k=5)
+        epsilon = 0.01
+        gradient = nll.first_derivative(self.train_scen.performance_rankings,self.train_scen.performance_rankings_inverse,self.train_scen.feature_data, self.weights)
+        print("gradient", gradient)
+        gradient_step = np.dot(d,gradient.flatten())
+        print("step", np.dot(d,gradient.flatten()))
+        def f(w):
+            return nll.negative_log_likelihood(self.train_scen.performance_rankings,self.train_scen.feature_data,w)
+        w = self.weights
+        print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
+        print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
+        print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
+        print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
+        local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
+        print("local finite approximation", local_finite_approx)
+        self.assertAlmostEqual(gradient_step[0], local_finite_approx)
 
 if __name__ == "__main__":
     unittest.main()

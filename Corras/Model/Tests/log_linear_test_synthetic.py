@@ -30,6 +30,10 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         rankings_train = np.argsort(np.asarray(rankings_train))
         rankings_test = np.argsort(np.asarray(rankings_test))
 
+        scaler = StandardScaler()
+        features_train = scaler.fit_transform(features_train)
+        features_test = scaler.transform(features_test)
+
         self.train_inst = pd.DataFrame(data=features_train,columns=["a","b","c"])
         self.test_inst = pd.DataFrame(data=features_test,columns=["a","b","c"])
         self.train_performances = pd.DataFrame(data=performances_train,columns=["a","b","c"])

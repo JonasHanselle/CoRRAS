@@ -64,57 +64,67 @@ class PLNegativeLogLikelihood:
             # print("features", feature_values)
             # print("feature values",  feature_values)
             inner_sum = 0
-            for m in range(0,len(ranking)):
+            for m in range(0, len(ranking)):
                 remaining_sum = 0
-                for j in range(m,len(ranking)):
+                for j in range(m, len(ranking)):
                     # compute utility of remaining labels
-                    remaining_sum += np.exp(np.dot(weights[ranking[j]-1],feature_values))
-                inner_sum += np.log(np.exp(np.dot(weights[ranking[m]-1],feature_values))) - np.log(remaining_sum)
+                    remaining_sum += np.exp(
+                        np.dot(weights[ranking[j]-1], feature_values))
+                inner_sum += np.log(
+                    np.exp(np.dot(weights[ranking[m]-1], feature_values))) - np.log(remaining_sum)
             outer_sum += inner_sum
         return -outer_sum
-        
-    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+
+    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Computes the the gradient vectors of the nll 
-        
+
         Arguments:
             rankings {pd.DataFrame} -- [description]
             features {pd.DataFrame} -- [description]
             weights {np.ndarray} -- [description]
-        
+
         Returns:
             [type] -- [description]
         """
-        gradients = np.zeros_like(weights)
-        for a in range(0,gradients.shape[0]):
+        gradient = np.zeros_like(weights)
+        for a in range(0, gradient.shape[0]):
             for index, ranking in rankings.iterrows():
-                current_features = features.loc[index].values
-                if inverse_rankings.loc[index][a] >= 1:
-                    gradients[a] += current_features
+                current_features = np.hstack((features.loc[index].values, [1]))
+                # print("ranking",ranking.values)
+                # print("inverse ranking", inverse_rankings.loc[index].values,"\n") 
+                if inverse_rankings.loc[index].values[a] >= 1:
+                    gradient[a] += current_features
             for index, ranking in rankings.iterrows():
-                current_features = features.loc[index].values
-                for m in range(0,len(ranking)):
-                    if inverse_rankings.loc[index][a] >= m:
+                current_features = np.hstack((features.loc[index].values, [1]))
+                for m in range(0, len(ranking)):
+                    if inverse_rankings.loc[index].values[a] >= m:
                         denominator = 0
-                        for j in range(m,len(ranking)):
-                            denominator += np.exp(np.dot(weights[ranking[j]-1],current_features))
-                        numerator = np.exp(np.dot(weights[a],current_features)) * current_features
+                        for j in range(m, len(ranking)):
+                            denominator += np.exp(
+                                np.dot(weights[ranking[j]-1], current_features))
+                        numerator = np.exp(
+                            np.dot(weights[a], current_features)) * current_features
                         fraction = numerator / denominator
-                        gradients[a] -= fraction
-        return np.negative(gradients)
-        
-    def second_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+                        # print("numerator", numerator)
+                        # print("denominator", denominator)
+                        # print("fraction", fraction, "\n\n")
+                        gradient[a] -= fraction
+        return -gradient
+
+    def second_derivative(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Computes the the gradient vector of the nll 
-        
+
         Arguments:
             rankings {pd.DataFrame} -- [description]
             features {pd.DataFrame} -- [description]
             weights {np.ndarray} -- [description]
-        
+
         Returns:
             [type] -- [description]
         """
-        hessian = np.zeros(shape=(weights.shape[1],weights.shape[1]))
+        hessian = np.zeros(shape=(weights.shape[1], weights.shape[1]))
         return hessian
+
 
 class LogLinearModel:
 
@@ -133,7 +143,7 @@ class LogLinearModel:
     #     num_features = len(dataset.features)
     #     self.weights = np.zeros(shape=(num_labels, num_features))
     #     nll = PLNegativeLogLikelihood()
-        
+
     #     # minimize nnl
     #     def f(x):
     #         x = np.reshape(x,(num_labels, num_features))
@@ -148,15 +158,14 @@ class LogLinearModel:
     #     result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
     #     print("Result", result)
 
-
-    def fit(self, rankings : pd.DataFrame, inverse_rankings : pd.DataFrame, features : pd.DataFrame):
+    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame):
         """[summary]
-        
+
         Arguments:
             rankings {pd.DataFrame} -- [description]
             inverse_rankings {pd.DataFrame} -- [description]
             features {pd.DataFrame} -- [description]
-        
+
         Returns:
             [type] -- [description]
         """
@@ -166,19 +175,20 @@ class LogLinearModel:
 
         self.weights = np.zeros(shape=(num_labels, num_features))
         nll = PLNegativeLogLikelihood()
-        
+
         # minimize nnl
         def f(x):
-            x = np.reshape(x,(num_labels, num_features))
-            return nll.negative_log_likelihood(rankings,features, x)
+            x = np.reshape(x, (num_labels, num_features))
+            return nll.negative_log_likelihood(rankings, features, x)
 
-        # def f_prime(x):
-        #     x = np.reshape(x,(num_labels, num_features))
-        #     return nll.first_derivative(rankings, inverse_rankings,features,x).flatten()
+        def f_prime(x):
+            x = np.reshape(x,(num_labels, num_features))
+            return nll.first_derivative(rankings, inverse_rankings,features,x).flatten()
 
         flat_weights = self.weights.flatten()
         print(flat_weights.shape)
-        result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 100, "disp" : True})
+        result = minimize(f, flat_weights, method="L-BFGS-B",
+                          jac=None, options={"maxiter": 100, "disp": True})
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
@@ -192,7 +202,7 @@ class LogLinearModel:
             pd.DataFrame -- Ranking of algorithms
         """
         # compute utility scores
-        features = np.hstack((features,[1]))
+        features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
         ranking = np.argsort(utility_scores)+1
         ranking = ranking[::-1]
