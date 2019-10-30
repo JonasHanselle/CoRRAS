@@ -25,8 +25,10 @@ class RegressionSquaredError:
             current_performances = row.values
             feature_values = np.hstack((features.loc[index].values, [1]))
             utilities = np.exp(np.dot(weights, feature_values))
-            print("utilities", utilities)
-            print("performances", current_performances)
+            # TODO change to inverse for use in combined regression and ranking
+            # print("utilities", utilities)
+            # print("performances", current_performances)
+            loss += np.sum(np.sum(np.square(np.subtract(performances,utilities))))
         return loss
         
     def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
@@ -188,9 +190,30 @@ class LogLinearModel:
         flat_weights = self.weights.flatten()
         print(flat_weights.shape)
         result = minimize(f, flat_weights, method="L-BFGS-B",
+                          jac=None, options={"maxiter": 10, "disp": True})
+        print("Result", result)
+        self.weights = np.reshape(result.x, (num_labels, num_features))
+        print("Weights", self.weights)
+
+    def fit_regression(self, performances: pd.DataFrame, features: pd.DataFrame):
+        num_labels = len(performances.columns)
+        # add one column for bias
+        num_features = len(features.columns)+1
+
+        self.weights = np.zeros(shape=(num_labels, num_features))
+        se = RegressionSquaredError()
+
+        # minimize squared error
+        def g(x):
+            x = np.reshape(x, (num_labels, num_features))
+            return se.squared_error(performances,features,x)
+        
+        flat_weights = self.weights.flatten()
+        result = minimize(g, flat_weights, method="L-BFGS-B",
                           jac=None, options={"maxiter": 100, "disp": True})
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
+        print("Weights", self.weights)
 
     def predict(self, features: np.ndarray):
         """Predict a label ranking.
@@ -204,6 +227,20 @@ class LogLinearModel:
         # compute utility scores
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
-        ranking = np.argsort(utility_scores)+1
+        ranking = np.argsort(np.argsort(utility_scores))+1
         ranking = ranking[::-1]
         return ranking
+
+    def predict_regression(self, features: np.ndarray):
+        """Predict a label ranking.
+
+        Arguments:
+            features {np.ndarray} -- Instance feature values
+
+        Returns:
+            pd.DataFrame -- Ranking of algorithms
+        """
+        # compute utility scores
+        features = np.hstack((features, [1]))
+        utility_scores = np.exp(np.dot(self.weights, features))
+        return utility_scores

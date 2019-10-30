@@ -9,15 +9,17 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestLogLinearModelSynthetic, self).__init__(*args, **kwargs)
-        features_train = np.random.randint(low=0, high=30, size=(250,3))
-        features_test = np.random.randint(low=0, high=30, size=(10,3))
+        self.train_size = 50
+        self.test_size = 10
+        features_train = np.random.randint(low=0, high=30, size=(self.train_size,3))
+        features_test = np.random.randint(low=0, high=30, size=(self.test_size,3))
         def create_performances(feature_list):
             performances = []
             for features in feature_list:
                 # generate performances as functions linear in the features
-                performance_1 = 3 * features[0] - features[1] + 2 * features[2]
-                performance_2 = - 2 * features[0] + features[1] - 2 * features[2]
-                performance_3 = 2 * features[0] + 5 * features[1] - 4 * features[2]
+                performance_1 = 5 * features[0]
+                performance_2 =  3 * features[1]
+                performance_3 = 7 * features[2]
                 performances.append([performance_1, performance_2, performance_3])
             return performances
 
@@ -27,8 +29,8 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         features_train = np.asarray(features_train, dtype=np.float64)
         features_test = np.asarray(features_test, dtype=np.float64)
         
-        rankings_train = np.argsort(np.asarray(rankings_train))
-        rankings_test = np.argsort(np.asarray(rankings_test))
+        rankings_train = np.argsort(np.argsort(np.asarray(performances_train))) + 1
+        rankings_test = np.argsort(np.argsort(np.asarray(performances_test))) + 1
 
         scaler = StandardScaler()
         features_train = scaler.fit_transform(features_train)
@@ -46,8 +48,8 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         print("train instances", self.train_inst)
         print("test instances", self.test_inst)
         print("train performances", self.train_performances)
-        print("test performances", self.test_performances)
         print("train rankings", self.train_ranking)
+        print("test performances", self.test_performances)
         print("test rankings", self.test_ranking)
         print("train rankings inverse", self.train_ranking_inverse)
         print("test rankings inverse", self.test_ranking_inverse)
@@ -85,7 +87,13 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
     #     print("local finite approximation", local_finite_approx)
     #     self.assertAlmostEqual(gradient_step[0], local_finite_approx)
 
-    # def test_regression(self):
+    def test_regression(self):
+        model = ll.LogLinearModel()
+        model.fit_regression(self.train_performances,self.train_inst)        
+        for index, row in self.test_performances.iterrows():
+            print("True Performances", self.test_performances.loc[index].values)
+            print("Predicted Performances", model.predict_regression(row.values))
+            print("\n")
 
 
 if __name__ == "__main__":
