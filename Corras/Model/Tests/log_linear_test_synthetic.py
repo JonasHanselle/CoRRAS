@@ -11,57 +11,54 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         super(TestLogLinearModelSynthetic, self).__init__(*args, **kwargs)
         features_train = np.random.randint(low=0, high=30, size=(250,3))
         features_test = np.random.randint(low=0, high=30, size=(10,3))
-        def create_ranking(feature_list):
-            rankings = []
+        def create_performances(feature_list):
+            performances = []
             for features in feature_list:
-                if features[0] > 15:
-                    rankings.append([1,2,3])
-                # elif features[0] < 15 and features[1] < 15 and features[2] < 15:
-                #     rankings.append([1,3,2])
-                # elif features[0] > 15 and features[1] < 15 and features[2] > 15:
-                #     rankings.append([2,1,3])
-                # elif features[0] > 15 and features[1] < 15 and features[2] < 15:
-                #     rankings.append([2,3,1])
-                # elif features[0] < 15 and features[1] > 15 and features[2] > 15:
-                #     rankings.append([3,1,2])
-                else:
-                    rankings.append([3,2,1])
-            return rankings
-        print("train data")
-        rankings_train = create_ranking(features_train)
-        print("test data")
-        rankings_test = create_ranking(features_test)
-    
+                # generate performances as functions linear in the features
+                performance_1 = 3 * features[0] - features[1] + 2 * features[2]
+                performance_2 = - 2 * features[0] + features[1] - 2 * features[2]
+                performance_3 = 2 * features[0] + 5 * features[1] - 4 * features[2]
+                performances.append([performance_1, performance_2, performance_3])
+            return performances
+
+        performances_train = np.asarray(create_performances(features_train), dtype=np.float64)
+        performances_test = np.asarray(create_performances(features_test), dtype=np.float64)
+
         features_train = np.asarray(features_train, dtype=np.float64)
         features_test = np.asarray(features_test, dtype=np.float64)
-        rankings_train = np.asarray(rankings_train)
-        rankings_test = np.asarray(rankings_test)
+        
+        rankings_train = np.argsort(np.asarray(rankings_train))
+        rankings_test = np.argsort(np.asarray(rankings_test))
 
         self.train_inst = pd.DataFrame(data=features_train,columns=["a","b","c"])
         self.test_inst = pd.DataFrame(data=features_test,columns=["a","b","c"])
+        self.train_performances = pd.DataFrame(data=performances_train,columns=["a","b","c"])
+        self.test_performances = pd.DataFrame(data=performances_test,columns=["a","b","c"])
         self.train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1","alg2","alg3"])
         self.test_ranking = pd.DataFrame(data=rankings_test,columns=["alg1","alg2","alg3"])
         self.train_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_train)+1,columns=["alg1","alg2","alg3"])
         self.test_ranking_inverse = pd.DataFrame(data=np.argsort(rankings_test)+1,columns=["alg1","alg2","alg3"])
 
-        print(self.train_inst)
-        print(self.test_inst)
-        print(self.train_ranking)
-        print(self.test_ranking)
-        print(self.train_ranking_inverse)
-        print(self.test_ranking_inverse)
+        print("train instances", self.train_inst)
+        print("test instances", self.test_inst)
+        print("train performances", self.train_performances)
+        print("test performances", self.test_performances)
+        print("train rankings", self.train_ranking)
+        print("test rankings", self.test_ranking)
+        print("train rankings inverse", self.train_ranking_inverse)
+        print("test rankings inverse", self.test_ranking_inverse)
 
 
-    def test_fit(self):
-        # test model 
-        model = ll.LogLinearModel()
-        model.fit(self.train_ranking, self.train_ranking_inverse, self.train_inst)        
-        for index, row in self.test_inst.iterrows():
-            print("True Ranking", self.test_ranking.loc[index].values)
-            print("Prediction", model.predict(row.values))
-            print("\n")
+    # def test_fit(self):
+    #     # test model 
+    #     model = ll.LogLinearModel()
+    #     model.fit(self.train_ranking, self.train_ranking_inverse, self.train_inst)        
+    #     for index, row in self.test_inst.iterrows():
+    #         print("True Ranking", self.test_ranking.loc[index].values)
+    #         print("Prediction", model.predict(row.values))
+    #         print("\n")
 
-    # def test_gradient(self):
+    # def test_nll_gradient(self):
     #     nll = ll.PLNegativeLogLikelihood() 
     #     num_labels = len(self.train_scen.algorithms)
     #     num_features = len(self.train_scen.features)
@@ -83,6 +80,9 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
     #     local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
     #     print("local finite approximation", local_finite_approx)
     #     self.assertAlmostEqual(gradient_step[0], local_finite_approx)
+
+    # def test_regression(self):
+
 
 if __name__ == "__main__":
     unittest.main()

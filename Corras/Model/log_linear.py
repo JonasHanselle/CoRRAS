@@ -4,6 +4,42 @@ from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
 
 
+class RegressionSquaredError:
+
+    def __init__(self):
+        pass
+
+    def squared_error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+        """Compute squared error for regression
+        
+        Arguments:
+            performances {pd.DataFrame} -- [description]
+            features {pd.DataFrame} -- [description]
+            weights {np.ndarray} -- [description]
+        
+        Returns:
+            [type] -- [description]
+        """
+        loss = 0
+        for index, row in performances.iterrows():
+            current_performances = row.values
+            feature_values = np.hstack((features.loc[index].values, [1]))
+            utilities = np.exp(np.dot(weights, feature_values))
+            print("utilities", utilities)
+            print("performances", current_performances)
+        return loss
+        
+    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+        """[summary]
+        
+        Arguments:
+            rankings {pd.DataFrame} -- [description]
+            inverse_rankings {pd.DataFrame} -- [description]
+            features {pd.DataFrame} -- [description]
+            weights {np.ndarray} -- [description]
+        """
+        pass
+
 class PLNegativeLogLikelihood:
 
     def __init__(self):
