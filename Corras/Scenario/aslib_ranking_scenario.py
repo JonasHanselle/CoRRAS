@@ -12,7 +12,7 @@ class ASRankingScenario(scenario.ASlibScenario):
         self.performance_rankings = None
         self.performance_rankings_inverse = None
 
-    def compute_rankings(self):
+    def compute_rankings(self, break_up_ties : bool = False):
         """Computes the rankings according to the performance an algorithm achieved.
         Currently only runtime is supported as a performance measure.
         """
