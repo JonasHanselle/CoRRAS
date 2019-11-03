@@ -25,3 +25,4 @@ def break_ties_of_ranking(ranking : pd.DataFrame):
                     new_row.iloc[r-1] = i
                 ranking.append(new_row, ignore_index=True, inplace=True)
     print(ranking)
+    

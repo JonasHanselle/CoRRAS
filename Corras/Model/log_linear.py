@@ -211,20 +211,20 @@ class LogLinearModel:
 
         self.weights = np.zeros(shape=(num_labels, num_features))
         nll = PLNegativeLogLikelihood()
-        re = None
-        if regression_loss == "Absolute":
-            re = RegressionSquaredError()
-        elif regression_loss == "Squared":
-            re = RegressionSquaredError()
+        re = RegressionSquaredError()
+        # if regression_loss == "Absolute":
+        #     re = RegressionSquaredError()
+        # elif regression_loss == "Squared":
+        #     re = RegressionSquaredError()
 
         # minimize nnl
         def f(x):
             x = np.reshape(x, (num_labels, num_features))
-            if lambda_value == 0:
-                return re.error(performances,features,x)
-            elif lambda_value == 1:
-                return nll.negative_log_likelihood(rankings, features, x)   
-            return lambda_value * nll.negative_log_likelihood(rankings, features, x) + (1 - lambda_value) * re.error(performances,features,x)
+            # if lambda_value == 0:
+            return re.error(performances,features,x)
+            # elif lambda_value == 1:
+            #     return nll.negative_log_likelihood(rankings, features, x)   
+            # return lambda_value * nll.negative_log_likelihood(rankings, features, x) + (1 - lambda_value) * re.error(performances,features,x)
 
         flat_weights = self.weights.flatten()
         print(flat_weights.shape)
