@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import itertools as it
 
@@ -8,21 +9,19 @@ def break_ties_of_ranking(ranking : pd.DataFrame):
     Arguments:
         ranking {pd.DataFrame} -- [description]
     """
+    print(ranking)
     for index, row in ranking.iterrows():
-        print(ranking)
         if len(set(row.values)) < len(row.values):
             # remove the row and insert new rankings
-            # print(row.values)
             ranks = [[-1] for i in range(0,len(row.values))]
             for i, k in enumerate(row.values, 1):
                 if ranks[k-1] == [-1]:
                     ranks[k-1] = []
                 ranks[k-1].append(i)
-            # print(ranks)
-            ranking.drop(index)
+            ranking.drop(index, inplace=True)
             for new_ranking in it.product(*ranks):
-                new_row = pd.Series(data=new_ranking,index=index)
-                ranking.append(new_row)
-        print(ranking)
-        
-            
+                new_row = pd.Series(index=row.index)
+                for i, r in enumerate(new_ranking, 1):
+                    new_row.iloc[r-1] = i
+                ranking.append(new_row, ignore_index=True, inplace=True)
+    print(ranking)

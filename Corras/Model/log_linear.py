@@ -3,13 +3,49 @@ import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
 
+class RegressionAbsoluteError:
+
+    def __init__(self):
+        pass
+
+    def error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+        """Compute absolute error for regression
+        
+        Arguments:
+            performances {pd.DataFrame} -- [description]
+            features {pd.DataFrame} -- [description]
+            weights {np.ndarray} -- [description]
+        
+        Returns:
+            [type] -- [description]
+        """
+        loss = 0
+        for index, row in performances.iterrows():
+            current_performances = row.values
+            feature_values = np.hstack((features.loc[index].values, [1]))
+            utilities = np.exp(np.dot(weights, feature_values))
+            inverse_utilities = np.reciprocal(utilities)
+            loss += np.sum(np.square(np.subtract(current_performances,inverse_utilities)))
+        return loss
+        
+    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+        """[summary]
+        
+        Arguments:
+            rankings {pd.DataFrame} -- [description]
+            inverse_rankings {pd.DataFrame} -- [description]
+            features {pd.DataFrame} -- [description]
+            weights {np.ndarray} -- [description]
+        """
+        pass
+
 
 class RegressionSquaredError:
 
     def __init__(self):
         pass
 
-    def squared_error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+    def error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Compute squared error for regression
         
         Arguments:
@@ -26,10 +62,7 @@ class RegressionSquaredError:
             feature_values = np.hstack((features.loc[index].values, [1]))
             utilities = np.exp(np.dot(weights, feature_values))
             inverse_utilities = np.reciprocal(utilities)
-            # TODO change to inverse for use in combined regression and ranking
-            # print("utilities", utilities)
-            # print("performances", current_performances)
-            loss += np.sum(np.square(np.subtract(current_performances,inverse_utilities)))
+            loss += np.sum(np.absolute(np.subtract(current_performances,inverse_utilities)))
         return loss
         
     def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
@@ -161,7 +194,7 @@ class LogLinearModel:
     #     result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
     #     print("Result", result)
 
-    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances : pd.DataFrame, lambda_value = 0.5):
+    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances : pd.DataFrame, lambda_value = 0.5, regression_loss="Absolute"):
         """[summary]
 
         Arguments:
@@ -178,16 +211,20 @@ class LogLinearModel:
 
         self.weights = np.zeros(shape=(num_labels, num_features))
         nll = PLNegativeLogLikelihood()
-        se = RegressionSquaredError()
+        re = None
+        if regression_loss == "Absolute":
+            re = RegressionSquaredError()
+        elif regression_loss == "Squared":
+            re = RegressionSquaredError()
 
         # minimize nnl
         def f(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
-                return se.squared_error(performances,features,x)
+                return re.error(performances,features,x)
             elif lambda_value == 1:
-                return lambda_value * nll.negative_log_likelihood(rankings, features, x)   
-            return lambda_value * nll.negative_log_likelihood(rankings, features, x) + (1 - lambda_value) * se.squared_error(performances,features,x)
+                return nll.negative_log_likelihood(rankings, features, x)   
+            return lambda_value * nll.negative_log_likelihood(rankings, features, x) + (1 - lambda_value) * re.error(performances,features,x)
 
         flat_weights = self.weights.flatten()
         print(flat_weights.shape)
