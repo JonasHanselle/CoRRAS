@@ -24,18 +24,18 @@ class NeuralNetwork:
         num_labels = len(rankings.columns)
         # add one column for bias
         num_features = len(features.columns)+1
-        self.network = keras.Sequential([layers.Dense(64, activation="sigmoid", input_shape=[num_features]), layers.Dense(5, activation="sigmoid"),layers.Dense(1)])
+        self.network = keras.Sequential([layers.Dense(4, activation="sigmoid", input_shape=[num_features]), layers.Dense(4,activation="linear"),layers.Dense(3)])
 
         optimizer = tf.keras.optimizers.Adam()
 
-        self.network.compile(loss="mse", optimizer=optimizer, metrics=["mae", "mse"])
+        self.network.compile(loss="mse", optimizer=optimizer, metrics=["mse", "mae"])
 
         early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
 
         # add constant 1 for bias
         feature_values = np.hstack((features.values,np.ones((features.shape[0],1))))
-
-        self.network.fit(feature_values, performances.values[:,0], epochs = 50, validation_split = 0.2, verbose = 0, callbacks=[early_stop])
+        self.network.fit(feature_values, performances.values, epochs = 1000, validation_split = 0.2, verbose = 0, callbacks=[early_stop])
+        
 
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.
@@ -44,12 +44,13 @@ class NeuralNetwork:
             features {np.ndarray} -- Instance feature values
 
         Returns:
-            pd.DataFrame -- Ranking of algorithms
+            np.ndarray -- Estimation of performance values
         """
-        # compute utility scores
+        # add constant 1 for bias
         features = np.hstack((features, [1]))
-        features = features.reshape((1,5))
-        print("feature shape", features.shape)
+        # keras expects a 2 dimensional input
+        features = np.expand_dims(features, axis=0)
+         # compute utility scores
         utility_scores = self.network.predict(features)
         # return np.reciprocal(utility_scores)
         return utility_scores
@@ -66,6 +67,4 @@ class NeuralNetwork:
         # compute utility scores
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
-        return np.argsort(np.argsort(utility_scores)[::-1]) + 1  
-
-
+        return np.argsort(np.argsort(utility_scores)[::-1]) + 1

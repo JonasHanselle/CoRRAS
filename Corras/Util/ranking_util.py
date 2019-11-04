@@ -26,3 +26,15 @@ def break_ties_of_ranking(ranking : pd.DataFrame):
                 ranking.append(new_row, ignore_index=True, inplace=True)
     print(ranking)
     
+
+def construct_ordered_tensor(features : pd.DataFrame, performances : pd.DataFrame):
+    """Constructs a N x M x 2 tensor which is ordered according to the second dimension.
+       N is the number of training examples
+       M is the number of labels
+       in the last dimension, the label and the associated true performance are stored
+    
+    Arguments:
+        features {pd.DataFrame} -- Feature data
+        performances {pd.DataFrame} -- Performance data
+    """
+    pass

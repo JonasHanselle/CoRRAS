@@ -59,6 +59,7 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
         model = nn.NeuralNetwork()
         model.fit(self.train_ranking,self.train_ranking_inverse,self.train_inst,self.train_performances,lambda_value=0,regression_loss="Squared")        
         for index, row in self.test_inst.iterrows():
+            print("Instance Features", row)
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))
             print("\n")
