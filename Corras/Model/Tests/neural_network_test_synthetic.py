@@ -2,13 +2,13 @@ import unittest
 import numpy as np
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
-import Corras.Model.log_linear as ll
+import Corras.Model.neural_net as nn
 from sklearn.preprocessing import StandardScaler
 
-class TestLogLinearModelSynthetic(unittest.TestCase):
+class TestNeuralNetworkSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
-        super(TestLogLinearModelSynthetic, self).__init__(*args, **kwargs)
+        super(TestNeuralNetworkSynthetic, self).__init__(*args, **kwargs)
         self.train_size = 250
         self.test_size = 10
         self.noise_factor = 0.0
@@ -55,49 +55,16 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         print("train rankings inverse", self.train_ranking_inverse)
         print("test rankings inverse", self.test_ranking_inverse)
 
-
-    # def test_fit(self):
-    #     # test model 
-    #     model = ll.LogLinearModel()
-    #     model.fit(self.train_ranking, self.train_ranking_inverse, self.train_inst)        
-    #     for index, row in self.test_inst.iterrows():
-    #         print("True Ranking", self.test_ranking.loc[index].values)
-    #         print("Prediction", model.predict(row.values))
-    #         print("\n")
-
-    # def test_nll_gradient(self):
-    #     nll = ll.PLNegativeLogLikelihood() 
-    #     num_labels = len(self.train_scen.algorithms)
-    #     num_features = len(self.train_scen.features)
-    #     self.weights = np.random.rand(num_labels, num_features)
-    #     # take some direction
-    #     d = np.eye(N=1, M=len(self.weights.flatten()), k=5)
-    #     epsilon = 0.01
-    #     gradient = nll.first_derivative(self.train_scen.performance_rankings,self.train_scen.performance_rankings_inverse,self.train_scen.feature_data, self.weights)
-    #     print("gradient", gradient)
-    #     gradient_step = np.dot(d,gradient.flatten())
-    #     print("step", np.dot(d,gradient.flatten()))
-    #     def f(w):
-    #         return nll.negative_log_likelihood(self.train_scen.performance_rankings,self.train_scen.feature_data,w)
-    #     w = self.weights
-    #     print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
-    #     print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
-    #     print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
-    #     print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
-    #     local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
-    #     print("local finite approximation", local_finite_approx)
-    #     self.assertAlmostEqual(gradient_step[0], local_finite_approx)
-
     def test_regression(self):
-        model = ll.LogLinearModel()
+        model = nn.NeuralNetwork()
         model.fit(self.train_ranking,self.train_ranking_inverse,self.train_inst,self.train_performances,lambda_value=0,regression_loss="Squared")        
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))
             print("\n")
-            print("True Ranking", self.test_ranking.loc[index].values)
-            print("Predicted Ranking", model.predict_ranking(row.values))
-            print("\n")
+        #     print("True Ranking", self.test_ranking.loc[index].values)
+        #     print("Predicted Ranking", model.predict_ranking(row.values))
+        #     print("\n")
 
 
 if __name__ == "__main__":
