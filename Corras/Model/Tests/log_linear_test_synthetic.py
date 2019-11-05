@@ -1,5 +1,7 @@
 import unittest
-import numpy as np
+import jax.numpy as np
+import numpy as onp
+from jax import random
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
@@ -12,8 +14,8 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         self.train_size = 250
         self.test_size = 10
         self.noise_factor = 0.0
-        features_train = np.random.randint(low=0, high=30, size=(self.train_size,4))
-        features_test = np.random.randint(low=0, high=30, size=(self.test_size,4))
+        features_train = np.asarray(onp.random.randint(low=0, high=30, size=(self.train_size,4)))
+        features_test = np.asarray(onp.random.randint(low=0, high=30, size=(self.test_size,4)))
         def create_performances(feature_list):
             performances = []
             for features in feature_list:

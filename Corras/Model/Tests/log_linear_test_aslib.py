@@ -1,5 +1,5 @@
 import unittest
-import numpy as np
+import jax.numpy as np
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
@@ -45,7 +45,6 @@ class TestLogLinearModelASLib(unittest.TestCase):
         model = ll.LogLinearModel()
         tensor = util.construct_ordered_tensor(self.train_inst,self.train_performances)
         print(tensor)
-        tensor = tensor.sort()
         print(model.tensor_nll(None, tensor))
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
-import numpy as np
+import jax.numpy as np
+from jax import grad
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
@@ -239,8 +240,8 @@ class LogLinearModel:
 
         flat_weights = self.weights.flatten()
         print(flat_weights.shape)
-        result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=None, options={"maxiter": 100, "disp": True})
+        result = minimize(f, flat_weights, method="BFGS",
+                          jac=grad(f), options={"maxiter": 1000, "disp": True})
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
         print("Weights", self.weights)
