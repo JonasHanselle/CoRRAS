@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import aslib_scenario.aslib_scenario as scenario
-
+import Corras.Util.ranking_util as util
 
 class ASRankingScenario(scenario.ASlibScenario):
     """Extension of the ASlibScenario provided by Marius Lindauer. Allows to store rankings.
@@ -10,6 +10,7 @@ class ASRankingScenario(scenario.ASlibScenario):
     def __init__(self):
         super(ASRankingScenario, self).__init__()
         self.performance_rankings = None
+        # TODO remove inverse rankings, not needed anymore
         self.performance_rankings_inverse = None
 
     def compute_rankings(self, break_up_ties : bool = False):
@@ -22,11 +23,10 @@ class ASRankingScenario(scenario.ASlibScenario):
             self.logger.error(
                 "Currently we only support runtime as a performance measure!")
         else:
-            performances = self.performance_data
-            rankings = performances.rank(axis=1).astype(int)
-            self.performance_rankings = rankings
-            inverse_rankings = np.add(self.performance_rankings.values.argsort(),1) 
-            self.performance_rankings_inverse = pd.DataFrame(data=inverse_rankings, index=self.performance_rankings.index, columns=self.performance_rankings.columns)
+            self.performance_rankings, self.performance_rankings_inverse = util.compute_rankings(self.performance_data)
+        if break_up_ties:
+            self.performance_rankings = util.break_ties_of_ranking(self.performance_rankings)
+            self.performance_rankings_inverse = util.break_ties_of_ranking(self.performance_rankings_inverse)
 
     def get_split(self, indx=1):
         """Get split for cross-validation TODO inherit docstring
@@ -49,12 +49,10 @@ class ASRankingScenario(scenario.ASlibScenario):
         return test, training
 
     def remove_duplicates(self):
+        """deprecated
+        """
         if self.performance_rankings is None:
             self.logger.error("No rankings computed!")
-            return None
         else:
             # remove duplicate rankings
-            for index, row in self.performance_rankings.iterrows():
-                if len(row) > len(set(row.tolist())):
-                    self.performance_rankings.drop(index, inplace=True)
-                    self.performance_rankings_inverse.drop(index, inplace=True)
+            util.remove_duplicates(self.performance_rankings, self.performance_rankings_inverse)

@@ -7,11 +7,11 @@ class ASLibRankingTest(unittest.TestCase):
         scenario = scen.ASRankingScenario()
         scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
         scenario.compute_rankings()
-        scenario.remove_duplicates()
         print(scenario.performance_rankings)
-        print(scenario.performance_rankings_inverse)
-
-
+        # print(scenario.performance_rankings_inverse)
+        scenario.compute_rankings(True)
+        print(scenario.performance_rankings)
+        # print(scenario.performance_rankings_inverse)
 
 if __name__ == "__main__":
     unittest.main()
