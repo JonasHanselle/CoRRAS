@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
+import Corras.Util.ranking_util as util
 from sklearn.preprocessing import StandardScaler
 
 class TestLogLinearModelASLib(unittest.TestCase):
@@ -28,18 +29,24 @@ class TestLogLinearModelASLib(unittest.TestCase):
         self.train_ranking_inverse = self.train_scen.performance_rankings_inverse
         self.test_ranking_inverse = self.test_scen.performance_rankings_inverse
 
-    def test_fit(self):
-        model = ll.LogLinearModel()
-        model.fit(self.train_ranking,self.train_ranking_inverse,self.train_inst,self.train_performances,lambda_value=0,regression_loss="Squared")        
-        for index, row in self.test_ranking.iterrows():
-            instance_values = self.test_inst.loc[index].values
-            print("True Performances", self.test_performances.loc[index].values)
-            print("Predicted Performances", model.predict_performances(instance_values))
-            print("\n")
-            print("True Ranking", self.test_ranking.loc[index].values)
-            print("Predicted Ranking", model.predict_ranking(instance_values))
-            print("\n")
+    # def test_fit(self):
+    #     model = ll.LogLinearModel()
+    #     model.fit(self.train_ranking,self.train_ranking_inverse,self.train_inst,self.train_performances,lambda_value=0,regression_loss="Squared")        
+    #     for index, row in self.test_ranking.iterrows():
+    #         instance_values = self.test_inst.loc[index].values
+    #         print("True Performances", self.test_performances.loc[index].values)
+    #         print("Predicted Performances", model.predict_performances(instance_values))
+    #         print("\n")
+    #         print("True Ranking", self.test_ranking.loc[index].values)
+    #         print("Predicted Ranking", model.predict_ranking(instance_values))
+    #         print("\n")
 
+    def test_nll(self):
+        model = ll.LogLinearModel()
+        tensor = util.construct_ordered_tensor(self.train_inst,self.train_performances)
+        print(tensor)
+        tensor = tensor.sort()
+        print(model.tensor_nll(None, tensor))
 
 if __name__ == "__main__":
     unittest.main()

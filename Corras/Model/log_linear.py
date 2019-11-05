@@ -194,6 +194,17 @@ class LogLinearModel:
     #     result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
     #     print("Result", result)
 
+
+    def tensor_nll(self, weights, dataset_tensor):
+        row = dataset_tensor[dataset_tensor[:,:,-1] >= 0]
+        features = row[:,:-2]
+        labels = row[:,-1]
+        performances = row[:,-2]
+        print("features",features)
+        print("labels",labels)
+        print("performances",performances)
+        return 0
+
     def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances : pd.DataFrame, lambda_value = 0.5, regression_loss="Absolute"):
         """[summary]
 
