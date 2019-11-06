@@ -1,5 +1,5 @@
 import unittest
-import jax.numpy as np
+import numpy as np
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll

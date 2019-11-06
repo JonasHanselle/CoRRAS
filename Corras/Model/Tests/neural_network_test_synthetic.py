@@ -9,7 +9,7 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestNeuralNetworkSynthetic, self).__init__(*args, **kwargs)
-        self.train_size = 250
+        self.train_size = 25000
         self.test_size = 10
         self.noise_factor = 0.0
         features_train = np.random.randint(low=0, high=30, size=(self.train_size,4))
@@ -17,10 +17,13 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
         def create_performances(feature_list):
             performances = []
             for features in feature_list:
-                # generate performances as functions linear in the features
+                # generate performances as functions non-linear in the features
                 performance_1 = 5 * features[0] + 2 * features[1] + 7 * features[2] + 42
                 performance_2 =  3 * features[1] + 5 * features[3] + 14
                 performance_3 = 2 * features[0] + 4 * features[1] + 11 * features[3] + 77
+                # performance_1 = 5 * features[0] * features[2] + 2 * features[1] * features[0] + 7 * features[2] + 42
+                # performance_2 =  3 * features[1] + 5 * features[3] * features[2] + 14
+                # performance_3 = 2 * features[0] * features[3] + 4 * features[1] * features[2] + 11 * features[3] + 77
                 performances.append([performance_1, performance_2, performance_3])
             return performances
 
@@ -34,8 +37,8 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
         rankings_test = np.argsort(np.argsort(np.asarray(performances_test))) + 1
 
         scaler = StandardScaler()
-        features_train = scaler.fit_transform(features_train)
-        features_test = scaler.transform(features_test)
+        # features_train = scaler.fit_transform(features_train)
+        # features_test = scaler.transform(features_test)
 
         self.train_inst = pd.DataFrame(data=features_train,columns=["a","b","c","d"])
         self.test_inst = pd.DataFrame(data=features_test,columns=["a","b","c","d"])

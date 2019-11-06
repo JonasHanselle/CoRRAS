@@ -1,15 +1,16 @@
-import jax.numpy as np
-from jax import grad
+import autograd.numpy as np
+from autograd import grad
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
 
-class RegressionAbsoluteError:
+class LogLinearModel:
 
     def __init__(self):
-        pass
+        self.weights = None
+        self.dataset = None
 
-    def error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+    def absolute_error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Compute absolute error for regression
         
         Arguments:
@@ -28,25 +29,9 @@ class RegressionAbsoluteError:
             inverse_utilities = np.reciprocal(utilities)
             loss += np.sum(np.absolute(np.subtract(current_performances,inverse_utilities)))
         return loss
-        
-    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
-        """[summary]
-        
-        Arguments:
-            rankings {pd.DataFrame} -- [description]
-            inverse_rankings {pd.DataFrame} -- [description]
-            features {pd.DataFrame} -- [description]
-            weights {np.ndarray} -- [description]
-        """
-        pass
 
-
-class RegressionSquaredError:
-
-    def __init__(self):
-        pass
-
-    def error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+    
+    def squared_error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Compute squared error for regression
         
         Arguments:
@@ -65,22 +50,6 @@ class RegressionSquaredError:
             inverse_utilities = np.reciprocal(utilities)
             loss += np.sum(np.square(np.subtract(current_performances,inverse_utilities)))
         return loss
-        
-    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
-        """[summary]
-        
-        Arguments:
-            rankings {pd.DataFrame} -- [description]
-            inverse_rankings {pd.DataFrame} -- [description]
-            features {pd.DataFrame} -- [description]
-            weights {np.ndarray} -- [description]
-        """
-        pass
-
-class PLNegativeLogLikelihood:
-
-    def __init__(self):
-        pass
 
     def negative_log_likelihood(self, rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Compute NLL w.r.t. the data in the given batch and the given weights
@@ -107,94 +76,9 @@ class PLNegativeLogLikelihood:
                     # compute utility of remaining labels
                     remaining_sum += np.exp(
                         np.dot(weights[ranking[j]-1], feature_values))
-                inner_sum += np.log(
-                    np.exp(np.dot(weights[ranking[m]-1], feature_values))) - np.log(remaining_sum)
+                inner_sum += np.log(remaining_sum) - np.dot(weights[ranking[m]-1], feature_values)
             outer_sum += inner_sum
-        return -outer_sum
-
-    def first_derivative(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
-        """Computes the the gradient vectors of the nll 
-
-        Arguments:
-            rankings {pd.DataFrame} -- [description]
-            features {pd.DataFrame} -- [description]
-            weights {np.ndarray} -- [description]
-
-        Returns:
-            [type] -- [description]
-        """
-        gradient = np.zeros_like(weights)
-        for a in range(0, gradient.shape[0]):
-            for index, ranking in rankings.iterrows():
-                current_features = np.hstack((features.loc[index].values, [1]))
-                # print("ranking",ranking.values)
-                # print("inverse ranking", inverse_rankings.loc[index].values,"\n") 
-                if inverse_rankings.loc[index].values[a] >= 1:
-                    gradient[a] += current_features
-            for index, ranking in rankings.iterrows():
-                current_features = np.hstack((features.loc[index].values, [1]))
-                for m in range(0, len(ranking)):
-                    if inverse_rankings.loc[index].values[a] >= m:
-                        denominator = 0
-                        for j in range(m, len(ranking)):
-                            denominator += np.exp(
-                                np.dot(weights[ranking[j]-1], current_features))
-                        numerator = np.exp(
-                            np.dot(weights[a], current_features)) * current_features
-                        fraction = numerator / denominator
-                        # print("numerator", numerator)
-                        # print("denominator", denominator)
-                        # print("fraction", fraction, "\n\n")
-                        gradient[a] -= fraction
-        return -gradient
-
-    def second_derivative(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
-        """Computes the the gradient vector of the nll 
-
-        Arguments:
-            rankings {pd.DataFrame} -- [description]
-            features {pd.DataFrame} -- [description]
-            weights {np.ndarray} -- [description]
-
-        Returns:
-            [type] -- [description]
-        """
-        hessian = np.zeros(shape=(weights.shape[1], weights.shape[1]))
-        return hessian
-
-
-class LogLinearModel:
-
-    def __init__(self):
-        self.weights = None
-        self.dataset = None
-
-    # def fit(self, dataset: ASRankingScenario):
-    #     """Fits a label ranking model based on a log-linear utility function.
-
-    #     Arguments:
-    #         data {ASRankingScenario} -- Training data set
-    #     """
-    #     self.dataset = dataset
-    #     num_labels = len(dataset.algorithms)
-    #     num_features = len(dataset.features)
-    #     self.weights = np.zeros(shape=(num_labels, num_features))
-    #     nll = PLNegativeLogLikelihood()
-
-    #     # minimize nnl
-    #     def f(x):
-    #         x = np.reshape(x,(num_labels, num_features))
-    #         return nll.negative_log_likelihood(dataset.performance_rankings,dataset.feature_data, x)
-
-    #     def f_prime(x):
-    #         x = np.reshape(x,(num_labels, num_features))
-    #         return nll.first_derivative(dataset.performance_rankings, dataset.performance_rankings_inverse,dataset.feature_data,x).flatten()
-
-    #     flat_weights = self.weights.flatten()
-    #     print(flat_weights.shape)
-    #     result = minimize(f, flat_weights, method="L-BFGS-B", jac=None, options={"maxiter" : 10, "disp" : True})
-    #     print("Result", result)
-
+        return outer_sum
 
     def tensor_nll(self, weights, dataset_tensor):
         row = dataset_tensor[dataset_tensor[:,:,-1] >= 0]
@@ -222,26 +106,25 @@ class LogLinearModel:
         num_features = len(features.columns)+1
 
         self.weights = np.zeros(shape=(num_labels, num_features))
-        nll = PLNegativeLogLikelihood()
-        re = None
+        nll = self.negative_log_likelihood
+        reg_loss = None
         if regression_loss == "Absolute":
-            re = RegressionAbsoluteError()
+            reg_loss = self.absolute_error
         elif regression_loss == "Squared":
-            re = RegressionSquaredError()
+            reg_loss = self.squared_error
 
-        # minimize nnl
+        # minimize loss function
         def f(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
-                return re.error(performances,features,x)
+                return reg_loss(performances,features,x)
             elif lambda_value == 1:
-                return nll.negative_log_likelihood(rankings, features, x)   
-            return lambda_value * nll.negative_log_likelihood(rankings, features, x) + (1 - lambda_value) * re.error(performances,features,x)
+                return nll(rankings, features, x)
+            return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances,features,x) + np.sum(x**2)
 
         flat_weights = self.weights.flatten()
-        print(flat_weights.shape)
-        result = minimize(f, flat_weights, method="BFGS",
-                          jac=grad(f), options={"maxiter": 1000, "disp": True})
+        result = minimize(f, flat_weights, method="L-BFGS-B",
+                          jac=grad(f), options={"maxiter": 100, "disp": True})
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
         print("Weights", self.weights)

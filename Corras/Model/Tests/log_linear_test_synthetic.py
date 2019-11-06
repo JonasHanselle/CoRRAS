@@ -1,7 +1,6 @@
 import unittest
-import jax.numpy as np
+import autograd.numpy as np
 import numpy as onp
-from jax import random
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
