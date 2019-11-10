@@ -82,3 +82,12 @@ def construct_ordered_tensor(features : pd.DataFrame, performances : pd.DataFram
             tensor[i,l,-1] = row.iloc[l]
     print(tensor.shape)
     return tensor
+
+def custom_tau(ranking_a, ranking_b):
+    """Custom implementaion of the kendalls tau rank correlation coefficient
+    that allows computation on partial rankings. -1 indicates that 
+    
+    Arguments:
+        ranking_a {[type]} -- [description]
+        ranking_b {[type]} -- [description]
+    """

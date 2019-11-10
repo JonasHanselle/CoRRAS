@@ -1,23 +1,23 @@
 import autograd.numpy as np
-from autograd import grad
+from autograd import grad, hessian
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
+
 
 class LogLinearModel:
 
     def __init__(self):
         self.weights = None
-        self.dataset = None
 
-    def absolute_error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+    def absolute_error(self, performances: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Compute absolute error for regression
-        
+
         Arguments:
             performances {pd.DataFrame} -- [description]
             features {pd.DataFrame} -- [description]
             weights {np.ndarray} -- [description]
-        
+
         Returns:
             [type] -- [description]
         """
@@ -27,18 +27,17 @@ class LogLinearModel:
             feature_values = np.hstack((features.loc[index].values, [1]))
             utilities = np.exp(np.dot(weights, feature_values))
             inverse_utilities = np.reciprocal(utilities)
-            loss += np.sum(np.absolute(np.subtract(current_performances,inverse_utilities)))
+            loss += np.sum(np.absolute(np.subtract(current_performances, inverse_utilities)))
         return loss
 
-    
-    def squared_error(self, performances : pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+    def squared_error(self, performances: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Compute squared error for regression
-        
+
         Arguments:
             performances {pd.DataFrame} -- [description]
             features {pd.DataFrame} -- [description]
             weights {np.ndarray} -- [description]
-        
+
         Returns:
             [type] -- [description]
         """
@@ -48,7 +47,8 @@ class LogLinearModel:
             feature_values = np.hstack((features.loc[index].values, [1]))
             utilities = np.exp(np.dot(weights, feature_values))
             inverse_utilities = np.reciprocal(utilities)
-            loss += np.sum(np.square(np.subtract(current_performances,inverse_utilities)))
+            loss += np.sum(np.square(np.subtract(current_performances,
+                                                 inverse_utilities)))
         return loss
 
     def negative_log_likelihood(self, rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
@@ -64,33 +64,34 @@ class LogLinearModel:
         """
         outer_sum = 0
         for index, ranking in rankings.iterrows():
-            # print("index", index)
             # add one column for bias
             feature_values = np.hstack((features.loc[index].values, [1]))
-            # print("features", feature_values)
-            # print("feature values",  feature_values)
             inner_sum = 0
+            ranking = ranking.values
             for m in range(0, len(ranking)):
+            # if ranking[m] > 0:
                 remaining_sum = 0
                 for j in range(m, len(ranking)):
                     # compute utility of remaining labels
-                    remaining_sum += np.exp(
-                        np.dot(weights[ranking[j]-1], feature_values))
-                inner_sum += np.log(remaining_sum) - np.dot(weights[ranking[m]-1], feature_values)
+                    # if ranking[j] > 0:
+                        remaining_sum += np.exp(
+                            np.dot(weights[ranking[j]-1], feature_values))
+                inner_sum += np.log(remaining_sum) - \
+                    np.dot(weights[ranking[m]-1], feature_values)
             outer_sum += inner_sum
         return outer_sum
 
     def tensor_nll(self, weights, dataset_tensor):
-        row = dataset_tensor[dataset_tensor[:,:,-1] >= 0]
-        features = row[:,:-2]
-        labels = row[:,-1]
-        performances = row[:,-2]
-        print("features",features)
-        print("labels",labels)
-        print("performances",performances)
+        row = dataset_tensor[dataset_tensor[:, :, -1] >= 0]
+        features = row[:, :-2]
+        labels = row[:, -1]
+        performances = row[:, -2]
+        print("features", features)
+        print("labels", labels)
+        print("performances", performances)
         return 0
 
-    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances : pd.DataFrame, lambda_value = 0.5, regression_loss="Absolute"):
+    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances: pd.DataFrame, lambda_value=0.5, regression_loss="Absolute"):
         """[summary]
 
         Arguments:
@@ -105,7 +106,8 @@ class LogLinearModel:
         # add one column for bias
         num_features = len(features.columns)+1
 
-        self.weights = np.zeros(shape=(num_labels, num_features))
+        self.weights = np.ones(
+            shape=(num_labels, num_features)) / num_features * num_labels
         nll = self.negative_log_likelihood
         reg_loss = None
         if regression_loss == "Absolute":
@@ -113,37 +115,27 @@ class LogLinearModel:
         elif regression_loss == "Squared":
             reg_loss = self.squared_error
 
+        print("abc")
+        print("reg loss", reg_loss(performances, features, self.weights))
+        print("def")
         # minimize loss function
         def f(x):
             x = np.reshape(x, (num_labels, num_features))
-            if lambda_value == 0:
-                return reg_loss(performances,features,x)
-            elif lambda_value == 1:
-                return nll(rankings, features, x)
-            return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances,features,x) + np.sum(x**2)
+            # if lambda_value == 0:
+            return reg_loss(performances, features, x)
+            # elif lambda_value == 1:
+            #     return nll(rankings, features, x)
+            # return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
+
+        jac = grad(f)
 
         flat_weights = self.weights.flatten()
         result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=grad(f), options={"maxiter": 100, "disp": True})
+                          jac=None, options={"maxiter": 100, "disp": True})
+
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
         print("Weights", self.weights)
-
-    def predict(self, features: np.ndarray):
-        """Predict a label ranking.
-
-        Arguments:
-            features {np.ndarray} -- Instance feature values
-
-        Returns:
-            pd.DataFrame -- Ranking of algorithms
-        """
-        # compute utility scores
-        features = np.hstack((features, [1]))
-        utility_scores = np.exp(np.dot(self.weights, features))
-        ranking = np.argsort(np.argsort(utility_scores))+1
-        ranking = ranking[::-1]
-        return ranking
 
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.
@@ -171,4 +163,4 @@ class LogLinearModel:
         # compute utility scores
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
-        return np.argsort(np.argsort(utility_scores)[::-1]) + 1  
+        return np.argsort(np.argsort(utility_scores)[::-1]) + 1
