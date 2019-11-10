@@ -115,9 +115,6 @@ class LogLinearModel:
         elif regression_loss == "Squared":
             reg_loss = self.squared_error
 
-        print("abc")
-        print("reg loss", reg_loss(performances, features, self.weights))
-        print("def")
         # minimize loss function
         def f(x):
             x = np.reshape(x, (num_labels, num_features))
