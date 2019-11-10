@@ -83,3 +83,4 @@ results = pd.DataFrame(data=result_data, columns=[
                        "split", "train_portion", "tau", "lambda"])
 sb.lineplot(x="train_portion", y="tau", hue="lambda", data=results)
 plt.show()
+print("avg kendalls tau:", results["tau"].mean())

@@ -16,12 +16,11 @@ rankings = df[ranking_columns]
 print(features)
 print(rankings)
 
-kf = KFold(n_splits=3 , shuffle=True, random_state=10)
+kf = KFold(n_splits=10 , shuffle=True, random_state=5)
 split = next(kf.split(df), None)
 
-taus = []
-training_portions = np.linspace(start=0, stop=1, num=5)
-# training_portions = [1.0]
+# training_portions = np.linspace(start=0, stop=1, num=5)
+training_portions = [1.0]
 result_data = []
 
 for split_num, split in enumerate(kf.split(df)):
@@ -50,10 +49,10 @@ for split_num, split in enumerate(kf.split(df)):
             predicted_ranking = model.predict_ranking(row.values)
             true_ranking = test_rankings.loc[index].values
             tau = kendalltau(predicted_ranking,true_ranking).correlation
-            print(tau)
-            current_taus.append(tau)
             result_data.append([split_num, portion, tau]) 
 
 results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau"])
+print("avg kendalls tau:", results["tau"].mean())
 sb.lineplot(x="train_portion", y="tau", data=results)
 plt.show()
+

@@ -121,11 +121,11 @@ class LogLinearModel:
         # minimize loss function
         def f(x):
             x = np.reshape(x, (num_labels, num_features))
-            # if lambda_value == 0:
-            return reg_loss(performances, features, x)
-            # elif lambda_value == 1:
-            #     return nll(rankings, features, x)
-            # return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
+            if lambda_value == 0:
+                return reg_loss(performances, features, x)
+            elif lambda_value == 1:
+                return nll(rankings, features, x)
+            return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
         jac = grad(f)
 
