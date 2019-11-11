@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 
 
-df = pd.read_table(sep="\t",filepath_or_buffer="LabelRankingData/iris_dense.txt")
+df = pd.read_table(sep="\t",filepath_or_buffer="LabelRankingData/glass_dense.txt")
 df = df.iloc[1:]
 feature_columns = [x for x in df.columns if x[0]=="A"]
 ranking_columns = [x for x in df.columns if x[0]=="L"]
@@ -53,6 +53,6 @@ for split_num, split in enumerate(kf.split(df)):
 
 results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau"])
 print("avg kendalls tau:", results["tau"].mean())
-sb.lineplot(x="train_portion", y="tau", data=results)
+# sb.lineplot(x="train_portion", y="tau", data=results)
 plt.show()
 

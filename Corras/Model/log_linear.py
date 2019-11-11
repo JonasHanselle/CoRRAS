@@ -91,7 +91,7 @@ class LogLinearModel:
         print("performances", performances)
         return 0
 
-    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances: pd.DataFrame, lambda_value=0.5, regression_loss="Absolute"):
+    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances: pd.DataFrame, lambda_value=0.5, regression_loss="Absolute", maxiter=100):
         """[summary]
 
         Arguments:
@@ -128,7 +128,7 @@ class LogLinearModel:
 
         flat_weights = self.weights.flatten()
         result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=None, options={"maxiter": 100, "disp": True})
+                          jac=jac, options={"maxiter": maxiter, "disp": True})
 
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))

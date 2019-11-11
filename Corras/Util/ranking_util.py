@@ -1,31 +1,28 @@
 import numpy as np
 import pandas as pd
 import itertools as it
+from scipy.stats import kendalltau
 
 def compute_rankings(performances):
     """Computes the rankings according to the performance an algorithm achieved.
     Currently only runtime is supported as a performance measure.
     """
     rankings = performances.rank(axis=1, method="min").astype(int)
-    inverse_rankings_array = np.add(rankings.values.argsort(),1) 
-    inverse_rankings = pd.DataFrame(data=inverse_rankings_array, index=rankings.index, columns=rankings.columns)
-    return rankings, inverse_rankings
+    return rankings
 
-def remove_duplicates(rankings : pd.DataFrame, inverse_rankings : pd.DataFrame):
-    """Removes duplicate entries from rankings and inverse_rankings inplace
+def remove_duplicates(rankings : pd.DataFrame):
+    """Removes duplicate entries from rankings inplace
     
     Arguments:
         rankings {pd.DataFrame} -- Rankings
-        inverse_rankings {pd.DataFrame} -- Inverse Rankings
     """
-    if rankings is None or inverse_rankings is None:
+    if rankings is None:
         return 
     else:
         # remove duplicate rankings
         for index, row in rankings.iterrows():
             if len(row) > len(set(row.tolist())):
                 rankings.drop(index, inplace=True)
-                inverse_rankings.drop(index, inplace=True)
 
 def break_ties_of_ranking(ranking : pd.DataFrame):
     """Breaks up ties in a ranking. A ranking 1 2 3 3 
@@ -59,6 +56,26 @@ def break_ties_of_ranking(ranking : pd.DataFrame):
                 new_frame = new_frame.append(new_row)
     return new_frame.astype("int16")
 
+def ordering_to_ranking(ranking_series : pd.Series):
+    """Create a ranking from a DataFrame that has one 
+    column for each label and each entry corresponds to
+    the rank of that label in the ranking. -1 indicates
+    that the label is absent in the ranking. 
+    
+    Arguments:
+        rankings {pd.DataFrame} -- [description]
+    
+    Returns:
+        [type] -- [description]
+    """
+    ranking = [-1] * len(ranking_series)
+    for index, item in ranking_series.iteritems():
+        # set index of 
+        ranking[item-1] = index
+    short_ranking = [x for x in ranking if x > -1]
+    return ranking
+
+
 def construct_ordered_tensor(features : pd.DataFrame, performances : pd.DataFrame):
     """Constructs a N x M x (d + 2) tensor which is ordered according to the second dimension.
        N is the number of training examples
@@ -85,9 +102,17 @@ def construct_ordered_tensor(features : pd.DataFrame, performances : pd.DataFram
 
 def custom_tau(ranking_a, ranking_b):
     """Custom implementaion of the kendalls tau rank correlation coefficient
-    that allows computation on partial rankings. -1 indicates that 
+    that allows computation on partial rankings. Elements that are not 
+    present in both of the rankings are not considered for the computation
+    of kendalls tau
     
     Arguments:
         ranking_a {[type]} -- [description]
         ranking_b {[type]} -- [description]
     """
+    elements = set(ranking_a).intersection(ranking_b)
+    if len(elements) < 2:
+        return 0
+    ranking_a = [x for x in ranking_a if x in elements]
+    ranking_b = [x for x in ranking_b if x in elements]
+    return kendalltau(ranking_a, ranking_b).correlation

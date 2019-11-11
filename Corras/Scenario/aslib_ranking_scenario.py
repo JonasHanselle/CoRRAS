@@ -10,8 +10,6 @@ class ASRankingScenario(scenario.ASlibScenario):
     def __init__(self):
         super(ASRankingScenario, self).__init__()
         self.performance_rankings = None
-        # TODO remove inverse rankings, not needed anymore
-        self.performance_rankings_inverse = None
 
     def compute_rankings(self, break_up_ties : bool = False):
         """Computes the rankings according to the performance an algorithm achieved.
@@ -23,10 +21,9 @@ class ASRankingScenario(scenario.ASlibScenario):
             self.logger.error(
                 "Currently we only support runtime as a performance measure!")
         else:
-            self.performance_rankings, self.performance_rankings_inverse = util.compute_rankings(self.performance_data)
+            self.performance_rankings = util.compute_rankings(self.performance_data)
         if break_up_ties:
             self.performance_rankings = util.break_ties_of_ranking(self.performance_rankings)
-            self.performance_rankings_inverse = util.break_ties_of_ranking(self.performance_rankings_inverse)
 
     def get_split(self, indx=1):
         """Get split for cross-validation TODO inherit docstring
@@ -55,4 +52,4 @@ class ASRankingScenario(scenario.ASlibScenario):
             self.logger.error("No rankings computed!")
         else:
             # remove duplicate rankings
-            util.remove_duplicates(self.performance_rankings, self.performance_rankings_inverse)
+            util.remove_duplicates(self.performance_rankings)
