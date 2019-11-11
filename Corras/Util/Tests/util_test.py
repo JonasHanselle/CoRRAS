@@ -14,16 +14,31 @@ class UtilTests(unittest.TestCase):
 
     # def test_tensor_construction(self):
     #     scenario = scen.ASRankingScenario()
-    #     scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
-    #     scenario.compute_rankings()
+    #     scenario.read_scenario("aslib_data-aslib-v4.0/SAT12-RAND")
     #     features = scenario.feature_data
     #     performances = scenario.performance_data
-    #     print(util.construct_ordered_tensor(features, performances))
+    #     tensor = util.construct_ordered_tensor(features, performances)
+    #     print(tensor)
+    #     print(tensor.size * tensor.itemsize)
 
-    def test_ranking_conversion(self):
-        
-        scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
-        scenario.compute_rankings()
+    def test_np_representation_test(self):
+        scenario = scen.ASRankingScenario()
+        scenario.read_scenario("aslib_data-aslib-v4.0/SAT12-RAND")
+        features = scenario.feature_data
+        performances = scenario.performance_data
+        np_f, np_p, np_r = util.construct_numpy_representation(features,performances)
+        print(np_f.size * np_f.itemsize + np_p.size * np_p.itemsize + np_r.size * np_r.itemsize)
+        print("features shape", np_f.shape)
+        print("performances shape", np_p.shape)
+        print("rankings shape", np_r.shape)
+    # def test_ranking_conversion(self):
+    #     scenario = scen.ASRankingScenario()
+    #     scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
+    #     scenario.compute_rankings(True)
+    #     # scenario.remove_duplicates()
+    #     # print(scenario.performance_rankings)
+    #     print(scenario.performance_rankings.iloc[2])
+    #     print(util.ordering_to_ranking(scenario.performance_rankings.iloc[2]))
 
     # def test_custom_tau(self):
     #     ranking_a = [1,3,5,7]

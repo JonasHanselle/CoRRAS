@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sb
 
 
-df = pd.read_table(sep="\t",filepath_or_buffer="LabelRankingData/glass_dense.txt")
+df = pd.read_table(sep="\t",filepath_or_buffer="LabelRankingData/iris_dense.txt")
 df = df.iloc[1:]
 feature_columns = [x for x in df.columns if x[0]=="A"]
 ranking_columns = [x for x in df.columns if x[0]=="L"]
@@ -41,12 +41,12 @@ for split_num, split in enumerate(kf.split(df)):
         print("len", len(train_features), len(train_rankings))
 
         model = log_linear.LogLinearModel()
-        model.fit(train_rankings,None,train_features,None,lambda_value=1,regression_loss="Squared")
+        model.fit(train_rankings,None,train_features,None,lambda_value=1,regression_loss="Squared", maxiter=10000)
 
         current_taus = []
 
-        for index, row in test_features.iterrows():
-            predicted_ranking = model.predict_ranking(row.values)
+        for index, row in test_features.itertuples():
+            predicted_ranking = model.predict_ranking(row)
             true_ranking = test_rankings.loc[index].values
             tau = kendalltau(predicted_ranking,true_ranking).correlation
             result_data.append([split_num, portion, tau]) 

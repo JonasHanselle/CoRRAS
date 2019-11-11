@@ -22,8 +22,8 @@ class LogLinearModel:
             [type] -- [description]
         """
         loss = 0
-        for index, row in performances.iterrows():
-            current_performances = row.values
+        for row in performances.itertuples():
+            current_performances = row
             feature_values = np.hstack((features.loc[index].values, [1]))
             utilities = np.exp(np.dot(weights, feature_values))
             inverse_utilities = np.reciprocal(utilities)
@@ -42,8 +42,8 @@ class LogLinearModel:
             [type] -- [description]
         """
         loss = 0
-        for index, row in performances.iterrows():
-            current_performances = row.values
+        for index, row in performances.itertuples():
+            current_performances = row
             feature_values = np.hstack((features.loc[index].values, [1]))
             utilities = np.exp(np.dot(weights, feature_values))
             inverse_utilities = np.reciprocal(utilities)
@@ -63,11 +63,11 @@ class LogLinearModel:
             [float64] -- Negative log-likelihood
         """
         outer_sum = 0
-        for index, ranking in rankings.iterrows():
+        for index, ranking in rankings.itertuples():
             # add one column for bias
             feature_values = np.hstack((features.loc[index].values, [1]))
             inner_sum = 0
-            ranking = ranking.values
+            # ranking = ranking.values
             for m in range(0, len(ranking)):
             # if ranking[m] > 0:
                 remaining_sum = 0
@@ -81,17 +81,12 @@ class LogLinearModel:
             outer_sum += inner_sum
         return outer_sum
 
-    def tensor_nll(self, weights, dataset_tensor):
-        row = dataset_tensor[dataset_tensor[:, :, -1] >= 0]
-        features = row[:, :-2]
-        labels = row[:, -1]
-        performances = row[:, -2]
-        print("features", features)
-        print("labels", labels)
-        print("performances", performances)
-        return 0
+    def fast_nll(self, weights, features, orderings):
+        nll = 0
+        # utilities = 
+        return nll
 
-    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances: pd.DataFrame, lambda_value=0.5, regression_loss="Absolute", maxiter=100):
+    def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances: pd.DataFrame, lambda_value=0.5, regression_loss="Absolute", maxiter=1000):
         """[summary]
 
         Arguments:
@@ -128,7 +123,7 @@ class LogLinearModel:
 
         flat_weights = self.weights.flatten()
         result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=jac, options={"maxiter": maxiter, "disp": True})
+                          jac=jac, options={"maxiter": maxiter, "disp": False})
 
         print("Result", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
