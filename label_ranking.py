@@ -39,8 +39,8 @@ for split_num, split in enumerate(kf.split(df)):
         train_features_np = train_features[:int(portion*len(train_features))].values
         train_rankings_np = train_rankings[:int(portion*len(train_rankings))].values
 
-        # train_rankings_np = np.asarray([[1,2,3],[2,1,3],[3,2,1]])
-        # train_features_np = train_features_np[:3]
+        train_rankings_np = np.asarray([[1,2,3],[2,1,3],[3,2,1]])
+        train_features_np = train_features_np[:3]
         
         if(len(train_rankings) == 0):
             continue
@@ -49,19 +49,19 @@ for split_num, split in enumerate(kf.split(df)):
 
         model = log_linear.LogLinearModel()
         # model.fit(train_rankings,None,train_features,None,lambda_value=1,regression_loss="Squared", maxiter=100)
-        model.fit_np(train_rankings_np,None,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=100)
-        # nll = model.vectorized_nll(train_rankings_np,train_features_np,np.random.rand(train_features_np.shape[1]+1,train_rankings_np.shape[1]))
+        # model.fit_np(train_rankings_np,None,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=100)
+        nll = model.vectorized_nll(train_rankings_np,train_features_np,np.random.rand(train_features_np.shape[1]+1,train_rankings_np.shape[1]))
         # print("nll", nll)
         current_taus = []
 
-        for index, row in test_features.iterrows():
-            predicted_ranking = model.predict_ranking(row)
-            true_ranking = test_rankings.loc[index].values
-            tau = kendalltau(predicted_ranking,true_ranking).correlation
-            result_data.append([split_num, portion, tau]) 
+#         for index, row in test_features.iterrows():
+#             predicted_ranking = model.predict_ranking(row)
+#             true_ranking = test_rankings.loc[index].values
+#             tau = kendalltau(predicted_ranking,true_ranking).correlation
+#             result_data.append([split_num, portion, tau]) 
 
-results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau"])
-print("avg kendalls tau:", results["tau"].mean())
-# sb.lineplot(x="train_portion", y="tau", data=results)
-plt.show()
+# results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau"])
+# print("avg kendalls tau:", results["tau"].mean())
+# # sb.lineplot(x="train_portion", y="tau", data=results)
+# plt.show()
 

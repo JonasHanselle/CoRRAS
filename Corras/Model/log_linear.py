@@ -105,8 +105,9 @@ class LogLinearModel:
         print("ordered weights", ordered_weights)
         print("features", features)
         # print(ordered_weights)
-        weighted_features = np.tensordot(ordered_weights, features.T, axes=(2,0))
-        
+        # weighted_features = np.tensordot(ordered_weights, features, axes=0)
+        weighted_features = np.inner(ordered_weights[0], features, )
+
         print("weighted_features", weighted_features)
         sum1 = np.sum(np.sum(weighted_features))
         utilities = np.exp(weighted_features)
