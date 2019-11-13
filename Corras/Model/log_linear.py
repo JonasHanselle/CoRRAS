@@ -1,5 +1,5 @@
-import autograd.numpy as np
-from autograd import grad, hessian
+import numpy as np
+# from autograd import grad, hessian
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
@@ -63,40 +63,21 @@ class LogLinearModel:
             [float64] -- Negative log-likelihood
         """
         outer_sum = 0
-        outer_sum_first = 0
         for index, ranking in rankings.iterrows():
             # add one column for bias
             feature_values = np.hstack((features.loc[index].values, [1]))
             inner_sum = 0
             ranking = np.argsort(ranking.values)
-            sum0 = 0
-            sum1 = 0
-            sum2 = 0
-            sum3 = 0
             for m in range(0, len(ranking)):
-            # if ranking[m] > 0:
                 remaining_sum = 0
                 for j in range(m, len(ranking)):
                     # compute utility of remaining labels
-                    # if ranking[j] > 0:
-                        print("utility", np.exp(
-                            np.dot(weights[ranking[j]], feature_values)))
                         remaining_sum += np.exp(
                             np.dot(weights[ranking[j]], feature_values))
-                print("remaining_sum", remaining_sum)
-                sum0 += np.log(remaining_sum)
-                print("log", np.log(remaining_sum))
-                sum1 += remaining_sum
-                sum2 += np.dot(weights[ranking[m]], feature_values)
-                print("weighted:", np.dot(weights[ranking[m]], feature_values))
                 inner_sum += np.log(remaining_sum) - \
                     np.dot(weights[ranking[m]], feature_values)
-                outer_sum_first += np.dot(weights[ranking[m]], feature_values)
-            print("inner_sum", inner_sum)
             outer_sum += inner_sum
-            print("sums", sum0, sum1, sum2)
         print("outer_sum", outer_sum)
-        print("outer_sum_all", outer_sum_first)
         return outer_sum
 
     def vectorized_nll(self, rankings, features, weights):
@@ -111,39 +92,21 @@ class LogLinearModel:
             [float64] -- Negative log-likelihood
         """
         nll = 0
-        # print("num_features", features.shape[1], "num_labels", rankings.shape[1], "weights", weights.shape)
-        # print("features",features)
-        # print("rankings",rankings)
-        # print("weights",weights)
         features = np.hstack((features,np.ones((features.shape[0],1))))
-        # print(features)
         ordered_weights = weights[np.argsort(rankings)]
-        # print("weights", weights)
-        # print("rankings", rankings)
-        # print("ordered weights", ordered_weights)
-        # print("features", features)
-        # print(ordered_weights)
-        # weighted_features = np.tensordot(ordered_weights, features, axes=0)
-        # for matrix in ordered_weights:
-        #     print("shape of weights", matrix.shape)
-        #     print("sum0", np.sum(np.dot(matrix, features.T), axis=0))
-        weighted_features = np.tensordot(ordered_weights,features, axes=(2,1))
-        print("weighted_features", weighted_features)
-        sum1 = np.sum(weighted_features,axis=1)
-        print("outer_sum_all_vect", sum1)
+
+        weighted_features = np.tensordot(ordered_weights,features, (2,1))
+        sum1 = np.sum(weighted_features,1)
         utilities = np.exp(weighted_features)
-        # print("utilities", utilities)
-        logs = np.zeros([rankings.shape[0], rankings.shape[1]])
+        new_logs = []
         for m in range(0,rankings.shape[1]):
-            logs[:,m] = np.log(np.sum(utilities[:,m:], axis=1))[0]
-        print("utilities", utilities)
-        print("utility sums ax0", np.sum(utilities, axis=0))
-        print("utility sums ax1", np.sum(utilities, axis=1))
-        print("logs",logs)
-        sum2 = np.sum(np.sum(logs))
-        print("sum2", sum2)
-        ll = sum1 - sum2
-        return -ll
+            new_logs.append(np.log(np.sum(utilities[:,m:], 1))[0])
+        new_logs = np.array(new_logs)
+        sum2 = np.sum(new_logs, 0)
+        ll = np.subtract(sum1, sum2)
+        outer_nll = - np.sum(ll, 1)[0]
+        print("outer_nll", outer_nll)
+        return outer_nll
 
     def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances: pd.DataFrame, lambda_value=0.5, regression_loss="Absolute", maxiter=1000):
         """[summary]
@@ -179,15 +142,15 @@ class LogLinearModel:
                 return nll(rankings, features, x)
             return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
-        jac = grad(f)
+        # jac = grad(f)
 
         flat_weights = self.weights.flatten()
         result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=jac, options={"maxiter": maxiter, "disp": True})
+                          jac=None, options={"maxiter": maxiter, "disp": True})
 
-        print("Result", result)
+        print("Result old", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
-        print("Weights", self.weights)
+        print("Weights old", self.weights)
 
 
     def fit_np(self, rankings, inverse_rankings, features, performances, lambda_value=0.5, regression_loss="Absolute", maxiter=1000):
@@ -223,15 +186,15 @@ class LogLinearModel:
                 return nll(rankings, features, x)
             return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
-        jac = grad(f)
+        # jac = grad(f)
 
         flat_weights = self.weights.flatten()
         result = minimize(f, flat_weights, method="L-BFGS-B",
                           jac=None, options={"maxiter": maxiter, "disp": True})
 
-        print("Result", result)
+        print("Result new", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
-        print("Weights", self.weights)
+        print("Weights new", self.weights)
 
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.
