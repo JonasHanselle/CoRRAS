@@ -63,22 +63,40 @@ class LogLinearModel:
             [float64] -- Negative log-likelihood
         """
         outer_sum = 0
+        outer_sum_first = 0
         for index, ranking in rankings.iterrows():
             # add one column for bias
             feature_values = np.hstack((features.loc[index].values, [1]))
             inner_sum = 0
             ranking = np.argsort(ranking.values)
+            sum0 = 0
+            sum1 = 0
+            sum2 = 0
+            sum3 = 0
             for m in range(0, len(ranking)):
             # if ranking[m] > 0:
                 remaining_sum = 0
                 for j in range(m, len(ranking)):
                     # compute utility of remaining labels
                     # if ranking[j] > 0:
+                        print("utility", np.exp(
+                            np.dot(weights[ranking[j]], feature_values)))
                         remaining_sum += np.exp(
                             np.dot(weights[ranking[j]], feature_values))
+                print("remaining_sum", remaining_sum)
+                sum0 += np.log(remaining_sum)
+                print("log", np.log(remaining_sum))
+                sum1 += remaining_sum
+                sum2 += np.dot(weights[ranking[m]], feature_values)
+                print("weighted:", np.dot(weights[ranking[m]], feature_values))
                 inner_sum += np.log(remaining_sum) - \
                     np.dot(weights[ranking[m]], feature_values)
+                outer_sum_first += np.dot(weights[ranking[m]], feature_values)
+            print("inner_sum", inner_sum)
             outer_sum += inner_sum
+            print("sums", sum0, sum1, sum2)
+        print("outer_sum", outer_sum)
+        print("outer_sum_all", outer_sum_first)
         return outer_sum
 
     def vectorized_nll(self, rankings, features, weights):
@@ -99,25 +117,33 @@ class LogLinearModel:
         # print("weights",weights)
         features = np.hstack((features,np.ones((features.shape[0],1))))
         # print(features)
-        ordered_weights = weights.T[np.argsort(rankings)]
-        print("weights", weights)
-        print("rankings", rankings)
-        print("ordered weights", ordered_weights)
-        print("features", features)
+        ordered_weights = weights[np.argsort(rankings)]
+        # print("weights", weights)
+        # print("rankings", rankings)
+        # print("ordered weights", ordered_weights)
+        # print("features", features)
         # print(ordered_weights)
         # weighted_features = np.tensordot(ordered_weights, features, axes=0)
-        weighted_features = np.inner(ordered_weights[0], features, )
-
+        # for matrix in ordered_weights:
+        #     print("shape of weights", matrix.shape)
+        #     print("sum0", np.sum(np.dot(matrix, features.T), axis=0))
+        weighted_features = np.tensordot(ordered_weights,features, axes=(2,1))
         print("weighted_features", weighted_features)
-        sum1 = np.sum(np.sum(weighted_features))
+        sum1 = np.sum(weighted_features,axis=1)
+        print("outer_sum_all_vect", sum1)
         utilities = np.exp(weighted_features)
-        print("utilities", utilities)
+        # print("utilities", utilities)
         logs = np.zeros([rankings.shape[0], rankings.shape[1]])
         for m in range(0,rankings.shape[1]):
-            logs[:,m] = np.log(np.sum(utilities[:,m:]))
+            logs[:,m] = np.log(np.sum(utilities[:,m:], axis=1))[0]
+        print("utilities", utilities)
+        print("utility sums ax0", np.sum(utilities, axis=0))
+        print("utility sums ax1", np.sum(utilities, axis=1))
+        print("logs",logs)
         sum2 = np.sum(np.sum(logs))
-        nll = sum1 - sum2
-        return -nll
+        print("sum2", sum2)
+        ll = sum1 - sum2
+        return -ll
 
     def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances: pd.DataFrame, lambda_value=0.5, regression_loss="Absolute", maxiter=1000):
         """[summary]
@@ -136,6 +162,7 @@ class LogLinearModel:
 
         self.weights = np.ones(
             shape=(num_labels, num_features)) / num_features * num_labels
+        print("shape",self.weights.shape)
         nll = self.negative_log_likelihood
         reg_loss = None
         if regression_loss == "Absolute":
