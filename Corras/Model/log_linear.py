@@ -1,5 +1,5 @@
-import numpy as np
-# from autograd import grad, hessian
+import autograd.numpy as np
+from autograd import grad, hessian
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
@@ -53,30 +53,48 @@ class LogLinearModel:
 
     def negative_log_likelihood(self, rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
         """Compute NLL w.r.t. the data in the given batch and the given weights
-
         Arguments:
             rankings {pandas.DataFrame} -- Data sample for computing the NNL
             features {pandas.DataFrame} -- Feature values for computing the NNL
             weights {np.ndarray} -- Weight vector, i.e. model parameters
-
         Returns:
             [float64] -- Negative log-likelihood
         """
         outer_sum = 0
+        outer_sum_first = 0
         for index, ranking in rankings.iterrows():
             # add one column for bias
             feature_values = np.hstack((features.loc[index].values, [1]))
             inner_sum = 0
             ranking = np.argsort(ranking.values)
+            sum0 = 0
+            sum1 = 0
+            sum2 = 0
+            sum3 = 0
             for m in range(0, len(ranking)):
+            # if ranking[m] > 0:
                 remaining_sum = 0
                 for j in range(m, len(ranking)):
                     # compute utility of remaining labels
+                    # if ranking[j] > 0:
+                        print("utility", np.exp(
+                            np.dot(weights[ranking[j]], feature_values)))
                         remaining_sum += np.exp(
                             np.dot(weights[ranking[j]], feature_values))
+                print("remaining_sum", remaining_sum)
+                sum0 += np.log(remaining_sum)
+                print("log", np.log(remaining_sum))
+                sum1 += remaining_sum
+                sum2 += np.dot(weights[ranking[m]], feature_values)
+                print("weighted:", np.dot(weights[ranking[m]], feature_values))
                 inner_sum += np.log(remaining_sum) - \
                     np.dot(weights[ranking[m]], feature_values)
+                print("inner_summand", np.log(remaining_sum) - \
+                    np.dot(weights[ranking[m]], feature_values))
+                outer_sum_first += np.dot(weights[ranking[m]], feature_values)
+            print("inner_sum", inner_sum)
             outer_sum += inner_sum
+            print("sums", sum0, sum1, sum2)
         print("outer_sum", outer_sum)
         return outer_sum
 
@@ -94,17 +112,21 @@ class LogLinearModel:
         nll = 0
         features = np.hstack((features,np.ones((features.shape[0],1))))
         ordered_weights = weights[np.argsort(rankings)]
-
         weighted_features = np.tensordot(ordered_weights,features, (2,1))
         sum1 = np.sum(weighted_features,1)
         utilities = np.exp(weighted_features)
+        print("utilities", utilities)
         new_logs = []
         for m in range(0,rankings.shape[1]):
             new_logs.append(np.log(np.sum(utilities[:,m:], 1))[0])
         new_logs = np.array(new_logs)
+        print("logs", new_logs)
         sum2 = np.sum(new_logs, 0)
+        print("sum1",sum1)
+        print("sum2",sum2)
         ll = np.subtract(sum1, sum2)
-        outer_nll = - np.sum(ll, 1)[0]
+        print("ll",ll)
+        outer_nll = np.sum(ll, 0)[0]
         print("outer_nll", outer_nll)
         return outer_nll
 
@@ -142,11 +164,11 @@ class LogLinearModel:
                 return nll(rankings, features, x)
             return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
-        # jac = grad(f)
+        jac = grad(f)
 
         flat_weights = self.weights.flatten()
         result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=None, options={"maxiter": maxiter, "disp": True})
+                          jac=jac, options={"maxiter": maxiter, "disp": True})
 
         print("Result old", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
@@ -168,8 +190,7 @@ class LogLinearModel:
         # add one column for bias
         num_features = features.shape[1]+1
         print("labels", num_labels, "features", num_features)
-        self.weights = np.ones(
-            shape=(num_labels, num_features)) / num_features * num_labels
+        self.weights = np.random.rand(num_labels, num_features)
         nll = self.vectorized_nll
         reg_loss = None
         if regression_loss == "Absolute":
@@ -178,19 +199,23 @@ class LogLinearModel:
             reg_loss = self.squared_error
 
         # minimize loss function
-        def f(x):
+        def g(x):
             x = np.reshape(x, (num_labels, num_features))
-            if lambda_value == 0:
-                return reg_loss(performances, features, x)
-            elif lambda_value == 1:
-                return nll(rankings, features, x)
-            return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
+            return nll(rankings, features, x)
+            # if lambda_value == 0:
+            #     return reg_loss(performances, features, x)
+            # elif lambda_value == 1:
+            #     return nll(rankings, features, x)
+            # return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
-        # jac = grad(f)
+        jac = grad(g)
+
+        def cb(xk):
+            print(xk)
 
         flat_weights = self.weights.flatten()
-        result = minimize(f, flat_weights, method="L-BFGS-B",
-                          jac=None, options={"maxiter": maxiter, "disp": True})
+        result = minimize(g, flat_weights, method="TNC",
+                          jac=jac, options={"maxiter": maxiter, "disp": True}, callback=print)
 
         print("Result new", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))

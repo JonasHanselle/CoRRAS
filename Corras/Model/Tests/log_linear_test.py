@@ -1,6 +1,7 @@
 import unittest
-import numpy as np
+import autograd.numpy as np
 import pandas as pd
+from autograd import grad
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
 from sklearn.preprocessing import StandardScaler
@@ -25,27 +26,39 @@ class TestLogLinearModel(unittest.TestCase):
     #     assert(True)
 
     def test_gradient(self):
-        nll = ll.PLNegativeLogLikelihood() 
+        model = ll.LogLinearModel()
         num_labels = len(self.train_scen.algorithms)
         num_features = len(self.train_scen.features)+1
         self.weights = np.random.rand(num_labels, num_features)
         # take some direction
         d = np.eye(N=1, M=len(self.weights.flatten()), k=5)
-        epsilon = 0.01
-        gradient = nll.first_derivative(self.train_scen.performance_rankings,self.train_scen.performance_rankings_inverse,self.train_scen.feature_data, self.weights)
-        print("gradient", gradient)
-        gradient_step = np.dot(d,gradient.flatten())
-        print("step", np.dot(d,gradient.flatten()))
+
+        epsilon = 0.0001
         def f(w):
-            return nll.negative_log_likelihood(self.train_scen.performance_rankings,self.train_scen.feature_data,w)
+            return model.negative_log_likelihood(self.train_scen.performance_rankings,self.train_scen.feature_data,w)            
+        def g(w):
+            return model.vectorized_nll(self.train_scen.performance_rankings.values,self.train_scen.feature_data.loc[self.train_scen.performance_rankings.index].values,w)
+        f_prime = grad(f)
+        g_prime = grad(g)
         w = self.weights
-        print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
-        print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
-        print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
-        print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
-        local_finite_approx = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
-        print("local finite approximation", local_finite_approx)
-        self.assertAlmostEqual(gradient_step[0], local_finite_approx)
+        gradient_step_f = f_prime(w)
+        # print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
+        # print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
+        # print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
+        # print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
+        local_finite_approx_f = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
+        print("local finite approximation f", local_finite_approx_f)
+        # print("gradient step f", gradient_step_f.flatten()[5])
+        gradient_step_g = g_prime(w)
+        # print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
+        # print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
+        # print("g(w+e)", g(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
+        # print("g(w-e)", g(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
+        local_finite_approx_g = (g(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - g(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
+        print("local finite approximation g", local_finite_approx_g)
+        # print("gradient step g", gradient_step_g.flatten()[5])
+        self.assertAlmostEqual(gradient_step_f.flatten()[5], local_finite_approx_f)        
+        self.assertAlmostEqual(gradient_step_g.flatten()[5], local_finite_approx_g)
 
 if __name__ == "__main__":
     unittest.main()
