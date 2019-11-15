@@ -62,39 +62,41 @@ class LogLinearModel:
         """
         outer_sum = 0
         outer_sum_first = 0
+        sum0 = 0
+        sum1 = 0
+        sum2 = 0
         for index, ranking in rankings.iterrows():
             # add one column for bias
             feature_values = np.hstack((features.loc[index].values, [1]))
             inner_sum = 0
             ranking = np.argsort(ranking.values)
-            sum0 = 0
-            sum1 = 0
-            sum2 = 0
-            sum3 = 0
             for m in range(0, len(ranking)):
             # if ranking[m] > 0:
                 remaining_sum = 0
                 for j in range(m, len(ranking)):
                     # compute utility of remaining labels
                     # if ranking[j] > 0:
-                        print("utility", np.exp(
-                            np.dot(weights[ranking[j]], feature_values)))
+                        # print("utility", np.exp(
+                        #     np.dot(weights[ranking[j]], feature_values)))
                         remaining_sum += np.exp(
                             np.dot(weights[ranking[j]], feature_values))
+                        print("summand", np.exp(
+                            np.dot(weights[ranking[j]], feature_values)))
                 print("remaining_sum", remaining_sum)
+                print("remaining log", m, np.log(remaining_sum))
                 sum0 += np.log(remaining_sum)
-                print("log", np.log(remaining_sum))
                 sum1 += remaining_sum
+                print("remaining cumsum", sum1)
                 sum2 += np.dot(weights[ranking[m]], feature_values)
-                print("weighted:", np.dot(weights[ranking[m]], feature_values))
+                # print("weighted:", np.dot(weights[ranking[m]], feature_values))
                 inner_sum += np.log(remaining_sum) - \
                     np.dot(weights[ranking[m]], feature_values)
-                print("inner_summand", np.log(remaining_sum) - \
-                    np.dot(weights[ranking[m]], feature_values))
-                outer_sum_first += np.dot(weights[ranking[m]], feature_values)
-            print("inner_sum", inner_sum)
+                # print("inner_summands", np.log(remaining_sum), np.dot(weights[ranking[m]], feature_values))
+            # print("inner_sum", inner_sum)
             outer_sum += inner_sum
-            print("sums", sum0, sum1, sum2)
+        print("weighted feature sum", sum2)
+        print("remaining logs sum", sum0)
+        print("difference", sum0 - sum2)
         print("outer_sum", outer_sum)
         return outer_sum
 
@@ -115,18 +117,15 @@ class LogLinearModel:
         weighted_features = np.tensordot(ordered_weights,features, (2,1))
         sum1 = np.sum(weighted_features,1)
         utilities = np.exp(weighted_features)
-        print("utilities", utilities)
         new_logs = []
         for m in range(0,rankings.shape[1]):
-            new_logs.append(np.log(np.sum(utilities[:,m:], 1))[0])
+            new_logs.append(np.log(np.sum(utilities[0,m:],0)))
         new_logs = np.array(new_logs)
         print("logs", new_logs)
-        sum2 = np.sum(new_logs, 0)
-        print("sum1",sum1)
-        print("sum2",sum2)
-        ll = np.subtract(sum1, sum2)
-        print("ll",ll)
-        outer_nll = np.sum(ll, 0)[0]
+        print("utilitiesum1", np.sum(weighted_features[0]))
+        print("shape", utilities.shape)
+        print("remainer sum1", np.sum(new_logs[0]))
+        outer_nll = sum1[0,0]
         print("outer_nll", outer_nll)
         return outer_nll
 
@@ -210,12 +209,9 @@ class LogLinearModel:
 
         jac = grad(g)
 
-        def cb(xk):
-            print(xk)
-
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="TNC",
-                          jac=jac, options={"maxiter": maxiter, "disp": True}, callback=print)
+                          jac=jac, options={"maxiter": maxiter, "disp": True})
 
         print("Result new", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))

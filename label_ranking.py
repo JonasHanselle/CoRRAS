@@ -19,7 +19,7 @@ kf = KFold(n_splits=2 , shuffle=True, random_state=5)
 split = next(kf.split(df), None)
 
 # training_portions = np.linspace(start=0, stop=1, num=5)
-training_portions = [0.2]
+training_portions = [1]
 result_data = []
 
 for split_num, split in enumerate(kf.split(df)):
@@ -47,28 +47,29 @@ for split_num, split in enumerate(kf.split(df)):
 
         model1 = log_linear.LogLinearModel()
         model2 = log_linear.LogLinearModel()
-        # model1.fit(train_rankings,None,train_features,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+        model1.fit(train_rankings,None,train_features,None,lambda_value=1,regression_loss="Squared", maxiter=50)
         # model2.fit_np(train_rankings_np,None,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
         # model1.weights = model2.weights
-        test_weights = np.random.rand(train_rankings.shape[1], train_features.shape[1]+1)
-        print("test weights shape",test_weights.shape)
-        nll = model1.negative_log_likelihood(train_rankings[:4],train_features[:4],test_weights)
-        print("nll1", nll)
-        nll = model1.vectorized_nll(train_rankings_np[:4],train_features_np[:4],test_weights)
-        print("nll2", nll)
+        # test_weights = np.random.rand(train_rankings.shape[1], train_features.shape[1]+1)
+        # print("test weights shape",test_weights.shape)
+        # nll = model1.negative_log_likelihood(train_rankings[:4],train_features[:4],test_weights)
+        # print("nll1", nll)
+        # nll = model1.vectorized_nll(train_rankings_np[:4],train_features_np[:4],test_weights)
+        # print("nll2", nll)
 
 #         current_taus = []
 
-#         for index, row in test_features.iterrows():
-#             predicted_ranking1 = model1.predict_ranking(row)
-#             predicted_ranking2 = model2.predict_ranking(row)
-#             true_ranking = test_rankings.loc[index].values
-#             tau1 = kendalltau(predicted_ranking1,true_ranking).correlation
-#             tau2 = kendalltau(predicted_ranking2,true_ranking).correlation
-#             result_data.append([split_num, portion, tau1, tau2]) 
+        for index, row in test_features.iterrows():
+            predicted_ranking1 = model1.predict_ranking(row)
+            # predicted_ranking2 = model2.predict_ranking(row)
+            true_ranking = test_rankings.loc[index].values
+            tau1 = kendalltau(predicted_ranking1,true_ranking).correlation
+            # tau2 = kendalltau(predicted_ranking2,true_ranking).correlation
+            tau2 = 0
+            result_data.append([split_num, portion, tau1, tau2]) 
 
-# results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau1", "tau2"])
-# print("avg kendalls tau model1:", results["tau1"].mean())
+results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau1", "tau2"])
+print("avg kendalls tau model1:", results["tau1"].mean())
 # print("avg kendalls tau model2:", results["tau2"].mean())
-# # sb.lineplot(x="train_portion", y="tau2", data=results)
-# # plt.show()
+# sb.lineplot(x="train_portion", y="tau2", data=results)
+# plt.show()

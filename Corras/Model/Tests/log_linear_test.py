@@ -2,6 +2,7 @@ import unittest
 import autograd.numpy as np
 import pandas as pd
 from autograd import grad
+import sys
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
 from sklearn.preprocessing import StandardScaler
@@ -10,6 +11,7 @@ class TestLogLinearModel(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestLogLinearModel, self).__init__(*args, **kwargs)
+        np.set_printoptions(threshold=sys.maxsize)
         self.scenario = scen.ASRankingScenario()
         self.scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
         self.scenario.compute_rankings()
