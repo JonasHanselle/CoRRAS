@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
 from Corras.Model import log_linear
+from Corras.Util import ranking_util as util
 from scipy.stats import kendalltau
 import matplotlib.pyplot as plt
 import seaborn as sb
@@ -34,11 +35,16 @@ for split_num, split in enumerate(kf.split(df)):
         train_features = train_features[:int(portion*len(train_features))] 
         train_rankings = train_rankings[:int(portion*len(train_rankings))]
 
-        train_features_np = train_features[:int(portion*len(train_features))].values
-        train_rankings_np = train_rankings[:int(portion*len(train_rankings))].values
-
         train_features_np = train_features.values
         train_rankings_np = train_rankings.values
+
+        train_rankings_np_rank = util.ordering_to_ranking_matrix(train_rankings_np)
+
+        print("ordering", train_rankings_np)
+        print("ordering shape", train_rankings_np.shape)
+        
+        print("ranking", train_rankings_np_rank)
+        print("ranking shape", train_rankings_np_rank.shape)
 
         if(len(train_rankings) == 0):
             continue
@@ -47,8 +53,11 @@ for split_num, split in enumerate(kf.split(df)):
 
         model1 = log_linear.LogLinearModel()
         model2 = log_linear.LogLinearModel()
+
+
+
         model1.fit(train_rankings,None,train_features,None,lambda_value=1,regression_loss="Squared", maxiter=50)
-        # model2.fit_np(train_rankings_np,None,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+        model2.fit_np(train_rankings_np_rank,None,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
         # model1.weights = model2.weights
         # test_weights = np.random.rand(train_rankings.shape[1], train_features.shape[1]+1)
         # print("test weights shape",test_weights.shape)
@@ -61,15 +70,14 @@ for split_num, split in enumerate(kf.split(df)):
 
         for index, row in test_features.iterrows():
             predicted_ranking1 = model1.predict_ranking(row)
-            # predicted_ranking2 = model2.predict_ranking(row)
+            predicted_ranking2 = model2.predict_ranking(row)
             true_ranking = test_rankings.loc[index].values
             tau1 = kendalltau(predicted_ranking1,true_ranking).correlation
-            # tau2 = kendalltau(predicted_ranking2,true_ranking).correlation
-            tau2 = 0
+            tau2 = kendalltau(predicted_ranking2,true_ranking).correlation
             result_data.append([split_num, portion, tau1, tau2]) 
 
 results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau1", "tau2"])
 print("avg kendalls tau model1:", results["tau1"].mean())
-# print("avg kendalls tau model2:", results["tau2"].mean())
+print("avg kendalls tau model2:", results["tau2"].mean())
 # sb.lineplot(x="train_portion", y="tau2", data=results)
 # plt.show()

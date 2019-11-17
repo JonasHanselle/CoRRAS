@@ -5,11 +5,14 @@ from itertools import product
 
 # evaluation stuff
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from scipy.stats import kendalltau
 
 # Corras
 from Corras.Model import log_linear
 from Corras.Scenario import aslib_ranking_scenario
+from Corras.Util import ranking_util as util
 
 # plotting
 import matplotlib.pyplot as plt
@@ -18,69 +21,57 @@ import seaborn as sb
 sb.set_style("darkgrid")
 
 scenario = aslib_ranking_scenario.ASRankingScenario()
-scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
-
-scenario.compute_rankings(break_up_ties=True)
-
-# print("lens",len(scenario.performance_rankings), len(scenario.performance_data), len(scenario.feature_data), len(scenario.performance_data_all))
-
-# scenario.remove_duplicates()
-
+scenario.read_scenario("aslib_data-aslib-v4.0/CSP-2010")
 print(scenario.performance_data)
 
 
-kf = KFold(n_splits=5, shuffle=True, random_state=10)
-training_portions = np.linspace(start=0, stop=1, num=4)
-lambda_values = [0.0, 0.5, 1.0]
-taus = []
+# training_portions = np.linspace(start=0, stop=1, num=4)
+# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+lambda_values = [0.6]
+num_splits = 1
 result_data = []
 
-for split_num, split in enumerate(kf.split(scenario.performance_rankings)):
 
-    for portion, lambda_value in product(training_portions, lambda_values):
-        train_rankings = scenario.performance_rankings.iloc[split[0]].astype(
-            'int32')
-        train_features = scenario.feature_data.loc[train_rankings.index.drop_duplicates()].astype(
-            'float64')
-        train_performances = scenario.performance_data.loc[train_rankings.index.drop_duplicates()].astype(
-            'float64')
+for i_split in range(1, num_splits+1):
 
-        # print("lengths", len(train_features), len(train_performances))
-        # print("features", train_features.loc[train_features.duplicated()])
-        # print("performances", train_performances.loc[train_performances.duplicated()])
-        test_rankings = scenario.performance_rankings.iloc[split[1]].astype(
-            'int32')
-        test_features = scenario.feature_data.loc[test_rankings.index.drop_duplicates()].astype(
-            'float64')
-        test_performances = scenario.performance_data.loc[test_rankings.index.drop_duplicates()].astype(
-            'float64')
+    test_scenario, train_scenario = scenario.get_split(2)
 
+    print("testfeatures", test_scenario.feature_data)
 
-        train_features = train_features[:int(portion*len(train_features))]
-        train_rankings = train_rankings[:int(portion*len(train_rankings))]
-        train_performances = train_performances[:int(
-            portion*len(train_performances))]
+    for lambda_value in product(lambda_values):
 
-        if(len(train_rankings) == 0):
-            continue
+        train_features_np, train_performances_np, train_rankings_np = util.construct_numpy_representation(
+            train_scenario.feature_data, train_scenario.performance_data)
+
+        # scale features
+        imputer = SimpleImputer()
+        scaler = StandardScaler()
+        train_features_np = imputer.fit_transform(train_features_np)
+        train_features_np = scaler.fit_transform(train_features_np)
+
+        print("features", train_features_np)
+        print("rankings", train_rankings_np)
+        print("performances", train_performances_np)
+        print("orderings", train_rankings_np)
+        train_rankings_np = util.ordering_to_ranking_matrix(train_rankings_np)
+        print("rankings", train_rankings_np)
+        print("\n\n")
 
         model = log_linear.LogLinearModel()
-        model.fit(train_rankings,None,train_features,train_performances,lambda_value=0,regression_loss="Squared")
 
-        current_taus = []
+        model.fit_np(train_rankings_np, train_features_np,
+                     train_performances_np, lambda_value=lambda_value, regression_loss="Squared", maxiter=15)
 
-        for index, row in test_features.iterrows():
-            predicted_ranking = model.predict_ranking(row.values)
-            true_ranking = test_rankings.loc[index].values
-            print(true_ranking)
-            tau = kendalltau(predicted_ranking, true_ranking).correlation
-            print(tau)
-            result_data.append([split_num, portion, tau, lambda_value])
+        print("model weights", model.weights)
 
-        print("current avg", np.average(current_taus))
+        for index, row in test_scenario.feature_data.iterrows():
+            print("test features", row)
+            imputed_row = imputer.transform([row.values])
+            scaled_row = scaler.transform(imputed_row).flatten()
+            predicted_ranking = model.predict_ranking(scaled_row)
+            predicted_performances = model.predict_performances(scaled_row)
+            result_data.append([i_split, index, lambda_value, predicted_ranking, predicted_performances])
 
 results = pd.DataFrame(data=result_data, columns=[
-                       "split", "train_portion", "tau", "lambda"])
-sb.lineplot(x="train_portion", y="tau", hue="lambda", data=results)
-plt.show()
-print("avg kendalls tau:", results["tau"].mean())
+                       "split", "problem_instance", "lambda", "predicted_ranking", "predicted_performances"])
+results.to_csv(""+scenario.scenario+".csv")

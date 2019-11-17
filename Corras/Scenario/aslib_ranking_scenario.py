@@ -25,25 +25,25 @@ class ASRankingScenario(scenario.ASlibScenario):
         if break_up_ties:
             self.performance_rankings = util.break_ties_of_ranking(self.performance_rankings)
 
-    def get_split(self, indx=1):
-        """Get split for cross-validation TODO inherit docstring
+    # def get_split(self, indx=1):
+    #     """Get split for cross-validation TODO inherit docstring
 
-        Keyword Arguments:
-            indx {int} -- Number of fold (default: {1})
+    #     Keyword Arguments:
+    #         indx {int} -- Number of fold (default: {1})
 
-        Returns:
-            (ASRankingScenario, ASRankingScenario) -- A tupel of ASRankingScenario objects, the first is the test data, the second the training data
-        """
-        test, training = super().get_split(indx=indx)
-        test_insts = self.cv_data[
-            self.cv_data["fold"] == float(indx)].index.tolist()
-        training_insts = self.cv_data[
-            self.cv_data.fold != float(indx)].index.tolist()
-        test.performance_rankings = test.performance_rankings.drop(
-            training_insts).sort_index()
-        training.performance_rankings = training.performance_rankings.drop(
-            test_insts).sort_index()
-        return test, training
+    #     Returns:
+    #         (ASRankingScenario, ASRankingScenario) -- A tupel of ASRankingScenario objects, the first is the test data, the second the training data
+    #     """
+        # test, training = super().get_split(indx=indx)
+        # test_insts = self.cv_data[
+        #     self.cv_data["fold"] == float(indx)].index.tolist()
+        # training_insts = self.cv_data[
+        #     self.cv_data.fold != float(indx)].index.tolist()
+                # test.performance_rankings = test.performance_rankings.drop(
+        #     training_insts).sort_index()
+        # training.performance_rankings = training.performance_rankings.drop(
+        #     test_insts).sort_index()
+        # return test, training
 
     def remove_duplicates(self):
         """deprecated

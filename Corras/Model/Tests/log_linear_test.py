@@ -1,7 +1,8 @@
 import unittest
 import autograd.numpy as np
-import pandas as pd
 from autograd import grad
+import pandas as pd
+# from autograd import grad
 import sys
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
@@ -46,19 +47,19 @@ class TestLogLinearModel(unittest.TestCase):
         gradient_step_f = f_prime(w)
         # print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
         # print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
-        # print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
-        # print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
+        print("f(w+e)", f(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
+        print("f(w-e)", f(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
         local_finite_approx_f = (f(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - f(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
         print("local finite approximation f", local_finite_approx_f)
-        # print("gradient step f", gradient_step_f.flatten()[5])
+        print("gradient step f", gradient_step_f.flatten()[5])
         gradient_step_g = g_prime(w)
         # print("w+e", w+epsilon*(np.reshape(d,(num_labels,num_features))))
         # print("w-e", w-epsilon*(np.reshape(d,(num_labels,num_features))))
-        # print("g(w+e)", g(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
-        # print("g(w-e)", g(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
+        print("g(w+e)", g(w+epsilon*(np.reshape(d,(num_labels,num_features)))))
+        print("g(w-e)", g(w-epsilon*(np.reshape(d,(num_labels,num_features)))))
         local_finite_approx_g = (g(w+epsilon*(np.reshape(d,(num_labels,num_features)))) - g(w-epsilon*(np.reshape(d,(num_labels,num_features))))) / (2 * epsilon)
         print("local finite approximation g", local_finite_approx_g)
-        # print("gradient step g", gradient_step_g.flatten()[5])
+        print("gradient step g", gradient_step_g.flatten()[5])
         self.assertAlmostEqual(gradient_step_f.flatten()[5], local_finite_approx_f)        
         self.assertAlmostEqual(gradient_step_g.flatten()[5], local_finite_approx_g)
 
