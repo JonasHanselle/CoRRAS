@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 import pandas as pd
 
 from itertools import product
@@ -14,23 +14,15 @@ from Corras.Model import log_linear
 from Corras.Scenario import aslib_ranking_scenario
 from Corras.Util import ranking_util as util
 
-# plotting
-import matplotlib.pyplot as plt
-import seaborn as sb
-
-sb.set_style("darkgrid")
-
 scenario = aslib_ranking_scenario.ASRankingScenario()
 scenario.read_scenario("aslib_data-aslib-v4.0/CSP-2010")
 print(scenario.performance_data)
 
-
-# training_portions = np.linspace(start=0, stop=1, num=4)
+maxiter = 5
 # lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.6]
+lambda_values = [0.0, 0.5, 1.0]
 num_splits = 1
 result_data = []
-
 
 for i_split in range(1, num_splits+1):
 
@@ -38,7 +30,7 @@ for i_split in range(1, num_splits+1):
 
     print("testfeatures", test_scenario.feature_data)
 
-    for lambda_value in product(lambda_values):
+    for lambda_value in lambda_values:
 
         train_features_np, train_performances_np, train_rankings_np = util.construct_numpy_representation(
             train_scenario.feature_data, train_scenario.performance_data)
@@ -60,7 +52,7 @@ for i_split in range(1, num_splits+1):
         model = log_linear.LogLinearModel()
 
         model.fit_np(train_rankings_np, train_features_np,
-                     train_performances_np, lambda_value=lambda_value, regression_loss="Squared", maxiter=15)
+                     train_performances_np, lambda_value=lambda_value, regression_loss="Squared", maxiter=maxiter)
 
         print("model weights", model.weights)
 
@@ -70,8 +62,12 @@ for i_split in range(1, num_splits+1):
             scaled_row = scaler.transform(imputed_row).flatten()
             predicted_ranking = model.predict_ranking(scaled_row)
             predicted_performances = model.predict_performances(scaled_row)
-            result_data.append([i_split, index, lambda_value, predicted_ranking, predicted_performances])
+            result_data.append([i_split, index, lambda_value, predicted_ranking, *predicted_performances])
 
-results = pd.DataFrame(data=result_data, columns=[
-                       "split", "problem_instance", "lambda", "predicted_ranking", "predicted_performances"])
+performance_cols = [x + "_performance" for x in scenario.performance_data.columns]
+
+result_columns = ["split", "problem_instance", "lambda", "predicted_ranking"]
+result_columns += performance_cols
+print("results_cols", result_columns)
+results = pd.DataFrame(data=result_data, columns=result_columns)
 results.to_csv(""+scenario.scenario+".csv")

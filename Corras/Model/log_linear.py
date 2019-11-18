@@ -30,25 +30,44 @@ class LogLinearModel:
             loss += np.sum(np.absolute(np.subtract(current_performances, inverse_utilities)))
         return loss
 
-    def squared_error(self, performances: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+    # def squared_error(self, performances: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
+    #     """Compute squared error for regression
+
+    #     Arguments:
+    #         performances {pd.DataFrame} -- [description]
+    #         features {pd.DataFrame} -- [description]
+    #         weights {np.ndarray} -- [description]
+
+    #     Returns:
+    #         [type] -- [description]
+    #     """
+    #     loss = 0
+    #     for index, row in performances.iterrows():
+    #         current_performances = row.values
+    #         feature_values = np.hstack((features.loc[index].values, [1]))
+    #         utilities = np.exp(np.dot(weights, feature_values))
+    #         inverse_utilities = np.reciprocal(utilities)
+    #         loss += np.sum(np.square(np.subtract(current_performances,
+    #                                              inverse_utilities)))
+    #     return loss
+
+    def squared_error(self, performances: np.ndarray, features: np.ndarray, weights: np.ndarray):
         """Compute squared error for regression
 
         Arguments:
-            performances {pd.DataFrame} -- [description]
-            features {pd.DataFrame} -- [description]
+            performances {np.ndarray} -- [description]
+            features {np.ndarray} -- [description]
             weights {np.ndarray} -- [description]
 
         Returns:
             [type] -- [description]
         """
         loss = 0
-        for index, row in performances.iterrows():
-            current_performances = row.values
-            feature_values = np.hstack((features.loc[index].values, [1]))
-            utilities = np.exp(np.dot(weights, feature_values))
-            inverse_utilities = np.reciprocal(utilities)
-            loss += np.sum(np.square(np.subtract(current_performances,
-                                                 inverse_utilities)))
+        feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
+        utilities = np.exp(np.dot(weights, feature_values.T))
+        inverse_utilities = np.reciprocal(utilities)
+        loss += np.sum(np.square(np.subtract(performances.T,
+                                                inverse_utilities)))
         return loss
 
     def negative_log_likelihood(self, rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
@@ -178,16 +197,11 @@ class LogLinearModel:
         # print("labels", num_labels, "features", num_features)
         self.weights = np.ones((num_labels, num_features))
         nll = self.vectorized_nll
-        reg_loss = None
-        if regression_loss == "Absolute":
-            reg_loss = self.absolute_error
-        elif regression_loss == "Squared":
-            reg_loss = self.squared_error
+        reg_loss = self.squared_error
 
         # minimize loss function
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
-            return nll(rankings, features, x)
             if lambda_value == 0:
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
@@ -195,6 +209,7 @@ class LogLinearModel:
             return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
         jac = grad(g)
+        print("performances", performances)
 
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",

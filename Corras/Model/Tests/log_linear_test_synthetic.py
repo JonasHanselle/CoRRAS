@@ -91,7 +91,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def test_regression(self):
         model = ll.LogLinearModel()
-        model.fit(self.train_ranking,self.train_ranking_inverse,self.train_inst,self.train_performances,lambda_value=1,regression_loss="Squared")        
+        model.fit_np(self.train_ranking.values,self.train_inst.values,self.train_performances.values,lambda_value=0,regression_loss="Squared")
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))
@@ -99,7 +99,6 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
             print("True Ranking", self.test_ranking.loc[index].values)
             print("Predicted Ranking", model.predict_ranking(row.values))
             print("\n")
-
 
 if __name__ == "__main__":
     unittest.main()
