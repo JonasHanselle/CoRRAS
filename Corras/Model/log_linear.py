@@ -195,7 +195,7 @@ class LogLinearModel:
         # add one column for bias
         num_features = features.shape[1]+1
         # print("labels", num_labels, "features", num_features)
-        self.weights = np.ones((num_labels, num_features))
+        self.weights = np.ones((num_labels, num_features)) / (num_features * num_labels)
         nll = self.vectorized_nll
         reg_loss = self.squared_error
 

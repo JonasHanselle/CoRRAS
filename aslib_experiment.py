@@ -14,6 +14,9 @@ from Corras.Model import log_linear
 from Corras.Scenario import aslib_ranking_scenario
 from Corras.Util import ranking_util as util
 
+# Baseline
+from sklearn.ensemble import RandomForestRegressor
+
 scenario = aslib_ranking_scenario.ASRankingScenario()
 scenario.read_scenario("aslib_data-aslib-v4.0/CSP-2010")
 print(scenario.performance_data)
@@ -23,31 +26,25 @@ maxiter = 5
 lambda_values = [0.0, 0.5, 1.0]
 num_splits = 1
 result_data = []
+baselines = None
 
 for i_split in range(1, num_splits+1):
 
-    test_scenario, train_scenario = scenario.get_split(2)
+    test_scenario, train_scenario = scenario.get_split(i_split)
 
-    print("testfeatures", test_scenario.feature_data)
+    imputer = SimpleImputer()
+    scaler = StandardScaler()
+    train_features_np = imputer.fit_transform(train_features_np)
+    train_features_np = scaler.fit_transform(train_features_np)
+    # Create one random forest regressor per label
+    baselines = [RandomForestRegressor()] * len(train_scenario.performance_data.columns)
 
     for lambda_value in lambda_values:
 
         train_features_np, train_performances_np, train_rankings_np = util.construct_numpy_representation(
             train_scenario.feature_data, train_scenario.performance_data)
 
-        # scale features
-        imputer = SimpleImputer()
-        scaler = StandardScaler()
-        train_features_np = imputer.fit_transform(train_features_np)
-        train_features_np = scaler.fit_transform(train_features_np)
-
-        print("features", train_features_np)
-        print("rankings", train_rankings_np)
-        print("performances", train_performances_np)
-        print("orderings", train_rankings_np)
         train_rankings_np = util.ordering_to_ranking_matrix(train_rankings_np)
-        print("rankings", train_rankings_np)
-        print("\n\n")
 
         model = log_linear.LogLinearModel()
 

@@ -4,6 +4,7 @@ import numpy as onp
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
+import Corras.Util.ranking_util as util
 from sklearn.preprocessing import StandardScaler
 
 class TestLogLinearModelSynthetic(unittest.TestCase):
@@ -91,7 +92,8 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def test_regression(self):
         model = ll.LogLinearModel()
-        model.fit_np(self.train_ranking.values,self.train_inst.values,self.train_performances.values,lambda_value=0,regression_loss="Squared")
+        rankings = util.ordering_to_ranking_matrix(self.train_ranking.values)
+        model.fit_np(rankings,self.train_inst.values,self.train_performances.values,lambda_value=0.9,regression_loss="Squared")
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))
