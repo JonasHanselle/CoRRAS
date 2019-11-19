@@ -21,16 +21,28 @@ class UtilTests(unittest.TestCase):
     #     print(tensor)
     #     print(tensor.size * tensor.itemsize)
 
-    def test_np_representation_test(self):
+    # def test_np_representation_test(self):
+    #     scenario = scen.ASRankingScenario()
+    #     scenario.read_scenario("aslib_data-aslib-v4.0/SAT12-RAND")
+    #     features = scenario.feature_data
+    #     performances = scenario.performance_data
+    #     np_f, np_p, np_r = util.construct_numpy_representation(features,performances)
+    #     print(np_f.size * np_f.itemsize + np_p.size * np_p.itemsize + np_r.size * np_r.itemsize)
+    #     print("features shape", np_f.shape)
+    #     print("performances shape", np_p.shape)
+    #     print("rankings shape", np_r.shape)
+
+    def test_ordering_to_ranking_list(self):
         scenario = scen.ASRankingScenario()
-        scenario.read_scenario("aslib_data-aslib-v4.0/SAT12-RAND")
+        scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
         features = scenario.feature_data
         performances = scenario.performance_data
         np_f, np_p, np_r = util.construct_numpy_representation(features,performances)
-        print(np_f.size * np_f.itemsize + np_p.size * np_p.itemsize + np_r.size * np_r.itemsize)
-        print("features shape", np_f.shape)
-        print("performances shape", np_p.shape)
-        print("rankings shape", np_r.shape)
+        print("performances",np_p)
+        print("rankings",np_r)
+        print("list",util.ordering_to_ranking_list(np_r))
+
+
     # def test_ranking_conversion(self):
     #     scenario = scen.ASRankingScenario()
     #     scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")

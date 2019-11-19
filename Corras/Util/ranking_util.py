@@ -98,6 +98,29 @@ def ordering_to_ranking_matrix(ordering_matrix : np.ndarray):
         rankings.append(np.asarray(ranking))
     return np.asarray(rankings)
 
+def ordering_to_ranking_list(ordering_matrix : np.ndarray):
+    """Create a ranking from a DataFrame that has one 
+    column for each label and each entry corresponds to
+    the rank of that label in the ranking. -1 indicates
+    that the label is absent in the ranking. 
+    
+    Arguments:
+        rankings {pd.DataFrame} -- [description]
+    
+    Returns:
+        [type] -- [description]
+    """
+    rankings = []
+    for ordering_index in range(0, ordering_matrix.shape[0]):
+        ranking = [-1] * ordering_matrix.shape[1]
+        for label_index in range(0, ordering_matrix.shape[1]):
+            # set index of
+            label = ordering_matrix[ordering_index,label_index]
+            ranking[label-1] = label_index + 1 
+        short_ranking = [x for x in ranking if x != -1]
+        rankings.append((short_ranking))
+    return rankings
+
 
 def construct_ordered_tensor(features : pd.DataFrame, performances : pd.DataFrame):
     """Constructs a N x M x (d + 2) tensor which is ordered according to the second dimension.
@@ -146,6 +169,35 @@ def construct_numpy_representation(features : pd.DataFrame, performances : pd.Da
     np_performances = joined[[x + "_performance" for x in performances.columns]].values
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings
+
+def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame):
+    """Get numpy representation of features and performances. Rankings
+    are constructed as nested python lists, such that rankings of 
+    heterogenous length are possible.
+    
+    Arguments:
+        features {pd.DataFrame} -- Feature values
+        performances {pd.DataFrame} -- Performances of algorithms
+    
+    Returns:
+        [type] -- Tupel of numpy ndarrays, first stores the feature
+        values, the second stores the algirhtm performances. The 
+        third return is a list of python lists containing the 
+        rankings
+    """
+    rankings = compute_rankings(performances)
+    print("performances", performances)
+    rankings = break_ties_of_ranking(rankings)
+    
+    joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
+    print(joined.columns)
+    print("performance cols",performances.columns)
+    np_features = joined[features.columns.values].values
+    print("joined cols", joined.columns)
+    np_performances = joined[[x + "_performance" for x in performances.columns]].values
+    np_rankings = joined[[x + "_rank" for x in performances.columns]].values
+    return np_features, np_performances, np_rankings
+
 
 def custom_tau(ranking_a, ranking_b):
     """Custom implementaion of the kendalls tau rank correlation coefficient

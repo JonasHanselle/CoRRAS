@@ -12,7 +12,7 @@ class TestLogLinearModelASLib(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestLogLinearModelASLib, self).__init__(*args, **kwargs)
         self.scenario = scen.ASRankingScenario()
-        self.scenario.read_scenario("aslib_data-aslib-v4.0/CSP-2010")
+        self.scenario.read_scenario("aslib_data-aslib-v4.0/SAT11-INDU")
         self.scenario.compute_rankings()
         # preprocessing of data
         self.scaler = StandardScaler()
@@ -49,18 +49,16 @@ class TestLogLinearModelASLib(unittest.TestCase):
         print(performances)
         print(rankings)
         rankings = util.ordering_to_ranking_matrix(rankings)
-        model.fit_np(rankings,features,performances,lambda_value=1,regression_loss="Squared",maxiter=1000)
-        for index, row in self.train_performances.iterrows():
+        model.fit_np(rankings,features,performances,lambda_value=0,regression_loss="Squared",maxiter=1000)
+        for i, (index, row) in enumerate(self.train_performances.iterrows()):
             instance_values = self.train_inst.loc[index].values
             imputed_row = self.imputer.transform([instance_values])
             scaled_row = self.scaler.transform(imputed_row).flatten()
-            print("predicted", model.predict_performances(instance_values))
+            print("predicted", model.predict_performances(scaled_row))
             print("truth performance", row.values)
-            print("predicted ranking", model.predict_ranking(instance_values))
             print("\n")
-            print("\n")
-        print("features", features)
-        print(model.weights)
+        np.savetxt("features.txt",features)
+        np.savetxt("weights.txt", model.weights)
 
 if __name__ == "__main__":
     unittest.main()
