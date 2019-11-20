@@ -158,14 +158,10 @@ def construct_numpy_representation(features : pd.DataFrame, performances : pd.Da
         third stores the algorithm rankings
     """
     rankings = compute_rankings(performances)
-    print("performances", performances)
     rankings = break_ties_of_ranking(rankings)
     
     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
-    print(joined.columns)
-    print("performance cols",performances.columns)
     np_features = joined[features.columns.values].values
-    print("joined cols", joined.columns)
     np_performances = joined[[x + "_performance" for x in performances.columns]].values
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings
@@ -186,14 +182,10 @@ def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, p
         rankings
     """
     rankings = compute_rankings(performances)
-    print("performances", performances)
     rankings = break_ties_of_ranking(rankings)
     
     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
-    print(joined.columns)
-    print("performance cols",performances.columns)
     np_features = joined[features.columns.values].values
-    print("joined cols", joined.columns)
     np_performances = joined[[x + "_performance" for x in performances.columns]].values
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings

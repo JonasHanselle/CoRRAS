@@ -81,8 +81,6 @@ class LogLinearModel:
             new_logs.append(np.log(np.sum(utilities[:, m:], axis=1)))
         new_logs = np.asarray(new_logs)
         outer_nll = np.sum(np.sum(new_logs)) - sum1
-        print("vect", sum1, np.sum(np.sum(new_logs)))
-        print("vect nll", outer_nll)
         return outer_nll
 
 
@@ -115,8 +113,6 @@ class LogLinearModel:
                 nll += sum2 - sum1
             g1 += sum1
             g2 += sum2
-        print("list", g1, g2)
-        print("list nnl", g2-g1)
         return g2-g1
 
     def fit_np(self, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000):
@@ -150,15 +146,12 @@ class LogLinearModel:
             return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
         jac = grad(g)
-        print("performances", performances)
 
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
                           jac=jac, options={"maxiter": maxiter, "disp": True})
 
-        # print("Result new", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
-        # print("Weights new", self.weights)
 
     def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000):
         """[summary]
@@ -191,15 +184,12 @@ class LogLinearModel:
             return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
 
         jac = grad(g)
-        print("performances", performances)
 
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
                           jac=jac, options={"maxiter": maxiter, "disp": True})
 
-        # print("Result new", result)
         self.weights = np.reshape(result.x, (num_labels, num_features))
-        # print("Weights new", self.weights)
 
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.

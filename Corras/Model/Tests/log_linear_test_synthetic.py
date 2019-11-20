@@ -88,8 +88,9 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def test_regression(self):
         model = ll.LogLinearModel()
-        rankings = util.ordering_to_ranking_matrix(self.train_ranking.values)
-        model.fit_np(rankings,self.train_inst.values,self.train_performances.values,lambda_value=0,regression_loss="Squared")
+        # rankings = util.ordering_to_ranking_matrix(self.train_ranking.values)
+        rankings = util.ordering_to_ranking_list(self.train_ranking.values)
+        model.fit_list(rankings,self.train_inst.values,self.train_performances.values,lambda_value=0,regression_loss="Squared")
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))
