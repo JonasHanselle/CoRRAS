@@ -21,51 +21,26 @@ def compute_distance_to_vbs(predicted_performances, true_performances):
     result = true_performances[np.argmin(predicted_performances)] - np.min(true_performances)
     return result
 
-def compute_relevance_scores_equi_width(scen, num_bins=5):
-    """Compute graded relevance scores for use e.g. in 
-    (noramlized) discounted cumulative gain based on an
-    equi-width binning of the achieved runtime. There are
-    num_bins bins, starting at 0 and ending at the algorithm
-    runtime cutoff. Algorithm runs above this cutoff get a
-    relevance score of zero.
-    
-    Arguments:
-        scen {ASRankingScenario} -- AS Scenario
-    
-    Keyword Arguments:
-        num_bins {int} -- Number of bins (default: {5})
-    
-    Returns:
-        {pd.DataFrame} -- DataFrame containing the graded 
-        relevance score for each algorithm run
-    """
-    performances = scen.performance_data.to_numpy()
-    bins = np.linspace(start=0, stop=scen.algorithm_cutoff_time, num=num_bins)[::-1]
-    binned_performances = np.digitize(performances,bins)
-    return pd.DataFrame(data=binned_performances,index=scen.performance_data.index,columns=scen.performance_data.columns)
-    
-
-
 scenario = ASRankingScenario()
 scenario.read_scenario(scenario_path + scenario_name)
 scenario.compute_rankings(False)
 
-print()
+print(scenario.performance_data)
 print(compute_relevance_scores_equi_width(scenario))
 
-# baseline = pd.read_csv(results_path + "rf-" + scenario_name + ".csv")
-# corras = pd.read_csv(results_path + "corras-" + scenario_name + ".csv")
-# baseline.set_index("problem_instance", inplace=True)
-# corras.set_index("problem_instance", inplace=True)
-# performance_indices = [x for x in corras.columns if x.endswith("_performance")]
+baseline = pd.read_csv(results_path + "rf-" + scenario_name + ".csv")
+corras = pd.read_csv(results_path + "corras-" + scenario_name + ".csv")
+baseline.set_index("problem_instance", inplace=True)
+corras.set_index("problem_instance", inplace=True)
+performance_indices = [x for x in corras.columns if x.endswith("_performance")]
 
-# baseline_rankings = baseline[performance_indices].rank(axis=1, method="min").fillna(-1).astype("int16")
-# # corras_rankings = corras[performance_indices].rank(axis=1, method="min").fillna(-1).astype("int16")
+baseline_rankings = baseline[performance_indices].rank(axis=1, method="min").fillna(-1).astype("int16")
+# corras_rankings = corras[performance_indices].rank(axis=1, method="min").fillna(-1).astype("int16")
 
-# lambda_values = pd.unique(corras["lambda"])
+lambda_values = pd.unique(corras["lambda"])
 
-# baseline_measures = []
-# corras_measures = []
+baseline_measures = []
+corras_measures = []
 
 # for problem_instance, performances in scenario.performance_data.iterrows():
 #     tau_corr = 0
