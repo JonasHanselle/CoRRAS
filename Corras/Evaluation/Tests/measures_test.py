@@ -12,7 +12,7 @@ class EvaluationMeasuresTest(unittest.TestCase):
 
     def test_ndcg(self):
         relevance_scores = np.asarray([0,2,2,1,0])
-        prediction = np.asarray([1,5,4,2,3])
+        prediction = np.asarray([3,1,1,2,3])
         print(ndcg_at_k(prediction,relevance_scores,5))
 
 if __name__ == "__main__":

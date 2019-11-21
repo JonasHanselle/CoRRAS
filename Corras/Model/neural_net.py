@@ -12,7 +12,7 @@ class NeuralNetwork:
 
     def optimize(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances : pd.DataFrame, lambda_value = 0.5, regression_loss="Absolute"):
         outputs = self.network.output
-        print(output)
+        print(outputs)
 
 
     def fit(self, rankings: pd.DataFrame, inverse_rankings: pd.DataFrame, features: pd.DataFrame, performances : pd.DataFrame, lambda_value = 0.5, regression_loss="Absolute"):
@@ -40,7 +40,7 @@ class NeuralNetwork:
             output_layers.append(keras.layers.Dense(1, name="output_layer"+str(i))(hidden_layers))
 
         self.network = keras.Model(inputs=input_layer, outputs=output_layers)
-        # optimizer = tf.keras.optimizers.Adam()
+        optimizer = tf.keras.optimizers.Adam()
 
         def reg_squared_error(y_true, y_pred):
             return tf.reduce_mean(tf.square(tf.subtract(y_true,tf.exp(y_pred))))
@@ -48,18 +48,18 @@ class NeuralNetwork:
         def reg_absolute_error(y_true, y_pred):
             return tf.reduce_mean(tf.abs(tf.subtract(y_true,tf.exp(y_pred))))
 
-        # self.network.compile(loss=[reg_squared_error, reg_squared_error, reg_squared_error], optimizer=optimizer, metrics=["mse", "mae"])
+        self.network.compile(loss=[reg_squared_error, reg_squared_error, reg_squared_error], optimizer=optimizer, metrics=["mse", "mae"])
 
         self.network._make_predict_function()
 
         self.network.summary()
 
-        # early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+        early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
 
         # # add constant 1 for bias
-        # feature_values = np.hstack((features.values,np.ones((features.shape[0],1))))
-        # self.optimize(rankings,inverse_rankings,features,performances)
-        # self.network.fit(feature_values, [performances.values[:,0],performances.values[:,1],performances.values[:,2]], epochs = 10000, validation_split = 0.2, verbose = 0, callbacks=[early_stop])
+        feature_values = np.hstack((features.values,np.ones((features.shape[0],1))))
+        self.optimize(rankings,inverse_rankings,features,performances)
+        self.network.fit(feature_values, [performances.values[:,0],performances.values[:,1],performances.values[:,2]], epochs = 10000, validation_split = 0.2, verbose = 0, callbacks=[early_stop])
         
 
     def predict_performances(self, features: np.ndarray):
