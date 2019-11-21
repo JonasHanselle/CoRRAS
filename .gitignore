@@ -109,6 +109,8 @@ venv.bak/
 aslib_data*
 LabelRankingData*
 LabelRankingRealWorldData*
+figures
+results
 
 # pylint
 .pylintrc
