@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.neural_net as nn
-import Corras.
+import Corras.Util.ranking_util as util
 from sklearn.preprocessing import StandardScaler
 
 class TestNeuralNetworkSynthetic(unittest.TestCase):
@@ -13,8 +13,8 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
         self.train_size = 250
         self.test_size = 10
         self.noise_factor = 0.0
-        features_train = np.asarray(onp.random.randint(low=0, high=30, size=(self.train_size,4)))
-        features_test = np.asarray(onp.random.randint(low=0, high=30, size=(self.test_size,4)))
+        features_train = np.asarray(np.random.randint(low=0, high=30, size=(self.train_size,4)))
+        features_test = np.asarray(np.random.randint(low=0, high=30, size=(self.test_size,4)))
         def create_performances(feature_list):
             performances = []
             for features in feature_list:
@@ -57,16 +57,15 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
 
     def test_regression(self):
         model = nn.NeuralNetwork()
-        model.fit(self.train_ranking,self.train_inst,self.train_performances,lambda_value=0,regression_loss="Squared")        
         rankings = util.ordering_to_ranking_list(self.train_ranking.values)
-        model.fit_list(rankings,self.train_inst.values,self.train_performances.values,lambda_value=0,regression_loss="Squared")
-        for index, row in self.test_inst.iterrows():
-            print("True Performances", self.test_performances.loc[index].values)
-            print("Predicted Performances", model.predict_performances(row.values))
-            print("\n")
-            print("True Ranking", self.test_ranking.loc[index].values)
-            print("Predicted Ranking", model.predict_ranking(row.values))
-            print("\n")
+        model.fit(5, rankings,self.train_inst.values,self.train_performances.values,lambda_value=0,regression_loss="Squared")
+        # for index, row in self.test_inst.iterrows():
+        #     print("True Performances", self.test_performances.loc[index].values)
+        #     print("Predicted Performances", model.predict_performances(row.values))
+        #     print("\n")
+        #     print("True Ranking", self.test_ranking.loc[index].values)
+        #     print("Predicted Ranking", model.predict_ranking(row.values))
+        #     print("\n")
 
 
 if __name__ == "__main__":
