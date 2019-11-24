@@ -35,14 +35,14 @@ class NeuralNetwork:
     def build_network(self, num_labels, num_features ):
         input_layer = keras.layers.Input(num_features, name="input_layer")
         hidden_layers = keras.layers.Dense(8, activation="relu")(input_layer)
-        hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
-        hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
+        # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
+        # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         output_layers = []
         for i in range(0, num_labels):
             output_layers.append(keras.layers.Dense(1, name="output_layer"+str(i))(hidden_layers))
         return keras.Model(inputs=input_layer, outputs=output_layers, )
 
-    def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances : np.ndarray, lambda_value = 0.5, regression_loss="Absolute", num_epochs=500, batch_size=32):
+    def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances : np.ndarray, lambda_value = 0.5, regression_loss="Absolute", num_epochs=10, batch_size=32):
         """Fit the network to the given data.
 
         Arguments:
@@ -68,17 +68,20 @@ class NeuralNetwork:
         print(feature_values.shape)
         print(performances.shape)
         dataset = Dataset.from_tensor_slices((feature_values, performances))
-        dataset.batch(batch_size)
+        dataset.batch(8)
         print("dataset", dataset)
 
-        print(self.network(feature_values[0, None]))
+        print("output", self.network(feature_values[0, None]))
         
         # define custom loss function
         def custom_loss(model, x, y):
             y_ = model(x)
             # compute MSE
+            # print("x",x)
+            # print("y",y)
+            # print("y_",y_)
+
             loss = tf.reduce_mean(tf.square(tf.subtract(y,tf.exp(y_))))
-            print(y_)
             # print(loss)
             return loss
         
@@ -95,8 +98,6 @@ class NeuralNetwork:
 
         train_loss_results = []
 
-        # training 
-        # epoch_accuracy = tf.keras.metrics.MSE()
         for epoch in range(num_epochs):
             # for x, y in zip(feature_values, performances):
             for x,y in dataset:
@@ -104,12 +105,6 @@ class NeuralNetwork:
                 loss_value, grads = grad(self.network,feature_values,performances)
                 # print(loss_value)
                 optimizer.apply_gradients(zip(grads, self.network.trainable_weights))
-
-            # epoch_accuracy(y,self.network(x))
-            # train_loss_results.append(epoch_loss)
-
-        # self.network.compile(loss=[custom_loss, custom_loss, custom_loss, custom_loss, custom_loss], optimizer=optimizer, metrics=["mse", "mae"])
-        # self.network.fit(feature_values, [performances[:,0],performances[:,1],performances[:,2]], epochs = 10000, validation_split = 0.2, verbose = 0, callbacks=[early_stop])
 
     
 
