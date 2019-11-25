@@ -1,7 +1,6 @@
 import numpy as np
 np.random.seed(15)
 import pandas as pd
-# import tensorflow as tf
 import tensorflow_core as tf
 from tensorflow_core import keras
 from tensorflow_core.python.keras import layers
@@ -35,14 +34,14 @@ class NeuralNetwork:
     def build_network(self, num_labels, num_features ):
         input_layer = keras.layers.Input(num_features, name="input_layer")
         hidden_layers = keras.layers.Dense(8, activation="relu")(input_layer)
-        # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
-        # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
+        hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
+        hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         output_layers = []
         for i in range(0, num_labels):
             output_layers.append(keras.layers.Dense(1, name="output_layer"+str(i))(hidden_layers))
-        return keras.Model(inputs=input_layer, outputs=output_layers, )
+        return keras.Model(inputs=input_layer, outputs=output_layers)
 
-    def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances : np.ndarray, lambda_value = 0.5, regression_loss="Absolute", num_epochs=10, batch_size=32):
+    def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances : np.ndarray, lambda_value = 0.5, regression_loss="Absolute", num_epochs=100, learning_rate=0.1, batch_size=32):
         """Fit the network to the given data.
 
         Arguments:
@@ -68,33 +67,33 @@ class NeuralNetwork:
         print(feature_values.shape)
         print(performances.shape)
         dataset = Dataset.from_tensor_slices((feature_values, performances))
-        dataset.batch(8)
+        dataset.batch(batch_size)
         print("dataset", dataset)
 
         print("output", self.network(feature_values[0, None]))
         
         # define custom loss function
-        def custom_loss(model, x, y):
-            y_ = model(x)
+        def custom_loss(model, x, y, i):
+            y_ = model(x)[i]
             # compute MSE
             # print("x",x)
             # print("y",y)
             # print("y_",y_)
 
-            loss = tf.reduce_mean(tf.square(tf.subtract(y,tf.exp(y_))))
-            # print(loss)
+            loss = tf.reduce_mean(tf.square(tf.subtract(y,y_)))
+            # print("loss", loss)
             return loss
         
-        l = custom_loss(self.network, feature_values, performances)
+        # l = custom_loss(self.network, feature_values, performances, i)
 
         # define gradient of custom loss function
-        def grad(model, inputs, targets):
+        def grad(model, inputs, targets, i):
             with tf.GradientTape() as tape:
-                loss_value = custom_loss(model, inputs, targets)
+                loss_value = custom_loss(model, inputs, targets, i)
             return loss_value, tape.gradient(loss_value, model.trainable_weights)
         
         # optimizer
-        optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.1)
 
         train_loss_results = []
 
@@ -102,12 +101,19 @@ class NeuralNetwork:
             # for x, y in zip(feature_values, performances):
             for x,y in dataset:
                 # print(x,y)
-                loss_value, grads = grad(self.network,feature_values,performances)
+                tvs = self.network.trainable_weights
+                accum_tvs = [tf.Variable(tf.zeros_like(tv.initialized_value()),trainable=False) for tv in tvs]
+                zero_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_tvs]
+                # TODO finish gradient accumulation
+                cumulative_grads = None
+                for i in range(num_labels):
+                    loss_value, grads = grad(self.network,feature_values,performances, i)
+                    print("loss", loss_value)
+
                 # print(loss_value)
                 optimizer.apply_gradients(zip(grads, self.network.trainable_weights))
 
     
-
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.
 
@@ -122,9 +128,9 @@ class NeuralNetwork:
         # keras expects a 2 dimensional input
         # features = np.expand_dims(features, axis=0)
          # compute utility scores
-        utility_scores = np.exp(self.network(features[:,None].T))
+        # utility_scores = np.exp(self.network(features[:,None].T))
         # return np.reciprocal(utility_scores)
-        return utility_scores
+        return self.network(features[:,None].T)
 
     def predict_ranking(self, features: np.ndarray):
         """Predict a label ranking.
