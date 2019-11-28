@@ -61,6 +61,7 @@ for problem_instance, performances in scenario.performance_data.iterrows():
     abs_vbs_distance = compute_distance_to_vbs(baseline_performances, true_performances)
     ndcg = ndcg_at_k(baseline_ranking,relevance_scores.loc[problem_instance].to_numpy(), len(scenario.algorithms))
     baseline_measures.append([problem_instance,tau_corr,tau_p,ndcg,mse,mae,abs_vbs_distance])
+    print(corras.loc[problem_instance])
     for lambda_value in lambda_values:
         tau_corr = 0
         tau_p = 0
@@ -69,6 +70,7 @@ for problem_instance, performances in scenario.performance_data.iterrows():
         mae = 0
         abs_vbs_distance = 0
         corras_performances = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").to_numpy()
+        # print(corras.loc[problem_instance])
         corras_ranking = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").rank(method="min").fillna(-1).astype("int16").to_numpy()
         if np.isinf(corras_performances).any():
             print("Warning, NaN in performance prediction for " + problem_instance + "!")

@@ -35,6 +35,7 @@ def ndcg_at_k(predicted_ranking, relevance_scores, k):
         relevance_scores {[type]} -- [description]
         k {[type]} -- [description]
     """
+    #TODO real values relevance score
     ordering = np.argsort(predicted_ranking)
     predicted = relevance_scores[ordering]
     best = np.sort(relevance_scores)[::-1]
