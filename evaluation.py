@@ -13,7 +13,7 @@ import seaborn as sns
 
 sns.set_style("darkgrid")
 
-scenario_name = "CPMP-2015"
+scenario_name = "CSP-Minizinc-Time-2016"
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path = "./results/"
 figures_path = "./figures/"

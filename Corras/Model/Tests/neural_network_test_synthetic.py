@@ -64,7 +64,7 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
         model = nn.NeuralNetwork()
         # rankings = util.ordering_to_ranking_list(self.train_ranking.values)
         rankings = util.ordering_to_ranking_matrix(self.train_ranking.values)
-        model.fit(5, rankings,self.train_inst.values,self.train_performances.values,lambda_value=1,regression_loss="Squared", num_epochs=100, learning_rate=0.1)
+        model.fit(5, rankings,self.train_inst.values,self.train_performances.values,lambda_value=1,regression_loss="Squared", num_epochs=100, learning_rate=1)
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))

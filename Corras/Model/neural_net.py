@@ -100,20 +100,24 @@ class NeuralNetwork:
             # compute MSE
             reg_loss = tf.reduce_mean(tf.square(tf.subtract(output[:,i], y_perf[:,i])))
             exp_utils = np.exp(output)
+            print(exp_utils)
             exp_utils_ordered = exp_utils[np.arange(exp_utils.shape[0])[:,np.newaxis],y_rank-1]
             inv_rank = np.argsort(y_rank)
             rank_loss = 0
             for k in range(num_labels):
                 indicator = inv_rank[:,i] >= k
-                print("inv rank", inv_rank[:,i])
                 # exp_utils_indicator = exp_utils[indicator]
                 indicator = np.repeat(indicator[:,None], num_labels, axis=1)
                 # if inv_rank[i] >= k:
                 # if indicator.any():
                 exp_utils_indicator = np.where(indicator, exp_utils, np.zeros_like(exp_utils))
+                # print(indicator)
                 # print("exp utils", exp_utils)
                 # print("exp utils ind", exp_utils_indicator)
+                # print("numerator" + str(k), exp_utils_indicator[:,i])
                 rank_loss += np.divide(exp_utils_indicator[:,i], np.sum(exp_utils_ordered[:,k:], axis=1))
+                # print("exp ut ind", exp_utils_indicator[:,i])
+                # print("rank_loss " + str(k), rank_loss)
             if i < (num_labels - 1):
                 rank_loss -= 1
             rank_loss = tf.reduce_sum(rank_loss)
