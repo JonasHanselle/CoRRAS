@@ -1,6 +1,7 @@
 import autograd.numpy as np
 import pandas as pd
 import itertools as it
+import random
 from scipy.stats import kendalltau
 
 def compute_rankings(performances):
@@ -24,7 +25,7 @@ def remove_duplicates(rankings : pd.DataFrame):
             if len(row) > len(set(row.tolist())):
                 rankings.drop(index, inplace=True)
 
-def break_ties_of_ranking(ranking : pd.DataFrame):
+def break_ties_of_ranking(ranking : pd.DataFrame, max_rankings_per_instance = 15, seed = 15):
     """Breaks up ties in a ranking. A ranking 1 2 3 3 
     will be replaces by two rankings 1 2 3 -1 and 1 2 -1 3
     Entries -1 indicate that the label is absent in the 
@@ -33,6 +34,7 @@ def break_ties_of_ranking(ranking : pd.DataFrame):
     Arguments:
         ranking {pd.DataFrame} -- [description]
     """
+    random.seed(seed)
     new_frame = pd.DataFrame()
     for index, row in ranking.iterrows():
         if len(set(row.values)) == len(row.values):
@@ -46,6 +48,7 @@ def break_ties_of_ranking(ranking : pd.DataFrame):
                     ranks[k-1] = []
                 ranks[k-1].append(i)
             ranking.drop(index, inplace=True)
+            new_rankings = []
             for new_ranking in it.product(*ranks):
                 new_row = pd.Series(index=row.index)
                 new_row[:] = -1
@@ -53,6 +56,9 @@ def break_ties_of_ranking(ranking : pd.DataFrame):
                     if r >= 0:
                         new_row.iloc[r-1] = i
                 new_row = new_row.rename(index)
+                new_rankings.append(new_row)
+            new_rankings_sample = random.sample(new_rankings,min((max_rankings_per_instance, len(new_rankings))))
+            for sample in new_rankings_sample:
                 new_frame = new_frame.append(new_row)
     return new_frame.astype("int16")
 
@@ -145,7 +151,7 @@ def construct_ordered_tensor(features : pd.DataFrame, performances : pd.DataFram
             tensor[i,l,-1] = row.iloc[l]
     return tensor
 
-def construct_numpy_representation(features : pd.DataFrame, performances : pd.DataFrame):
+def construct_numpy_representation(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15):
     """Get numpy representation of features, performances and rankings
     
     Arguments:
@@ -158,7 +164,7 @@ def construct_numpy_representation(features : pd.DataFrame, performances : pd.Da
         third stores the algorithm rankings
     """
     rankings = compute_rankings(performances)
-    rankings = break_ties_of_ranking(rankings)
+    rankings = break_ties_of_ranking(rankings, max_rankings_per_instance=max_rankings_per_instance)
     
     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
     np_features = joined[features.columns.values].values
@@ -166,7 +172,7 @@ def construct_numpy_representation(features : pd.DataFrame, performances : pd.Da
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings
 
-def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame):
+def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15):
     """Get numpy representation of features and performances. Rankings
     are constructed as nested python lists, such that rankings of 
     heterogenous length are possible.
@@ -182,13 +188,40 @@ def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, p
         rankings
     """
     rankings = compute_rankings(performances)
-    rankings = break_ties_of_ranking(rankings)
+    rankings = break_ties_of_ranking(rankings, max_rankings_per_instance=max_rankings_per_instance)
     
     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
     np_features = joined[features.columns.values].values
     np_performances = joined[[x + "_performance" for x in performances.columns]].values
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings
+
+
+# def construct_numpy_representation_with_list_of_n_klets(features : pd.DataFrame, performances : pd.DataFrame, n : int, k : int, seed : int):
+#     """Get numpy representation of features and performances. Rankings
+#     are constructed as nested python lists, such that rankings of 
+#     heterogenous length are possible.
+    
+#     Arguments:
+#         features {pd.DataFrame} -- Feature values
+#         performances {pd.DataFrame} -- Performances of algorithms
+#         n {int} -- Number of partial rankings per instance
+#         k {int} -- Length of 
+    
+#     Returns:
+#         [type] -- Tupel of numpy ndarrays, first stores the feature
+#         values, the second stores the algirhtm performances. The 
+#         third return is a list of python lists containing the 
+#         rankings
+#     """
+#     rankings = compute_rankings(performances)
+#     rankings = break_ties_of_ranking(rankings)
+    
+#     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
+#     np_features = joined[features.columns.values].values
+#     np_performances = joined[[x + "_performance" for x in performances.columns]].values
+#     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
+#     return np_features, np_performances, np_rankings
 
 
 def custom_tau(ranking_a, ranking_b):

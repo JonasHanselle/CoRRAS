@@ -17,7 +17,7 @@ class ASRankingScenario(scenario.ASlibScenario):
         """
         if self.performance_data is None:
             self.logger.error("Please read in performance data!")
-        elif self.performance_measure not in ["runtime", "PAR10",["runtime"], ["PAR10"]]:
+        elif self.performance_measure not in ["runtime", "PAR10",["runtime"], ["PAR10"], "time", ["time"]]:
             self.logger.error(
                 "Currently we only support runtime as a performance measure! Not " + str(self.performance_measure))
         else:

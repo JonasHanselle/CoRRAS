@@ -5,7 +5,7 @@ from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 # measures
 from scipy.stats import kendalltau, describe
 from sklearn.metrics import mean_absolute_error, mean_squared_error
-from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_equi_width 
+from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_unit_interval 
 
 # plotting
 import matplotlib.pyplot as plt
@@ -25,10 +25,7 @@ def compute_distance_to_vbs(predicted_performances, true_performances):
 scenario = ASRankingScenario()
 scenario.read_scenario(scenario_path + scenario_name)
 scenario.compute_rankings(False)
-relevance_scores = compute_relevance_scores_equi_width(scenario)
-
-print(scenario.performance_data)
-print(relevance_scores)
+relevance_scores = compute_relevance_scores_unit_interval(scenario)
 
 baseline = pd.read_csv(results_path + "rf-" + scenario_name + ".csv")
 corras = pd.read_csv(results_path + "corras-" + scenario_name + ".csv")
@@ -43,6 +40,9 @@ lambda_values = pd.unique(corras["lambda"])
 
 baseline_measures = []
 corras_measures = []
+
+print(scenario.performance_data)
+print(relevance_scores)
 
 for problem_instance, performances in scenario.performance_data.iterrows():
     tau_corr = 0
@@ -61,7 +61,7 @@ for problem_instance, performances in scenario.performance_data.iterrows():
     abs_vbs_distance = compute_distance_to_vbs(baseline_performances, true_performances)
     ndcg = ndcg_at_k(baseline_ranking,relevance_scores.loc[problem_instance].to_numpy(), len(scenario.algorithms))
     baseline_measures.append([problem_instance,tau_corr,tau_p,ndcg,mse,mae,abs_vbs_distance])
-    print(corras.loc[problem_instance])
+    # print(corras.loc[problem_instance])
     for lambda_value in lambda_values:
         tau_corr = 0
         tau_p = 0
@@ -69,11 +69,12 @@ for problem_instance, performances in scenario.performance_data.iterrows():
         mse = 0
         mae = 0
         abs_vbs_distance = 0
+        # print(corras)
         corras_performances = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").to_numpy()
         # print(corras.loc[problem_instance])
         corras_ranking = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").rank(method="min").fillna(-1).astype("int16").to_numpy()
         if np.isinf(corras_performances).any():
-            print("Warning, NaN in performance prediction for " + problem_instance + "!")
+            # print("Warning, NaN in performance prediction for " + problem_instance + "!")
             continue
         tau_corr, tau_p = kendalltau(true_ranking, corras_ranking)
         mse = mean_squared_error(true_performances, corras_performances)

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
 from Corras.Model import log_linear
+from Corras.Model import neural_net
 from Corras.Util import ranking_util as util
 from scipy.stats import kendalltau
 import matplotlib.pyplot as plt
@@ -53,11 +54,12 @@ for portion in training_portions:
 
     model1 = log_linear.LogLinearModel()
     model2 = log_linear.LogLinearModel()
+    model3 = neural_net.NeuralNetwork()
 
 
-
-    model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
-    model2.fit_np(train_rankings_np_rank,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    # model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    # model2.fit_np(train_rankings_np_rank,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    model3.fit(4,train_rankings_np,train_features_np,None,lambda_value=1)
     # model1.weights = model2.weights
     # test_weights = np.random.rand(train_rankings.shape[1], train_features.shape[1]+1)
     # print("test weights shape",test_weights.shape)

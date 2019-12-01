@@ -68,7 +68,7 @@ class NeuralNetwork:
         # add constant 1 for bias and create tf dataset
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
         print(feature_values.shape)
-        print(performances.shape)
+        # print(performances.shape)
 
         # split feature and performance data
         feature_values, performances = shuffle(
@@ -98,17 +98,27 @@ class NeuralNetwork:
             """
             output = model(x)
             # compute MSE
-            reg_loss = tf.reduce_mean(tf.square(tf.subtract(output[i], y_perf[i])))
-            exp_utils = tf.exp(output)
-            exp_utils_orderd = tf.gather_nd(exp_utils, y_rank-1)
-            print(exp_utils_orderd)
-            inv_rank = tf.argsort(y_rank)
+            reg_loss = tf.reduce_mean(tf.square(tf.subtract(output[:,i], y_perf[:,i])))
+            exp_utils = np.exp(output)
+            exp_utils_ordered = exp_utils[np.arange(exp_utils.shape[0])[:,np.newaxis],y_rank-1]
+            inv_rank = np.argsort(y_rank)
             rank_loss = 0
             for k in range(num_labels):
-                if inv_rank[i] >= k:
-                    rank_loss += exp_utils[i] / np.sum(exp_utils_orderd[k:])
-            if i <= num_labels - 1:
+                indicator = inv_rank[:,i] >= k
+                print("inv rank", inv_rank[:,i])
+                # exp_utils_indicator = exp_utils[indicator]
+                indicator = np.repeat(indicator[:,None], num_labels, axis=1)
+                # if inv_rank[i] >= k:
+                # if indicator.any():
+                exp_utils_indicator = np.where(indicator, exp_utils, np.zeros_like(exp_utils))
+                # print("exp utils", exp_utils)
+                # print("exp utils ind", exp_utils_indicator)
+                rank_loss += np.divide(exp_utils_indicator[:,i], np.sum(exp_utils_ordered[:,k:], axis=1))
+            if i < (num_labels - 1):
                 rank_loss -= 1
+            rank_loss = tf.reduce_sum(rank_loss)
+            # print("reg_loss", reg_loss)
+            # print("rank_loss", rank_loss)
             return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
         # define gradient of custom loss function
 

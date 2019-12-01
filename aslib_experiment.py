@@ -19,23 +19,28 @@ from Corras.Util import ranking_util as util
 # Baseline
 from sklearn.ensemble import RandomForestRegressor
 
+result_path = "./results/"
+
 scenario = aslib_ranking_scenario.ASRankingScenario()
 scenario.read_scenario("aslib_data-aslib-v4.0/"+sys.argv[1])
 
+
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.95, 0.99999, 0.9999999999, 1.0,]
+max_rankings_per_instance = 5
 maxiter = 100
 seed = 15
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 num_splits = 10
 result_data_corras = []
 result_data_rf = []
 baselines = None
 
+scenario.create_cv_splits(n_folds=num_splits)
 for i_split in range(1, num_splits+1):
 
     test_scenario, train_scenario = scenario.get_split(i_split)
 
     train_features_np, train_performances_np, train_rankings_np = util.construct_numpy_representation(
-        train_scenario.feature_data, train_scenario.performance_data)
+        train_scenario.feature_data, train_scenario.performance_data, max_rankings_per_instance=max_rankings_per_instance, seed=seed)
     
     # preprocessing
     imputer = SimpleImputer()
@@ -46,7 +51,7 @@ for i_split in range(1, num_splits+1):
     # Create one random forest regressor per label
     baselines = []
     for label in range(0,len(train_scenario.performance_data.columns)):
-        baselines.append(RandomForestRegressor(random_state = seed))
+        baselines.append(RandomForestRegressor(random_state = seed, n_estimators=100))
     for label in range(0,len(train_scenario.performance_data.columns)):
         baselines[label].fit(train_features_np, train_performances_np[:,label])
 
@@ -62,7 +67,7 @@ for i_split in range(1, num_splits+1):
 
 
         train_rankings_list = util.ordering_to_ranking_list(train_rankings_np)
-
+        print(train_rankings_list)
         model = log_linear.LogLinearModel()
 
         model.fit_list(len(scenario.algorithms),train_rankings_list, train_features_np,
@@ -81,10 +86,10 @@ performance_cols_corras = [x + "_performance" for x in scenario.performance_data
 result_columns_corras = ["split", "problem_instance", "lambda", "predicted_ranking"]
 result_columns_corras += performance_cols_corras
 results_corras = pd.DataFrame(data=result_data_corras, columns=result_columns_corras)
-results_corras.to_csv("corras-"+scenario.scenario+".csv", index_label="id")
+results_corras.to_csv(result_path+"corras-"+scenario.scenario+".csv", index_label="id")
 performance_cols = [x + "_performance" for x in scenario.performance_data.columns]
 
 result_columns_rf = ["split", "problem_instance"]
 result_columns_rf += performance_cols
 results_rf = pd.DataFrame(data=result_data_rf, columns=result_columns_rf)
-results_rf.to_csv("rf-"+scenario.scenario+".csv", index_label="id")
+results_rf.to_csv(result_path+"rf-"+scenario.scenario+".csv", index_label="id")

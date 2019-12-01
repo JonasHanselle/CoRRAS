@@ -32,17 +32,26 @@ class UtilTests(unittest.TestCase):
     #     print("performances shape", np_p.shape)
     #     print("rankings shape", np_r.shape)
 
+    # def test_ordering_to_ranking_list(self):
+    #     scenario = scen.ASRankingScenario()
+    #     scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
+    #     features = scenario.feature_data
+    #     performances = scenario.performance_data
+    #     np_f, np_p, np_r = util.construct_numpy_representation(features,performances)
+    #     print("performances",np_p)
+    #     print("rankings",np_r)
+    #     print("list",util.ordering_to_ranking_list(np_r))
+
+
     def test_ordering_to_ranking_list(self):
         scenario = scen.ASRankingScenario()
-        scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
+        scenario.read_scenario("aslib_data-aslib-v4.0/SAT11-INDU")
         features = scenario.feature_data
         performances = scenario.performance_data
-        np_f, np_p, np_r = util.construct_numpy_representation(features,performances)
+        np_f, np_p, np_r = util.construct_numpy_representation_with_list_rankings(features,performances,max_rankings_per_instance=5,seed=15)
         print("performances",np_p)
         print("rankings",np_r)
         print("list",util.ordering_to_ranking_list(np_r))
-
-
     # def test_ranking_conversion(self):
     #     scenario = scen.ASRankingScenario()
     #     scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")

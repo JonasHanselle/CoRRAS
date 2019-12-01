@@ -24,8 +24,10 @@ class LogLinearModel:
         loss = 0
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
         utilities = np.exp(np.dot(weights, feature_values.T))
+        # utilities = np.dot(weights, feature_values.T)
         inverse_utilities = np.reciprocal(utilities)
-        loss += np.sum(np.square(np.subtract(performances.T,
+        # inverse_utilities = utilities
+        loss += np.mean(np.square(np.subtract(performances.T,
                                                 inverse_utilities)))
         return loss
 
@@ -203,6 +205,8 @@ class LogLinearModel:
         # compute utility scores
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
+        # utility_scores = np.dot(self.weights, features)
+        # return utility_scores
         return np.reciprocal(utility_scores)
 
     def predict_ranking(self, features: np.ndarray):
