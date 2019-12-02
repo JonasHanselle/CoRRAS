@@ -12,7 +12,7 @@ class TestLogLinearModelASLib(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestLogLinearModelASLib, self).__init__(*args, **kwargs)
         self.scenario = scen.ASRankingScenario()
-        self.scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")
+        self.scenario.read_scenario("aslib_data-aslib-v4.0/MIP-2016")
         self.scenario.compute_rankings()
         # preprocessing of data
         self.scaler = StandardScaler()
@@ -41,22 +41,26 @@ class TestLogLinearModelASLib(unittest.TestCase):
 
     def test_regression(self):
         model = ll.LogLinearModel()
-        features, performances, rankings = util.construct_numpy_representation(self.train_inst, self.train_performances)
+        features, performances, rankings = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst, self.train_performances)
         print("raw features", features)
         features = self.imputer.fit_transform(features)
         features = self.scaler.fit_transform(features)
         print("scaled features", features)
         print(performances)
         print(rankings)
-        rankings = util.ordering_to_ranking_list(rankings)
-        print(rankings)
-        model.fit_list(len(self.scenario.algorithms),rankings,features,performances,lambda_value=0.5,regression_loss="Squared",maxiter=100)
+        # rankings = util.ordering_to_ranking_list(rankings)
+        # print(rankings)
+        # model.fit_list(len(self.scenario.algorithms),rankings,features,performances,lambda_value=0.5,regression_loss="Squared",maxiter=100)
+        model.fit_np(len(self.scenario.algorithms),rankings,features,performances,lambda_value=1,regression_loss="Squared",maxiter=30)
         for i, (index, row) in enumerate(self.train_performances.iterrows()):
             instance_values = self.train_inst.loc[index].values
             imputed_row = self.imputer.transform([instance_values])
             scaled_row = self.scaler.transform(imputed_row).flatten()
             print("predicted", model.predict_performances(scaled_row))
             print("truth performance", row.values)
+            print("\n")
+            print("Predicted Ranking", model.predict_ranking(scaled_row))
+            print("True Ranking", np.argsort(np.argsort(row.values))+1)
             print("\n")
 
 if __name__ == "__main__":

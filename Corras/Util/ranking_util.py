@@ -59,8 +59,50 @@ def break_ties_of_ranking(ranking : pd.DataFrame, max_rankings_per_instance = 15
                 new_rankings.append(new_row)
             new_rankings_sample = random.sample(new_rankings,min((max_rankings_per_instance, len(new_rankings))))
             for sample in new_rankings_sample:
-                new_frame = new_frame.append(new_row)
+                new_frame = new_frame.append(sample)
     return new_frame.astype("int16")
+
+# def break_ties_of_ranking(ranking : pd.DataFrame, max_rankings_per_instance = 15, seed = 15):
+#     """Breaks up ties in a ranking. A ranking 1 2 3 3 
+#     will be replaces by two rankings 1 2 3 -1 and 1 2 -1 3
+#     Entries -1 indicate that the label is absent in the 
+#     ranking
+
+#     Arguments:
+#         ranking {pd.DataFrame} -- [description]
+#     """
+    # new_frame = pd.DataFrame()
+    # for index, row in ranking.iterrows():
+    #     if len(set(row.values)) == len(row.values):
+    #         row = row.rename(index)
+    #         new_frame = new_frame.append(row)
+    #     else:
+    #         # remove the row and insert new rankings
+    #         ranks = [[-1] for i in range(0,len(row.values))]
+    #         for i, k in enumerate(row.values, 1):
+    #             if ranks[k-1] == [-1]:
+    #                 ranks[k-1] = []
+    #             ranks[k-1].append(i)
+    #         ranking.drop(index, inplace=True)
+    #         for new_ranking in it.product(*ranks):
+    #             new_row = pd.Series(index=row.index)
+    #             new_row[:] = -1
+    #             for i, r in enumerate(new_ranking, 1):
+    #                 if r >= 0:
+    #                     new_row.iloc[r-1] = i
+    #             new_row = new_row.rename(index)
+    #             new_frame = new_frame.append(new_row)
+    # return new_frame.astype("int16")
+
+def ordering_to_ranking_frame(ordering_frame : pd.DataFrame):
+    rankings = []
+    for instance, series in ordering_frame.iterrows():
+        ranking = [-1] * len(ordering_frame.columns)
+        for count, (index, item) in enumerate(series.iteritems()):
+            ranking[item-1] = count
+        rankings.append(ranking)
+    new_frame = pd.DataFrame(data=rankings, columns=[str(i+1) for i in range(len(ordering_frame.columns))], index=ordering_frame.index)
+    return new_frame
 
 def ordering_to_ranking(ranking_series : pd.Series):
     """Create a ranking from a DataFrame that has one 
@@ -172,7 +214,88 @@ def construct_numpy_representation(features : pd.DataFrame, performances : pd.Da
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings
 
-def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15):
+
+def construct_numpy_representation(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15):
+    """Get numpy representation of features, performances and rankings
+
+    Arguments:
+        features {pd.DataFrame} -- Feature values
+        performances {pd.DataFrame} -- Performances of algorithms
+
+    Returns:
+        [type] -- Triple of numpy ndarrays, first stores the feature
+        values, the second stores the algirhtm performances and the
+        third stores the algorithm rankings
+    """
+    rankings = compute_rankings(performances)
+    rankings = break_ties_of_ranking(rankings, max_rankings_per_instance=max_rankings_per_instance)
+
+    joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
+    np_features = joined[features.columns.values].values
+    np_performances = joined[[x + "_performance" for x in performances.columns]].values
+    np_rankings = joined[[x + "_rank" for x in performances.columns]].values
+    return np_features, np_performances, np_rankings
+
+
+def construct_numpy_representation_with_pairs_of_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15):
+    """Get numpy representation of features, performances and rankings
+
+    Arguments:
+        features {pd.DataFrame} -- Feature values
+        performances {pd.DataFrame} -- Performances of algorithms
+
+    Returns:
+        [type] -- Triple of numpy ndarrays, first stores the feature
+        values, the second stores the algirhtm performances and the
+        third stores the algorithm rankings
+    """
+    rankings = sample_pairs(performances, pairs_per_instance=max_pairs_per_instance, seed=seed)
+    joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
+    np_features = joined[features.columns.values].values
+    print(joined)
+    np_performances = joined[[x for x in performances.columns]].values
+    np_rankings = joined[[x for x in rankings.columns]].values
+    return np_features, np_performances, np_rankings
+
+def enumerate_pairs(k):
+    """Enumerates ordered pairs
+    
+    Arguments:
+        k {[type]} -- Up to which index ordered pairs should be enumerated
+    
+    Returns:
+        [type] -- List of tuples of indices
+    """
+    result = []
+    for i in range(1,k):
+        for j in range(0,i):
+            result.append((j,i))
+    return result
+
+def sample_pairs(performances : pd.DataFrame, pairs_per_instance : int, seed : int):
+    pairs_result = []
+    indices = []
+    random.seed(seed)
+    pairs = enumerate_pairs(len(performances.columns))
+    for index, row in performances.iterrows():
+        random.shuffle(pairs)
+        candidates = pairs[:]
+        i = 0
+        while i < pairs_per_instance and candidates:
+            pair = candidates.pop(0)
+            if row.iloc[pair[0]] > row.iloc[pair[1]]:
+                pairs_result.append([pair[1],pair[0]])
+                indices.append(index)
+                i += 1
+            elif row.iloc[pair[0]] < row.iloc[pair[1]]:
+                pairs_result.append([pair[0],pair[1]])
+                indices.append(index)
+                i += 1
+        if not candidates:
+            print("Candidates exhausted!")
+    return pd.DataFrame(data=pairs_result, index=indices, columns=[1,2])
+
+def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15, pairs = False):
     """Get numpy representation of features and performances. Rankings
     are constructed as nested python lists, such that rankings of 
     heterogenous length are possible.
@@ -188,13 +311,39 @@ def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, p
         rankings
     """
     rankings = compute_rankings(performances)
-    rankings = break_ties_of_ranking(rankings, max_rankings_per_instance=max_rankings_per_instance)
-    
+    if pairs:
+        rankings = break_ties_of_ranking_pairs(rankings, max_rankings_per_instance=max_rankings_per_instance)
+    else:
+        rankings = break_ties_of_ranking(rankings, max_rankings_per_instance=max_rankings_per_instance)
     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
     np_features = joined[features.columns.values].values
     np_performances = joined[[x + "_performance" for x in performances.columns]].values
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings
+
+# def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15):
+#     """Get numpy representation of features and performances. Rankings
+#     are constructed as nested python lists, such that rankings of 
+#     heterogenous length are possible.
+    
+#     Arguments:
+#         features {pd.DataFrame} -- Feature values
+#         performances {pd.DataFrame} -- Performances of algorithms
+    
+#     Returns:
+#         [type] -- Tupel of numpy ndarrays, first stores the feature
+#         values, the second stores the algirhtm performances. The 
+#         third return is a list of python lists containing the 
+#         rankings
+#     """
+#     rankings = compute_rankings(performances)
+#     rankings = break_ties_of_ranking(rankings, max_rankings_per_instance=max_rankings_per_instance)
+    
+#     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
+#     np_features = joined[features.columns.values].values
+#     np_performances = joined[[x + "_performance" for x in performances.columns]].values
+#     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
+#     return np_features, np_performances, np_rankings
 
 
 # def construct_numpy_representation_with_list_of_n_klets(features : pd.DataFrame, performances : pd.DataFrame, n : int, k : int, seed : int):

@@ -43,15 +43,32 @@ class UtilTests(unittest.TestCase):
     #     print("list",util.ordering_to_ranking_list(np_r))
 
 
-    def test_ordering_to_ranking_list(self):
+    # def test_ordering_to_ranking_list(self):
+    #     scenario = scen.ASRankingScenario()
+    #     scenario.read_scenario("aslib_data-aslib-v4.0/SAT11-INDU")
+    #     features = scenario.feature_data
+    #     performances = scenario.performance_data
+    #     np_f, np_p, np_r = util.construct_numpy_representation_with_list_rankings(features,performances,max_rankings_per_instance=5,seed=15, pairs=True)
+    #     print("performances",np_p)
+    #     print("rankings",np_r)
+    #     print("list",util.ordering_to_ranking_frame(np_r))
+
+    # def test_ordering_to_ranking_frame(self):
+    #     scenario = scen.ASRankingScenario()
+    #     scenario.read_scenario("aslib_data-aslib-v4.0/MIP-2016")
+    #     features = scenario.feature_data
+    #     performances = scenario.performance_data
+    #     np_f, np_p, np_r = util.construct_numpy_representation_with_pairs_of_rankings(features,performances,max_rankings_per_instance=500,seed=15)
+
+    def test_ordering_to_ranking_frame(self):
         scenario = scen.ASRankingScenario()
-        scenario.read_scenario("aslib_data-aslib-v4.0/SAT11-INDU")
-        features = scenario.feature_data
+        scenario.read_scenario("aslib_data-aslib-v4.0/MIP-2016")
         performances = scenario.performance_data
-        np_f, np_p, np_r = util.construct_numpy_representation_with_list_rankings(features,performances,max_rankings_per_instance=5,seed=15)
-        print("performances",np_p)
-        print("rankings",np_r)
-        print("list",util.ordering_to_ranking_list(np_r))
+        pairs = util.sample_pairs(performances, pairs_per_instance=5, seed=15)
+        print(performances)
+        print(pairs)
+
+
     # def test_ranking_conversion(self):
     #     scenario = scen.ASRankingScenario()
     #     scenario.read_scenario("aslib_data-aslib-v4.0/CPMP-2015")

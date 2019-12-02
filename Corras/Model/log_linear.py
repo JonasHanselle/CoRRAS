@@ -9,6 +9,7 @@ class LogLinearModel:
 
     def __init__(self):
         self.weights = None
+        self.loss_history = []
 
     def squared_error(self, performances: np.ndarray, features: np.ndarray, weights: np.ndarray):
         """Compute squared error for regression
@@ -117,7 +118,7 @@ class LogLinearModel:
             g2 += sum2
         return g2-g1
 
-    def fit_np(self, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000):
+    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000):
         """[summary]
 
         Arguments:
@@ -130,29 +131,36 @@ class LogLinearModel:
         Returns:
             [type] -- [description]
         """
-        num_labels = rankings.shape[1]
+        # num_labels = rankings.shape[1]
         # add one column for bias
         num_features = features.shape[1]+1
         # self.weights = np.random.rand(num_labels, num_features)
         self.weights = np.ones((num_labels, num_features)) / (num_features * num_labels)
         nll = self.vectorized_nll
         reg_loss = self.squared_error
-
+        self.loss_history = []
         # minimize loss function
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
+                reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
+                self.loss_history.append(np.asarray([0, reg_loss_value]))
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
+                nll_value = lambda_value * nll(rankings, features, x)
+                self.loss_history.append(np.asarray([nll_value, 0]))
                 return nll(rankings, features, x)
-            return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
-
+            nll_value = lambda_value * nll(rankings, features, x)
+            reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
+            self.loss_history.append(np.asarray([nll_value, reg_loss_value]))
+            return nll_value + reg_loss_value
         jac = grad(g)
 
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
                           jac=jac, options={"maxiter": maxiter, "disp": True})
 
+        print("losses", np.asarray(self.loss_history))
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
     def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000):
@@ -170,9 +178,9 @@ class LogLinearModel:
             [type] -- [description]
         """
         # add one column for bias
-        num_features = features.shape[1]+1
-        # self.weights = np.random.rand(num_labels, num_features)
+        num_features = features.shape[1]+1        
         self.weights = np.ones((num_labels, num_features)) / (num_features * num_labels)
+        self.loss_history = []
         nll = self.list_nll
         reg_loss = self.squared_error
 
@@ -180,17 +188,23 @@ class LogLinearModel:
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
+                reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
+                self.loss_history.append(np.asarray([0, reg_loss_value]))
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
+                nll_value = lambda_value * nll(rankings, features, x)
+                self.loss_history.append(np.asarray([nll_value, 0]))
                 return nll(rankings, features, x)
-            return lambda_value * nll(rankings, features, x) + (1 - lambda_value) * reg_loss(performances, features, x)
-
+            nll_value = lambda_value * nll(rankings, features, x)
+            reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
+            self.loss_history.append(np.asarray([nll_value, reg_loss_value]))
+            return nll_value + reg_loss_value
+            
         jac = grad(g)
-
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
                           jac=jac, options={"maxiter": maxiter, "disp": True})
-
+        print(np.asarray(self.loss_history))
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
     def predict_performances(self, features: np.ndarray):
@@ -222,3 +236,12 @@ class LogLinearModel:
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
         return np.argsort(np.argsort(utility_scores)[::-1]) + 1
+
+    def save_loss_history(self, filepath : str):
+        """Saves the history of losses after the model has been fit
+        
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.loss_history, index=None, columns=["NLL", "MSE"])
+        frame.to_csv(path_or_buf=filepath, index_label="iter")

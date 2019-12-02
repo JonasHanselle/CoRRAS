@@ -11,7 +11,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestLogLinearModelSynthetic, self).__init__(*args, **kwargs)
-        self.train_size = 250000
+        self.train_size = 250
         self.test_size = 10
         self.noise_factor = 0.0
         features_train = np.asarray(onp.random.randint(low=0, high=30, size=(self.train_size,4)))
@@ -89,8 +89,10 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
     def test_regression(self):
         model = ll.LogLinearModel()
         # rankings = util.ordering_to_ranking_matrix(self.train_ranking.values)
-        rankings = util.ordering_to_ranking_list(self.train_ranking.values)
-        model.fit_list(5, rankings,self.train_inst.values,self.train_performances.values,lambda_value=0,regression_loss="Squared", maxiter=50)
+        # rankings = util.ordering_to_ranking_list(self.train_ranking.values)
+        t_features, t_performances, t_rankings = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst, self.train_performances, max_pairs_per_instance=5, seed=1337)
+        model.fit_list(5, t_rankings, t_features,t_performances,lambda_value=0.9,regression_loss="Squared", maxiter=30)
+        model.save_loss_history("loss_history.csv")
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances", model.predict_performances(row.values))
