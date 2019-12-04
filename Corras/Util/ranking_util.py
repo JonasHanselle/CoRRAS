@@ -254,7 +254,29 @@ def construct_numpy_representation_with_pairs_of_rankings(features : pd.DataFram
     np_features = joined[features.columns.values].values
     print(joined)
     np_performances = joined[[x for x in performances.columns]].values
-    np_rankings = joined[[x for x in rankings.columns]].values
+    np_rankings = joined[[x for x in rankings.columns]].values + 1
+    return np_features, np_performances, np_rankings
+
+def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15):
+    """Get numpy representation of features, performances and rankings
+
+    Arguments:
+        features {pd.DataFrame} -- Feature values
+        performances {pd.DataFrame} -- Performances of algorithms
+
+    Returns:
+        [type] -- Triple of numpy ndarrays, first stores the feature
+        values, the second stores the algirhtm performances and the
+        third stores the algorithm rankings
+    """
+    rankings = sample_pairs(performances, pairs_per_instance=max_pairs_per_instance, seed=seed)
+    joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
+    np_features = joined[features.columns.values].values
+    print(joined)
+    np_performances = joined[[x for x in performances.columns]].values
+    np_rankings = joined[[x for x in rankings.columns]].values + 1
+    np_performances = np_performances[np.arange(np_performances.shape[0])[:,np.newaxis],np_rankings-1]
+
     return np_features, np_performances, np_rankings
 
 def enumerate_pairs(k):

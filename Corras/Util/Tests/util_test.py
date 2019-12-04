@@ -60,13 +60,17 @@ class UtilTests(unittest.TestCase):
     #     performances = scenario.performance_data
     #     np_f, np_p, np_r = util.construct_numpy_representation_with_pairs_of_rankings(features,performances,max_rankings_per_instance=500,seed=15)
 
-    def test_ordering_to_ranking_frame(self):
+    def test_ordered_pairs(self):
         scenario = scen.ASRankingScenario()
         scenario.read_scenario("aslib_data-aslib-v4.0/MIP-2016")
         performances = scenario.performance_data
-        pairs = util.sample_pairs(performances, pairs_per_instance=5, seed=15)
-        print(performances)
-        print(pairs)
+        feat,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(scenario.feature_data,performances,max_pairs_per_instance=1,seed=15)
+        print(feat.shape)
+        print(perf.shape)
+        print(rank.shape)
+        print(feat)
+        print(perf)
+        print(rank)
 
 
     # def test_ranking_conversion(self):

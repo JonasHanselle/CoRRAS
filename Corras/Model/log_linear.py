@@ -7,9 +7,11 @@ from scipy.optimize import minimize
 
 class LogLinearModel:
 
-    def __init__(self):
+    def __init__(self, use_exp_for_regression=False, use_reciprocal_for_regression=True):
         self.weights = None
         self.loss_history = []
+        self.use_exp_for_regression = use_exp_for_regression
+        self.use_reciprocal_for_regression = use_reciprocal_for_regression
 
     def squared_error(self, performances: np.ndarray, features: np.ndarray, weights: np.ndarray):
         """Compute squared error for regression
@@ -24,10 +26,14 @@ class LogLinearModel:
         """
         loss = 0
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
-        utilities = np.exp(np.dot(weights, feature_values.T))
-        # utilities = np.dot(weights, feature_values.T)
-        inverse_utilities = np.reciprocal(utilities)
-        # inverse_utilities = utilities
+        utilities = None
+        if self.use_exp_for_regression:
+            utilities = np.exp(np.dot(weights, feature_values.T))
+        else:
+            utilities = np.dot(weights, feature_values.T)
+        inverse_utilities = utilities
+        if self.use_reciprocal_for_regression:
+            inverse_utilities = np.reciprocal(utilities)
         loss += np.mean(np.square(np.subtract(performances.T,
                                                 inverse_utilities)))
         return loss
@@ -118,7 +124,7 @@ class LogLinearModel:
             g2 += sum2
         return g2-g1
 
-    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000):
+    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False):
         """[summary]
 
         Arguments:
@@ -158,12 +164,11 @@ class LogLinearModel:
 
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
-                          jac=jac, options={"maxiter": maxiter, "disp": True})
+                          jac=jac, options={"maxiter": maxiter, "disp": print_output})
 
-        print("losses", np.asarray(self.loss_history))
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
-    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000):
+    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False):
         """[summary]
 
         Arguments:
@@ -203,7 +208,7 @@ class LogLinearModel:
         jac = grad(g)
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
-                          jac=jac, options={"maxiter": maxiter, "disp": True})
+                          jac=jac, options={"maxiter": maxiter, "disp": print_output})
         print(np.asarray(self.loss_history))
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
@@ -218,10 +223,14 @@ class LogLinearModel:
         """
         # compute utility scores
         features = np.hstack((features, [1]))
-        utility_scores = np.exp(np.dot(self.weights, features))
-        # utility_scores = np.dot(self.weights, features)
-        # return utility_scores
-        return np.reciprocal(utility_scores)
+        utility_scores = None
+        if self.use_exp_for_regression:
+            utility_scores = np.exp(np.dot(self.weights, features))
+        else:
+            utility_scores = np.dot(self.weights, features)
+        if self.use_reciprocal_for_regression:
+            return np.reciprocal(utility_scores)
+        return utility_scores
 
     def predict_ranking(self, features: np.ndarray):
         """Predict a label ranking.
