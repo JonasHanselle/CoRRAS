@@ -52,8 +52,25 @@ class LinearHingeModel:
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
         num_features = feature_values.shape[1]
         self.weights = np.ones((num_labels, num_features)) / (num_features * num_labels)
-
         self.loss_history = []
+
+
+        def callback(w):
+            w = np.reshape(w, (num_labels, num_features))
+            squared_error = 0
+            hinge_loss = 0
+            for cur_labels, cur_features, cur_performances in zip(labels,feature_values,performances):
+                y_hats = np.dot(w[[cur_labels-1]],cur_features)
+                squared_error = squared_error + np.sum(np.square(y_hats-cur_performances))
+                hinge_loss = hinge_loss + max(0, epsilon_value - (y_hats[1] - y_hats[0]))**2
+            squared_error = squared_error  / labels.shape[0]
+            hinge_loss = hinge_loss / labels.shape[0]
+            self.loss_history.append([squared_error, hinge_loss])
+            squared_error = lambda_value * squared_error
+            hinge_loss = (1 - lambda_value) * hinge_loss
+            total_error = squared_error + hinge_loss
+            
+
         # minimize loss function
         def g(w):
             w = np.reshape(w, (num_labels, num_features))
@@ -65,7 +82,6 @@ class LinearHingeModel:
                 hinge_loss = hinge_loss + max(0, epsilon_value - (y_hats[1] - y_hats[0]))**2
             squared_error = squared_error  / labels.shape[0]
             hinge_loss = hinge_loss / labels.shape[0]
-            self.loss_history.append(np.asarray([squared_error, hinge_loss]))
             squared_error = lambda_value * squared_error
             hinge_loss = (1 - lambda_value) * hinge_loss
             total_error = squared_error + hinge_loss
@@ -75,7 +91,7 @@ class LinearHingeModel:
 
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
-                          jac=jac, options={"maxiter": maxiter, "disp": print_output})
+                          jac=jac, callback=callback, options={"maxiter": maxiter, "disp": print_output})
 
         self.weights = np.reshape(result.x, (num_labels, num_features))
 

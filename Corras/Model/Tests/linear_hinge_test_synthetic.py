@@ -93,7 +93,7 @@ class TestLinearHingeSynthetic(unittest.TestCase):
         print(inst)
         print(perf)
         print(rank)
-        model1.fit_np(5, rank, inst, perf,lambda_value=0.01, epsilon_value=1, regression_loss="Squared", maxiter=250)
+        model1.fit_np(5, rank, inst, perf,lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=250)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
@@ -102,6 +102,10 @@ class TestLinearHingeSynthetic(unittest.TestCase):
             print("True Ranking", self.test_ranking.loc[index].values)
             print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
             print("\n")
+
+        print("loss hist", model1.loss_history)
+        print("\n\n")
+        print("loss hist2", model1.loss_history2)
 
 if __name__ == "__main__":
     unittest.main()
