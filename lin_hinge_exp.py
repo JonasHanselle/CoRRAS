@@ -26,10 +26,10 @@ scenario.read_scenario("aslib_data-aslib-v4.0/"+sys.argv[1])
 
 lambda_values = [0.0]
 epsilon_values = [0,1]
-max_pairs_per_instance = 2
+max_pairs_per_instance = 5
 maxiter = 10
 seed = 15
-num_splits = 2
+num_splits = 10
 result_data_corras = []
 result_data_rf = []
 baselines = None

@@ -27,11 +27,11 @@ scenario.read_scenario("aslib_data-aslib-v4.0/"+sys.argv[1])
 use_exp = sys.argv[2] == "True"
 use_reciprocal = sys.argv[3] == "True"
 
-lambda_values = [0.0, 0.1]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.95, 0.99999, 0.999999999, 1.0]
 max_pairs_per_instance = 5
-maxiter = 10
+maxiter = 100
 seed = 15
-num_splits = 2
+num_splits = 10
 result_data_corras = []
 result_data_rf = []
 baselines = None
@@ -65,6 +65,8 @@ for i_split in range(1, num_splits+1):
         model.fit_np(len(scenario.algorithms),rank, inst,
                      perf, lambda_value=lambda_value, regression_loss="Squared", maxiter=maxiter, print_output=False)
 
+        loss_file = "./loss-hists/loss-hist-" + scenario.scenario + "-" + str(lambda_value) + "-" + str(i_split) + "-" + str(seed) + ".csv"
+        model.save_loss_history(loss_file)
 
         for index, row in test_scenario.feature_data.iterrows():
             imputed_row = imputer.transform([row.values])
@@ -87,8 +89,6 @@ if use_reciprocal:
     filename += "-use-rec"
 else:
     filename += "-no-rec"
-loss_file = filename + "-losses.csv"
 filename += ".csv"
 results_corras.to_csv(filename, index_label="id")
-model.save_loss_history(loss_file)
 performance_cols = [x + "_performance" for x in scenario.performance_data.columns]

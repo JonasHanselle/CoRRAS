@@ -63,9 +63,11 @@ class LinearHingeModel:
                 y_hats = np.dot(w[[cur_labels-1]],cur_features)
                 squared_error = squared_error + np.sum(np.square(y_hats-cur_performances))
                 hinge_loss = hinge_loss + max(0, epsilon_value - (y_hats[1] - y_hats[0]))**2
-            squared_error = lambda_value * squared_error  / labels.shape[0]
-            hinge_loss = (1 - lambda_value) * hinge_loss / labels.shape[0]
+            squared_error = squared_error  / labels.shape[0]
+            hinge_loss = hinge_loss / labels.shape[0]
             self.loss_history.append(np.asarray([squared_error, hinge_loss]))
+            squared_error = lambda_value * squared_error
+            hinge_loss = (1 - lambda_value) * hinge_loss
             total_error = squared_error + hinge_loss
             return np.mean(total_error)
 
