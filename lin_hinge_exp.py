@@ -24,10 +24,10 @@ result_path = "./results/"
 scenario = aslib_ranking_scenario.ASRankingScenario()
 scenario.read_scenario("aslib_data-aslib-v4.0/"+sys.argv[1])
 
-lambda_values = [0.0]
-epsilon_values = [0,1]
+lambda_values = [0.0, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98, 1.0]
+epsilon_values = [0, 0.2, 0.4, 0.6, 0.8, 1]
 max_pairs_per_instance = 5
-maxiter = 10
+maxiter = 5
 seed = 15
 num_splits = 10
 result_data_corras = []
@@ -53,7 +53,9 @@ for i_split in range(1, num_splits+1):
     print(train_features)
 
     inst,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(train_features,train_performances,max_pairs_per_instance=max_pairs_per_instance,seed=15)
-
+    
+    # scale performances to unit interval
+    perf = perf/np.max(perf)
     # train models
     for lambda_value, epsilon_value in product(lambda_values,epsilon_values):
         model = model1 = lh.LinearHingeModel()
@@ -61,6 +63,8 @@ for i_split in range(1, num_splits+1):
         model.fit_np(len(scenario.algorithms),rank, inst,
                      perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", maxiter=maxiter, print_output=False)
 
+        loss_file = "./loss-hists/loss-hist-hinge-" + scenario.scenario + "-" + str(lambda_value) + "-" + str(epsilon_value) + "-" + str(i_split) + "-" + str(seed) + ".csv"
+        model.save_loss_history(loss_file)
 
         for index, row in test_scenario.feature_data.iterrows():
             imputed_row = imputer.transform([row.values])
