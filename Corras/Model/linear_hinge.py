@@ -36,7 +36,7 @@ class LinearHingeModel:
                                                 inverse_utilities)))
         return loss
 
-    def fit_np(self, num_labels, labels, features, performances, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=1000, print_output=False):
+    def fit_np(self, num_labels, labels, features, performances, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True):
         """[summary]
 
         Arguments:
@@ -52,7 +52,7 @@ class LinearHingeModel:
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
         num_features = feature_values.shape[1]
         self.weights = np.ones((num_labels, num_features)) / (num_features * num_labels)
-
+        
         self.loss_history = []
         # minimize loss function
         def g(w):
