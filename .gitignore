@@ -111,6 +111,14 @@ LabelRankingData*
 LabelRankingRealWorldData*
 figures
 results
+figures*
+results*
+
+# scripts
+*.sh
+
+# notebooks
+notebooks
 
 # pylint
 .pylintrc

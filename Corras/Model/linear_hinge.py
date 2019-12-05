@@ -4,7 +4,6 @@ import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from scipy.optimize import minimize
 
-
 class LinearHingeModel:
 
     def __init__(self):

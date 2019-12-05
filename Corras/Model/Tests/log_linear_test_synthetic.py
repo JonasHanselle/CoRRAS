@@ -88,35 +88,20 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def test_regression(self):
         model1 = ll.LogLinearModel(use_exp_for_regression=False)
-        model2 = ll.LogLinearModel(use_exp_for_regression=True)
-        model3 = ll.LogLinearModel(use_exp_for_regression=False, use_reciprocal_for_regression=False)
-        model4 = ll.LogLinearModel(use_exp_for_regression=True, use_reciprocal_for_regression=False)
 
         inst,perf,rank = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
         print(inst)
         print(perf)
         print(rank)
-        model1.fit_np(5, rank, inst, perf,lambda_value=0,regression_loss="Squared", maxiter=250)
+        model1.fit_np(5, rank, inst, perf,lambda_value=1,regression_loss="Squared", maxiter=10)
         model1.save_loss_history("loss_history1.csv")
-        model2.fit_np(5, rank, inst, perf,lambda_value=0,regression_loss="Squared", maxiter=250)
-        model2.save_loss_history("loss_history1.csv")
-        model3.fit_np(5, rank, inst, perf,lambda_value=0,regression_loss="Squared", maxiter=250)
-        model3.save_loss_history("loss_history1.csv")
-        model4.fit_np(5, rank, inst, perf,lambda_value=0,regression_loss="Squared", maxiter=250)
-        model4.save_loss_history("loss_history1.csv")
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
             print("Predicted Performances Model 1", model1.predict_performances(row.values))
-            print("Predicted Performances Model 2", model2.predict_performances(row.values))
-            print("Predicted Performances Model 3", model3.predict_performances(row.values))
-            print("Predicted Performances Model 4", model4.predict_performances(row.values))
             print("\n")
             print("True Ranking", self.test_ranking.loc[index].values)
             print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
-            print("Predicted Ranking Model 2", model2.predict_ranking(row.values))
-            print("Predicted Ranking Model 3", model3.predict_ranking(row.values))
-            print("Predicted Ranking Model 4", model4.predict_ranking(row.values))
             print("\n")
 
 if __name__ == "__main__":

@@ -146,20 +146,25 @@ class LogLinearModel:
         reg_loss = self.squared_error
         self.loss_history = []
         # minimize loss function
+
+        def callback(x):
+            x = np.reshape(x, (num_labels, num_features))
+            reg_loss = reg_loss(performances, features, x)
+            nll_value = nll(rankings, features, x)
+            self.loss_history.append([reg_loss, nll])
+
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
                 reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
-                self.loss_history.append(np.asarray([0, reg_loss_value]))
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
                 nll_value = lambda_value * nll(rankings, features, x)
-                self.loss_history.append(np.asarray([nll_value, 0]))
                 return nll(rankings, features, x)
             nll_value = lambda_value * nll(rankings, features, x)
             reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
-            self.loss_history.append(np.asarray([nll_value, reg_loss_value]))
             return nll_value + reg_loss_value
+
         jac = grad(g)
 
         flat_weights = self.weights.flatten()
