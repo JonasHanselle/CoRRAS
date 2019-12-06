@@ -87,10 +87,13 @@ class LinearHingeModel:
             return np.mean(total_error)
 
         jac = grad(g)
+        cb = None
+        if log_losses:
+            cb = callback
 
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
-                          jac=jac, callback=callback, options={"maxiter": maxiter, "disp": print_output})
+                          jac=jac, callback=cb, options={"maxiter": maxiter, "disp": print_output})
 
         self.weights = np.reshape(result.x, (num_labels, num_features))
 

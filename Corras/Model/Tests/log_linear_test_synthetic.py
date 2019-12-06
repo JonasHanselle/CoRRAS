@@ -93,7 +93,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         print(inst)
         print(perf)
         print(rank)
-        model1.fit_np(5, rank, inst, perf,lambda_value=1,regression_loss="Squared", maxiter=10)
+        model1.fit_np(5, rank, inst, perf,lambda_value=1,regression_loss="Squared", maxiter=10, log_losses=True)
         model1.save_loss_history("loss_history1.csv")
 
         for index, row in self.test_inst.iterrows():
@@ -102,6 +102,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
             print("\n")
             print("True Ranking", self.test_ranking.loc[index].values)
             print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
+            print(model1.loss_history)
             print("\n")
 
 if __name__ == "__main__":

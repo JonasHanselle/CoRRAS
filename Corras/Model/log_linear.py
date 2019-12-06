@@ -124,7 +124,7 @@ class LogLinearModel:
             g2 += sum2
         return g2-g1
 
-    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False):
+    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True):
         """[summary]
 
         Arguments:
@@ -149,9 +149,9 @@ class LogLinearModel:
 
         def callback(x):
             x = np.reshape(x, (num_labels, num_features))
-            reg_loss = reg_loss(performances, features, x)
+            se_value = reg_loss(performances, features, x)
             nll_value = nll(rankings, features, x)
-            self.loss_history.append([reg_loss, nll])
+            self.loss_history.append([se_value, nll_value])
 
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
@@ -167,9 +167,13 @@ class LogLinearModel:
 
         jac = grad(g)
 
+        cb = None
+        if log_losses:
+            cb = callback
+
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
-                          jac=jac, options={"maxiter": maxiter, "disp": print_output})
+                          jac=jac, callback=cb, options={"maxiter": maxiter, "disp": print_output})
 
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
