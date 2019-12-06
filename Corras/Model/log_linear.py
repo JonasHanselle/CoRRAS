@@ -177,7 +177,7 @@ class LogLinearModel:
 
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
-    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False):
+    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True):
         """[summary]
 
         Arguments:
@@ -198,23 +198,31 @@ class LogLinearModel:
         nll = self.list_nll
         reg_loss = self.squared_error
 
+        def callback(x):
+            x = np.reshape(x, (num_labels, num_features))
+            se_value = reg_loss(performances, features, x)
+            nll_value = nll(rankings, features, x)
+            self.loss_history.append([se_value, nll_value])
+
         # minimize loss function
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
                 reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
-                self.loss_history.append(np.asarray([0, reg_loss_value]))
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
                 nll_value = lambda_value * nll(rankings, features, x)
-                self.loss_history.append(np.asarray([nll_value, 0]))
                 return nll(rankings, features, x)
             nll_value = lambda_value * nll(rankings, features, x)
             reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
-            self.loss_history.append(np.asarray([nll_value, reg_loss_value]))
             return nll_value + reg_loss_value
             
         jac = grad(g)
+
+        cb = None
+        if log_losses:
+            cb = callback
+
         flat_weights = self.weights.flatten()
         result = minimize(g, flat_weights, method="L-BFGS-B",
                           jac=jac, options={"maxiter": maxiter, "disp": print_output})
