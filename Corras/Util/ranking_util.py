@@ -214,28 +214,23 @@ def construct_numpy_representation(features : pd.DataFrame, performances : pd.Da
     np_rankings = joined[[x + "_rank" for x in performances.columns]].values
     return np_features, np_performances, np_rankings
 
-
-def construct_numpy_representation(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15):
+def construct_numpy_representation_only_performances(features : pd.DataFrame, performances : pd.DataFrame):
     """Get numpy representation of features, performances and rankings
-
+    
     Arguments:
         features {pd.DataFrame} -- Feature values
         performances {pd.DataFrame} -- Performances of algorithms
-
+    
     Returns:
         [type] -- Triple of numpy ndarrays, first stores the feature
         values, the second stores the algirhtm performances and the
         third stores the algorithm rankings
     """
-    rankings = compute_rankings(performances)
-    rankings = break_ties_of_ranking(rankings, max_rankings_per_instance=max_rankings_per_instance)
-
-    joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
+    
+    joined = features.join(performances)
     np_features = joined[features.columns.values].values
-    np_performances = joined[[x + "_performance" for x in performances.columns]].values
-    np_rankings = joined[[x + "_rank" for x in performances.columns]].values
-    return np_features, np_performances, np_rankings
-
+    np_performances = joined[[x for x in performances.columns]].values
+    return np_features, np_performances
 
 def construct_numpy_representation_with_pairs_of_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15):
     """Get numpy representation of features, performances and rankings

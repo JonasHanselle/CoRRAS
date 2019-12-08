@@ -25,9 +25,7 @@ scenario = aslib_ranking_scenario.ASRankingScenario()
 scenario.read_scenario("aslib_data-aslib-v4.0/"+sys.argv[1])
 
 
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.95, 0.99999, 0.9999999999, 1.0,]
-max_rankings_per_instance = 5
-maxiter = 100
+# max_rankings_per_instance = 5
 seed = 15
 num_splits = 10
 result_data_corras = []
@@ -38,10 +36,16 @@ scenario.create_cv_splits(n_folds=num_splits)
 for i_split in range(1, num_splits+1):
 
     test_scenario, train_scenario = scenario.get_split(i_split)
+    train_features_np, train_performances_np = util.construct_numpy_representation_only_performances(
+        train_scenario.feature_data, train_scenario.performance_data)
+    print(train_scenario.performance_data)
+    print(train_performances_np)
+    print(train_scenario.feature_data)
+    print(train_features_np)
+    # train_features_np = scenario.feature_data.to_numpy
+    # train_performances_np = scenario.perform
 
-    train_features_np, train_performances_np, train_rankings_np = util.construct_numpy_representation(
-        train_scenario.feature_data, train_scenario.performance_data, max_rankings_per_instance=max_rankings_per_instance, seed=seed)
-    
+    print(train_scenario)
     # preprocessing
     imputer = SimpleImputer()
     scaler = StandardScaler()
@@ -63,30 +67,6 @@ for i_split in range(1, num_splits+1):
             predicted_performances[label] = baselines[label].predict(scaled_row)[0]
         result_data_rf.append([i_split, index, *predicted_performances])
 
-    for lambda_value in lambda_values:
-
-
-        train_rankings_list = util.ordering_to_ranking_list(train_rankings_np)
-        print(train_rankings_list)
-        model = log_linear.LogLinearModel()
-
-        model.fit_list(len(scenario.algorithms),train_rankings_list, train_features_np,
-                     train_performances_np, lambda_value=lambda_value, regression_loss="Squared", maxiter=maxiter)
-
-
-        for index, row in test_scenario.feature_data.iterrows():
-            imputed_row = imputer.transform([row.values])
-            scaled_row = scaler.transform(imputed_row).flatten()
-            predicted_ranking = model.predict_ranking(scaled_row)
-            predicted_performances = model.predict_performances(scaled_row)
-            result_data_corras.append([i_split, index, lambda_value, predicted_ranking, *predicted_performances])
-
-performance_cols_corras = [x + "_performance" for x in scenario.performance_data.columns]
-
-result_columns_corras = ["split", "problem_instance", "lambda", "predicted_ranking"]
-result_columns_corras += performance_cols_corras
-results_corras = pd.DataFrame(data=result_data_corras, columns=result_columns_corras)
-results_corras.to_csv(result_path+"corras-"+scenario.scenario+".csv", index_label="id")
 performance_cols = [x + "_performance" for x in scenario.performance_data.columns]
 
 result_columns_rf = ["split", "problem_instance"]

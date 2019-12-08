@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 
 class LogLinearModel:
 
-    def __init__(self, use_exp_for_regression=False, use_reciprocal_for_regression=True):
+    def __init__(self, use_exp_for_regression=False, use_reciprocal_for_regression=False):
         self.weights = None
         self.loss_history = []
         self.use_exp_for_regression = use_exp_for_regression
