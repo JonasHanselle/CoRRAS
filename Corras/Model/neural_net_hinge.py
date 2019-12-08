@@ -21,10 +21,9 @@ class NeuralNetworkSquaredHinge:
     def build_network(self, num_labels, num_features):
         input_layer = keras.layers.Input(num_features, name="input_layer")
         hidden_layers = keras.layers.Dense(8, activation="relu")(input_layer)
-        hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         output_layer = keras.layers.Dense(
-            num_labels, activation="linear", name="output_layer")(hidden_layers)
+            num_labels, activation="linear", name="output_layer")(input_layer)
         return keras.Model(inputs=input_layer, outputs=output_layer)
 
     def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances: np.ndarray, lambda_value=0.5, epsilon_value=1, regression_loss="Absolute", num_epochs=1000, learning_rate=0.1, batch_size=32, seed=1, patience=16, es_val_ratio=0.3, reshuffle_buffer_size=1000, early_stop_interval=5):
@@ -51,18 +50,19 @@ class NeuralNetworkSquaredHinge:
 
         # add constant 1 for bias and create tf dataset
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
-        print(feature_values.shape)
+        # print(feature_values.shape)
         # print(performances.shape)
 
         # split feature and performance data
-        feature_values, performances = shuffle(
-            feature_values, performances, random_state=seed)
-        val_data = Dataset.from_tensor_slices((feature_values[: int(
-            es_val_ratio * feature_values.shape[0])], performances[: int(es_val_ratio * performances.shape[0])], rankings[: int(es_val_ratio * rankings.shape[0])]))
-        train_data = Dataset.from_tensor_slices((feature_values[int(
-            es_val_ratio * feature_values.shape[0]):], performances[int(es_val_ratio * performances.shape[0]):], rankings[int(es_val_ratio * rankings.shape[0]):]))
+        feature_values, performances, rankings = shuffle(
+            feature_values, performances, rankings, random_state=seed)
+        # val_data = Dataset.from_tensor_slices((feature_values[: int(
+        #     es_val_ratio * feature_values.shape[0])], performances[: int(es_val_ratio * performances.shape[0])], rankings[: int(es_val_ratio * rankings.shape[0])]))
+        # train_data = Dataset.from_tensor_slices((feature_values[int(
+            # es_val_ratio * feature_values.shape[0]):], performances[int(es_val_ratio * performances.shape[0]):], rankings[int(es_val_ratio * rankings.shape[0]):]))
         # print(val_data)
-        print("train data", train_data)
+        # print("train data", train_data)
+        train_data = Dataset.from_tensor_slices((feature_values, performances, rankings))
         train_data = train_data.batch(batch_size)
         # val_data = val_data.batch(1)
         # define custom loss function
@@ -88,12 +88,19 @@ class NeuralNetworkSquaredHinge:
             y_ind = y_rank - 1 
             added_indices_0 = tf.stack([row_indices,y_ind[:,0]], axis=1)
             added_indices_1 = tf.stack([row_indices,y_ind[:,1]], axis=1)
+            print("y_perf", y_perf)
+            print("\n\n")
             # print(added_indices_0.shape, added_indices_1.shape, x.shape, y_perf.shape, y_rank.shape, output.shape, row_indices.shape)
             y_hat_0 = tf.gather_nd(output, added_indices_0) 
             y_hat_1 = tf.gather_nd(output, added_indices_1)
-            reg_loss = tf.square(tf.subtract(y_hat_0, y_perf[:,0])) + tf.square(tf.subtract(y_hat_1, y_perf[:,1]))
-            rank_loss = 0
-            return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
+            # y_hat_0 = output[:,0]
+            # y_hat_1 = output[:,1]
+            reg_loss = tf.reduce_mean((tf.square(tf.subtract(y_hat_0, y_perf[:,0]))))
+            # print("reg_loss", reg_loss)
+            reg_loss += tf.reduce_mean((tf.square(tf.subtract(y_hat_1, y_perf[:,1]))))
+            # reg_loss = tf.reduce_mean(tf.square(tf.subtract(output[:,i], y_perf[:,i])))
+            rank_loss = tf.reduce_mean(tf.square(tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0))))
+            return lambda_value * reg_loss + (1 - lambda_value) * rank_loss
         # define gradient of custom loss function
 
         def grad(model, x, y_perf, y_rank):
@@ -139,6 +146,7 @@ class NeuralNetworkSquaredHinge:
             #     if patience_cnt >= patience:
             #         print("early stopping")
             #         break
+        # self.network = current_best_model
 
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.

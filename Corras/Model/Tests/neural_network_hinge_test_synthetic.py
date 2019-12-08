@@ -11,7 +11,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestNeuralNetworkHingeSynthetic, self).__init__(*args, **kwargs)
-        self.train_size = 250
+        self.train_size = 2500
         self.test_size = 10
         self.noise_factor = 0.0
         features_train = np.asarray(onp.random.randint(low=0, high=30, size=(self.train_size,4)))
@@ -26,6 +26,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
                 performance_4 = 7 * features[1] + 4 * features[0] + 11 * features[2] + features[3]
                 performance_5 = 2 * features[1] + 9 * features[2] + 7 * features[3] + 12 + features[0]
                 performances.append([performance_1, performance_2, performance_3, performance_4, performance_5])
+                # performances.append([performance_1, performance_5])
             return performances
 
         performances_train = np.asarray(create_performances(features_train), dtype=np.float64)
@@ -47,6 +48,10 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         self.test_performances = pd.DataFrame(data=performances_test,columns=["alg1","alg2","alg3","alg4","alg5"])
         self.train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1","alg2","alg3","alg4","alg5"])
         self.test_ranking = pd.DataFrame(data=rankings_test,columns=["alg1","alg2","alg3","alg4","alg5"])
+        # self.train_performances = pd.DataFrame(data=performances_train,columns=["alg1", "alg2"])
+        # self.test_performances = pd.DataFrame(data=performances_test,columns=["alg1", "alg2"])
+        # self.train_ranking = pd.DataFrame(data=rankings_train,columns=["alg1", "alg2"])
+        # self.test_ranking = pd.DataFrame(data=rankings_test,columns=["alg1", "alg2"])
 
         print("train instances", self.train_inst)
         print("test instances", self.test_inst)
@@ -63,7 +68,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         print(perf)
         print(rank)
         rank = rank.astype("int32")
-        model1.fit(5, rank, inst, perf,lambda_value=0.5, epsilon_value=1, regression_loss="Squared", num_epochs=100)
+        model1.fit(5, rank, inst, perf,lambda_value=1, epsilon_value=1, regression_loss="Squared", num_epochs=100, learning_rate=1, batch_size=32, early_stop_interval=2, patience=8)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)

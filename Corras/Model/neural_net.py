@@ -35,10 +35,6 @@ class NeuralNetwork:
         hidden_layers = keras.layers.Dense(8, activation="relu")(input_layer)
         # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
-        # output_layers = []
-        # for i in range(0, num_labels):
-        #     output_layers.append(keras.layers.Dense(
-        #         1, activation="linear", name="output_layer"+str(i))(hidden_layers))
         output_layer = keras.layers.Dense(
             num_labels, activation="linear", name="output_layer")(hidden_layers)
         return keras.Model(inputs=input_layer, outputs=output_layer)
@@ -71,8 +67,8 @@ class NeuralNetwork:
         # print(performances.shape)
 
         # split feature and performance data
-        feature_values, performances = shuffle(
-            feature_values, performances, random_state=seed)
+        feature_values, performances, rankings = shuffle(
+            feature_values, performances, rankings, random_state=seed)
         val_data = Dataset.from_tensor_slices((feature_values[: int(
             es_val_ratio * feature_values.shape[0])], performances[: int(es_val_ratio * performances.shape[0])], rankings[: int(es_val_ratio * rankings.shape[0])]))
         train_data = Dataset.from_tensor_slices((feature_values[int(
