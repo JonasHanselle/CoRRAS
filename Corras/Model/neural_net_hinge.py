@@ -90,15 +90,10 @@ class NeuralNetworkSquaredHinge:
             added_indices_1 = tf.stack([row_indices,y_ind[:,1]], axis=1)
             print("y_perf", y_perf)
             print("\n\n")
-            # print(added_indices_0.shape, added_indices_1.shape, x.shape, y_perf.shape, y_rank.shape, output.shape, row_indices.shape)
             y_hat_0 = tf.gather_nd(output, added_indices_0) 
             y_hat_1 = tf.gather_nd(output, added_indices_1)
-            # y_hat_0 = output[:,0]
-            # y_hat_1 = output[:,1]
             reg_loss = tf.reduce_mean((tf.square(tf.subtract(y_hat_0, y_perf[:,0]))))
-            # print("reg_loss", reg_loss)
             reg_loss += tf.reduce_mean((tf.square(tf.subtract(y_hat_1, y_perf[:,1]))))
-            # reg_loss = tf.reduce_mean(tf.square(tf.subtract(output[:,i], y_perf[:,i])))
             rank_loss = tf.reduce_mean(tf.square(tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0))))
             return lambda_value * reg_loss + (1 - lambda_value) * rank_loss
         # define gradient of custom loss function
@@ -130,22 +125,22 @@ class NeuralNetworkSquaredHinge:
                 # print(loss_value)
                 optimizer.apply_gradients(
                     zip(grads, self.network.trainable_weights))
-            # if epoch % early_stop_interval == 0:
-            #     losses = []
-            #     for x, y_perf, y_rank in val_data:
-            #         losses.append(custom_loss(self.network, x, y_perf, y_rank))
-            #     loss_tensor = np.average(losses)
-            #     current_val_loss = tf.reduce_mean(loss_tensor)
-            #     if current_val_loss < best_val_loss:
-            #         best_val_loss = current_val_loss
-            #         current_best_model = keras.models.clone_model(self.network)
-            #         print("new best validation loss", best_val_loss)
-            #         patience_cnt = 0
-            #     else:
-            #         patience_cnt += 1
-            #     if patience_cnt >= patience:
-            #         print("early stopping")
-            #         break
+            if epoch % early_stop_interval == 0:
+                losses = []
+                for x, y_perf, y_rank in val_data:
+                    losses.append(custom_loss(self.network, x, y_perf, y_rank))
+                loss_tensor = np.average(losses)
+                current_val_loss = tf.reduce_mean(loss_tensor)
+                if current_val_loss < best_val_loss:
+                    best_val_loss = current_val_loss
+                    current_best_model = keras.models.clone_model(self.network)
+                    print("new best validation loss", best_val_loss)
+                    patience_cnt = 0
+                else:
+                    patience_cnt += 1
+                if patience_cnt >= patience:
+                    print("early stopping")
+                    break
         # self.network = current_best_model
 
     def predict_performances(self, features: np.ndarray):

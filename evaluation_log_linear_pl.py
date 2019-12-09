@@ -24,9 +24,11 @@ evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 
 
-scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
+# scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
+scenarios = ["CSP-2010"]
 lambda_values = [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
     0.7, 0.8, 0.9, 0.95, 0.9999, 1.0]
+lambda_values = [0.6]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
@@ -35,7 +37,7 @@ use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
 scale_target_to_unit_interval_values = [True, False]
 
 
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [6]
  
 params = [lambda_values, splits, seeds, use_quadratic_transform_values, use_max_inverse_transform_values, scale_target_to_unit_interval_values]
 
@@ -58,52 +60,55 @@ for scenario_name in scenarios:
         filename = "pl_log_linear" + "-" + params_string + ".csv"
         loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
         filepath = results_path_corras + filename
+        # print(filepath)
         loss_filepath = results_path_corras + loss_filename
 
         try:
-            corras = pd.read_csv(results_path_corras + "corras-linear--" + scenario_name + ".csv")
-        except:
-            print("File for " + params_string + " not found in corras result data!")
+            corras = pd.read_csv(filepath)
+        except Exception as exc:
+            print("File for " + params_string + " not found in corras result data! Exception " + str(exc))
             continue
+        print(corras.head())
         corras.set_index("problem_instance", inplace=True)
         performance_indices = [x for x in corras.columns if x.endswith("_performance")]
 
         lambda_values = pd.unique(corras["lambda"])
-        epsilon_values = pd.unique(corras["epsilon"])
+        # epsilon_values = pd.unique(corras["epsilon"])
         print(lambda_values)
-        print(epsilon_values)
+        # print(epsilon_values)
 
         print(scenario.performance_data)
         print(relevance_scores)
 
         for problem_instance, performances in scenario.performance_data.iterrows():
+            if not problem_instance in corras:
+                continue
             true_performances = scenario.performance_data.loc[problem_instance].astype("float64").to_numpy()
             true_ranking = scenario.performance_rankings.loc[problem_instance].astype("float64").to_numpy()
             # print(corras.loc[problem_instance])
-            for lambda_value, epsilon_value in  product(lambda_values,epsilon_values):
-                tau_corr = 0
-                tau_p = 0
-                ndcg = 0
-                mse = 0
-                mae = 0
-                abs_vbs_distance = 0
-                par10 = 0
-                # print(corras)
-                corras_performances = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").to_numpy()
-                # print(corras.loc[problem_instance])
-                corras_ranking = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").rank(method="min").fillna(-1).astype("int16").to_numpy()
-                if np.isinf(corras_performances).any():
-                    print("Warning, NaN in performance prediction for " + problem_instance + "!")
-                    continue
-                # print(true_ranking, corras_ranking)
-                tau_corr, tau_p = kendalltau(true_ranking, corras_ranking)
-                mse = mean_squared_error(true_performances, corras_performances)
-                mae = mean_absolute_error(true_performances, corras_performances)
-                abs_vbs_distance = compute_distance_to_vbs(corras_performances, true_performances)
-                ndcg = ndcg_at_k(corras_ranking,relevance_scores.loc[problem_instance].to_numpy(), len(scenario.algorithms))
-                par10 = true_performances[np.argmin(corras_performances)]
-                corras_measures.append([split,problem_instance,lambda_value,epsilon_value,tau_corr,tau_p,ndcg,mse,mae,abs_vbs_distance,par10])
-
-        df_corras = pd.DataFrame(data=corras_measures,columns=["split", "problem_instance", "lambda", "epsilon", "max_transform", "quadratic_transform", "scale_to_unit_interval", "tau_corr", "tau_p", "ndcg", "mse", "mae","abs_distance_to_vbs", "par10"])
-        print(df_corras.head())
-        df_corras.to_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
+            tau_corr = 0
+            tau_p = 0
+            ndcg = 0
+            mse = 0
+            mae = 0
+            abs_vbs_distance = 0
+            par10 = 0
+            # print(corras)
+            corras_performances = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").to_numpy()
+            # print(corras.loc[problem_instance])
+            corras_ranking = corras.loc[(corras["lambda"] == lambda_value)].loc[problem_instance][performance_indices].astype("float64").rank(method="min").fillna(-1).astype("int16").to_numpy()
+            if np.isinf(corras_performances).any():
+                print("Warning, NaN in performance prediction for " + problem_instance + "!")
+                continue
+            # print(true_ranking, corras_ranking)
+            tau_corr, tau_p = kendalltau(true_ranking, corras_ranking)
+            mse = mean_squared_error(true_performances, corras_performances)
+            mae = mean_absolute_error(true_performances, corras_performances)
+            abs_vbs_distance = compute_distance_to_vbs(corras_performances, true_performances)
+            ndcg = ndcg_at_k(corras_ranking,relevance_scores.loc[problem_instance].to_numpy(), len(scenario.algorithms))
+            par10 = true_performances[np.argmin(corras_performances)]
+            corras_measures.append([split,problem_instance,lambda_value,use_quadratic_transform,use_max_inverse_transform,scale_target_to_unit_interval,tau_corr,tau_p,ndcg,mse,mae,abs_vbs_distance,par10])
+            print(corras_measures)
+    df_corras = pd.DataFrame(data=corras_measures,columns=["split", "problem_instance", "lambda", "quadratic_transform", "max_inverse_transform", "scale_to_unit_interval", "tau_corr", "tau_p", "ndcg", "mse", "mae","abs_distance_to_vbs", "par10"])
+    print(df_corras.head())
+    df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" + scenario_name + ".csv")

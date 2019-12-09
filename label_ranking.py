@@ -56,10 +56,11 @@ for portion in training_portions:
     model2 = log_linear.LogLinearModel()
     # model3 = neural_net.NeuralNetwork()
 
-    train_pairs = util.sample_pairs(train_rankings, 20, seed=15)
-    print(train_pairs)
+    # train_pairs = util.sample_pairs(train_rankings, 20, seed=15)
+    # print(train_pairs.shape)
+    # print(train_features.shape)
 
-    model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    # model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
     model2.fit_np(3,train_pairs,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
     # model3.fit(4,train_rankings_np,train_features_np,None,lambda_value=1)
     # model1.weights = model2.weights

@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
@@ -35,18 +34,20 @@ for scenario_name in scenario_names:
         continue
     # plot average kendall tau
 
-    for measure in df_corras.columns[4:]:
+    for measure in df_corras.columns[8:]:
         plt.clf()
-        bp = sns.boxplot(x="lambda", y=measure, hue="epsilon", data=df_corras)
-        if df_baseline is not None:
-            bp.axes.axhline(df_baseline[measure].mean(), c="g", ls="--", label="rf-baseline-mean")
-        plt.title(scenario_name)
-        plt.legend()
-        plt.savefig(figures_path+scenario_name+"-" + measure +"-boxplot.pdf")
+        # bp = sns.boxplot(x="lambda", y=measure, hue="epsilon", data=df_corras)
+        # bp = sns.boxplot(x="lambda", y=measure, data=df_corras)
+        # if df_baseline is not None:
+        #     bp.axes.axhline(df_baseline[measure].mean(), c="g", ls="--", label="rf-baseline-mean")
+        # plt.title(scenario_name)
+        # plt.legend()
+        # plt.savefig(figures_path+scenario_name+"-" + measure +"-boxplot.pdf")
 
-    for measure in df_corras.columns[4:]:
+    for measure in df_corras.columns[8:]:
         plt.clf()
-        bp = sns.lineplot(x="lambda", y=measure, hue="epsilon", data=df_corras, palette=sns.color_palette("Set1", len(pd.unique(df_corras["epsilon"]))))
+        # bp = sns.lineplot(x="lambda", y=measure, hue="epsilon", data=df_corras, palette=sns.color_palette("Set1", len(pd.unique(df_corras["epsilon"]))))
+        bp = sns.lineplot(x="lambda", y=measure, data=df_corras)
         if df_baseline is not None:
             bp.axes.axhline(df_baseline[measure].mean(), c="g", ls="--", label="rf-baseline-mean")
         plt.title(scenario_name)
