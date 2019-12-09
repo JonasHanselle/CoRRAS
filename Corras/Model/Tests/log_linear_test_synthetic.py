@@ -6,6 +6,8 @@ import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
 import Corras.Util.ranking_util as util
 from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 class TestLogLinearModelSynthetic(unittest.TestCase):
 
@@ -93,8 +95,10 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         print(inst)
         print(perf)
         print(rank)
-        model1.fit_np(5, rank, inst, perf,lambda_value=1,regression_loss="Squared", maxiter=10, log_losses=True)
+        lambda_value = 0
+        model1.fit_np(5, rank, inst, perf,lambda_value=lambda_value,regression_loss="Squared", maxiter=100, log_losses=True)
         model1.save_loss_history("loss_history1.csv")
+
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
@@ -104,6 +108,21 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
             print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
             print(model1.loss_history)
             print("\n")
+        sns.set_style("darkgrid")
+        df = model1.get_loss_history_frame()
+        print(df)
+        df = df.rename(columns={"NLL":"PL-NLL"})
+        df["$\lambda$ PL-NLL"] = lambda_value * df["PL-NLL"]
+        df["$(1 - \lambda)$ MSE"] = (1 - lambda_value) * df["MSE"]
+        df["TOTAL_LOSS"] = df["$\lambda$ PL-NLL"] + df["$(1 - \lambda)$ MSE"]
+        df = df.melt(id_vars=["iteration"])
+        plt.clf()
+        # plt.tight_layout()
+        # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+        print(df.head())
+        lp = sns.lineplot(x="iteration", y="value", hue="variable", data=df)
+        plt.title("Synthetic data")
+        plt.show()
 
 if __name__ == "__main__":
     unittest.main()

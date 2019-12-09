@@ -60,6 +60,7 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
         print("File for " + params_string + " not found!")
         continue
     df = pd.read_csv(loss_filepath)
+    print(df)
     df = df.rename(columns={"iter":"iteration"})
     # df = df.rename(columns={"NLL":"PL-NLL"})
     df["$\lambda$ NLL"] = lambda_value * df["NLL"]

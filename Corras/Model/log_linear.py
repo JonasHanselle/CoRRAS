@@ -271,3 +271,14 @@ class LogLinearModel:
         """
         frame = pd.DataFrame(data=self.loss_history, index=None, columns=["NLL", "MSE"])
         frame.to_csv(path_or_buf=filepath, index_label="iter")
+
+
+    def get_loss_history_frame(self):
+        """Saves the history of losses after the model has been fit
+        
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.loss_history, index=None, columns=["NLL", "MSE"])
+        frame.insert(0, "iteration", range(0,len(frame)))
+        return frame

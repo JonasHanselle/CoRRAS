@@ -232,6 +232,7 @@ def construct_numpy_representation_only_performances(features : pd.DataFrame, pe
     np_performances = joined[[x for x in performances.columns]].values
     return np_features, np_performances
 
+
 def construct_numpy_representation_with_pairs_of_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15):
     """Get numpy representation of features, performances and rankings
 
