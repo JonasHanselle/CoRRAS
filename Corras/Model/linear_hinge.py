@@ -35,7 +35,7 @@ class LinearHingeModel:
                                                 inverse_utilities)))
         return loss
 
-    def fit_np(self, num_labels, labels, features, performances, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True):
+    def fit_np(self, num_labels, labels, features, performances, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=100, print_output=False, log_losses=True):
         """[summary]
 
         Arguments:

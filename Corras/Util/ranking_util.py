@@ -309,7 +309,7 @@ def sample_pairs(performances : pd.DataFrame, pairs_per_instance : int, seed : i
                 indices.append(index)
                 i += 1
         if not candidates:
-            print("Candidates exhausted!")
+            pass
     return pd.DataFrame(data=pairs_result, index=indices, columns=[1,2])
 
 def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15, pairs = False):

@@ -27,17 +27,18 @@ shard_number = int(sys.argv[2])
 
 scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
 lambda_values = [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-    0.7, 0.8, 0.95, 0.9999, 1.0, ]
+    0.7, 0.8, 0.9, 0.95, 0.9999, 1.0]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [False]
 use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
-use_max_inverse_transform_values = ["max_cutoff"]
+scale_target_to_unit_interval_values = [True, False]
+
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
  
-params = [scenarios, lambda_values, splits, seeds, use_max_inverse_transform_values, use_max_inverse_transform_values]
+params = [scenarios, lambda_values, splits, seeds, use_quadratic_transform_values, use_max_inverse_transform_values, scale_target_to_unit_interval_values]
 
 param_product = list(product(*params))
 
@@ -54,9 +55,9 @@ else:
 
 print("Shard: " + str(shard))
 
-for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform in shard:
+for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in shard:
     params_string = "-".join([scenario_name,
-                              str(lambda_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform)])
+                              str(lambda_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
 
     filename = "pl_log_linear" + "-" + params_string + ".csv"
     loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
@@ -86,7 +87,7 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
                 train_features[train_features.columns])
 
             inst, perf, rank = util.construct_numpy_representation_with_pairs_of_rankings(
-                train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=15)
+                train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed)
             
             cutoff = scenario.algorithm_cutoff_time
             par10 = cutoff*10
@@ -98,7 +99,10 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
                 perf = par10 - perf
             if use_quadratic_transform:
                 inst = polytransform.fit_transform(inst)
-            
+
+            if scale_target_to_unit_interval:
+                perf = perf/np.max(perf)
+
             model = log_linear.LogLinearModel(use_exp_for_regression=False,use_reciprocal_for_regression=False)
 
             model.fit_np(len(scenario.algorithms), rank, inst,
