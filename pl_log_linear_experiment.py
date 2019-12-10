@@ -35,7 +35,7 @@ maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
-scale_target_to_unit_interval_values = [True]
+scale_target_to_unit_interval_values = [True, False]
 
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
