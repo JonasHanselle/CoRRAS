@@ -233,7 +233,7 @@ def construct_numpy_representation_only_performances(features : pd.DataFrame, pe
     return np_features, np_performances
 
 
-def construct_numpy_representation_with_pairs_of_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15):
+def construct_numpy_representation_with_pairs_of_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15, order="asc"):
     """Get numpy representation of features, performances and rankings
 
     Arguments:
@@ -248,12 +248,15 @@ def construct_numpy_representation_with_pairs_of_rankings(features : pd.DataFram
     rankings = sample_pairs(performances, pairs_per_instance=max_pairs_per_instance, seed=seed)
     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
     np_features = joined[features.columns.values].values
-    print(joined)
     np_performances = joined[[x for x in performances.columns]].values
     np_rankings = joined[[x for x in rankings.columns]].values + 1
+        
+    if order == "desc":
+        np_rankings = np.flip(np_rankings,axis=1)
+
     return np_features, np_performances, np_rankings
 
-def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15):
+def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(features : pd.DataFrame, performances : pd.DataFrame, max_pairs_per_instance = 100, seed = 15, order="asc"):
     """Get numpy representation of features, performances and rankings
 
     Arguments:
@@ -268,10 +271,13 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(f
     rankings = sample_pairs(performances, pairs_per_instance=max_pairs_per_instance, seed=seed)
     joined = rankings.join(features).join(performances, lsuffix="_rank", rsuffix="_performance")
     np_features = joined[features.columns.values].values
-    print(joined)
     np_performances = joined[[x for x in performances.columns]].values
     np_rankings = joined[[x for x in rankings.columns]].values + 1
     np_performances = np_performances[np.arange(np_performances.shape[0])[:,np.newaxis],np_rankings-1]
+    
+    # TODO check for maximization problems
+    # if order == "desc":
+    #     np_rankings = np.flip(np_rankings,axis=1)
 
     return np_features, np_performances, np_rankings
 
@@ -312,6 +318,52 @@ def sample_pairs(performances : pd.DataFrame, pairs_per_instance : int, seed : i
         if not candidates:
             pass
     return pd.DataFrame(data=pairs_result, index=indices, columns=[1,2])
+
+
+def sample_ranking_pairs_with_features(performances : pd.DataFrame, features : pd.DataFrame, pairs_per_instance : int, seed : int):
+    pairs_result = []
+    indices = []
+    random.seed(seed)
+    pairs = enumerate_pairs(len(performances.columns))
+    for index, row in performances.iterrows():
+        random.shuffle(pairs)
+        candidates = pairs[:]
+        i = 0
+        while i < pairs_per_instance and candidates:
+            pair = candidates.pop(0)
+            if row.iloc[pair[0]] > row.iloc[pair[1]]:
+                pairs_result.append([pair[1],pair[0]])
+                indices.append(index)
+                i += 1
+            elif row.iloc[pair[0]] < row.iloc[pair[1]]:
+                pairs_result.append([pair[0],pair[1]])
+                indices.append(index)
+                i += 1
+        if not candidates:
+            pass
+    return pd.DataFrame(data=pairs_result, index=indices, columns=[1,2])
+
+
+def sample_ranking_pairs_with_features_from_rankings(features : np.ndarray, rankings : np.ndarray, pairs_per_instance : int, seed : int):
+    pairs_result = []
+    indices = []
+    random.seed(seed)
+    pairs = enumerate_pairs(rankings.shape[1])
+    new_features = []
+    new_rankings = []
+    for feature_vec, ranking in zip(features, rankings):
+        random.shuffle(pairs)
+        candidates = pairs[:]
+        i = 0
+        while i < pairs_per_instance and candidates:
+            pair = candidates.pop(0)
+            new_features.append(feature_vec)
+            new_rankings.append([ranking[pair[0]],ranking[pair[1]]])
+            i += 1
+        if not candidates:
+            pass
+    return np.asarray(new_features), np.asarray(new_rankings)
+
 
 def construct_numpy_representation_with_list_rankings(features : pd.DataFrame, performances : pd.DataFrame, max_rankings_per_instance = 5, seed = 15, pairs = False):
     """Get numpy representation of features and performances. Rankings

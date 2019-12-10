@@ -6,9 +6,10 @@ from Corras.Model import neural_net
 from Corras.Util import ranking_util as util
 from scipy.stats import kendalltau
 import matplotlib.pyplot as plt
-import seaborn as sb
+import seaborn as sns
 
-df = pd.read_table(sep="\t",filepath_or_buffer="LabelRankingData/wine_dense.txt")
+title = "bodyfat"
+df = pd.read_table(sep="\t",filepath_or_buffer="LabelRankingData/" + title + "_dense.txt")
 df = df.iloc[1:]
 feature_columns = [x for x in df.columns if x[0]=="A"]
 ranking_columns = [x for x in df.columns if x[0]=="L"]
@@ -41,16 +42,16 @@ for portion in training_portions:
 
     train_rankings_np_rank = util.ordering_to_ranking_matrix(train_rankings_np)
 
-    print("ordering", train_rankings_np)
-    print("ordering shape", train_rankings_np.shape)
+    inst,rank = util.sample_ranking_pairs_with_features_from_rankings(train_features_np,train_rankings_np_rank,10,15)
     
-    print("ranking", train_rankings_np_rank)
-    print("ranking shape", train_rankings_np_rank.shape)
+    print(train_features_np)
+    print(inst)
+    print(train_rankings_np_rank)
+    print(rank)
+    
 
     if(len(train_rankings) == 0):
         continue
-
-    print("len", len(train_features), len(train_rankings))
 
     model1 = log_linear.LogLinearModel()
     model2 = log_linear.LogLinearModel()
@@ -60,8 +61,8 @@ for portion in training_portions:
     # print(train_pairs.shape)
     # print(train_features.shape)
 
-    # model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
-    model2.fit_np(3,train_pairs,train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    model2.fit_np(train_rankings.shape[1],rank,inst,None,lambda_value=1,regression_loss="Squared", maxiter=50)
     # model3.fit(4,train_rankings_np,train_features_np,None,lambda_value=1)
     # model1.weights = model2.weights
     # test_weights = np.random.rand(train_rankings.shape[1], train_features.shape[1]+1)
@@ -82,6 +83,18 @@ for portion in training_portions:
         result_data.append([1, portion, tau1, tau2]) 
 
 results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau1", "tau2"])
+sns.set_style("darkgrid")
+df = model2.get_loss_history_frame()
+print(df)
+df = df.rename(columns={"NLL":"PL-NLL"})
+# df = df.melt(id_vars=["iteration"])
+plt.clf()
+# plt.tight_layout()
+# plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+print(df.head())
+lp = sns.lineplot(x="iteration", y="PL-NLL", data=df)
+plt.title("label ranking " + title)
+plt.show()
 print("avg kendalls tau model1:", results["tau1"].mean())
 print("avg kendalls tau model2:", results["tau2"].mean())
 # sb.lineplot(x="train_portion", y="tau2", data=results)

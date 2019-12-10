@@ -25,17 +25,17 @@ class LogLinearModel:
             [type] -- [description]
         """
         loss = 0
-        feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
-        utilities = None
-        if self.use_exp_for_regression:
-            utilities = np.exp(np.dot(weights, feature_values.T))
-        else:
-            utilities = np.dot(weights, feature_values.T)
-        inverse_utilities = utilities
-        if self.use_reciprocal_for_regression:
-            inverse_utilities = np.reciprocal(utilities)
-        loss += np.mean(np.square(np.subtract(performances.T,
-                                                inverse_utilities)))
+        # feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
+        # utilities = None
+        # if self.use_exp_for_regression:
+        #     utilities = np.exp(np.dot(weights, feature_values.T))
+        # else:
+        #     utilities = np.dot(weights, feature_values.T)
+        # inverse_utilities = utilities
+        # if self.use_reciprocal_for_regression:
+        #     inverse_utilities = np.reciprocal(utilities)
+        # loss += np.mean(np.square(np.subtract(performances.T,
+        #                                         inverse_utilities)))
         return loss
 
     def negative_log_likelihood(self, rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
@@ -269,7 +269,7 @@ class LogLinearModel:
         Arguments:
             filepath {str} -- Path of the csv file
         """
-        frame = pd.DataFrame(data=self.loss_history, index=None, columns=["NLL", "MSE"])
+        frame = pd.DataFrame(data=self.loss_history, index=None, columns=["MSE", "NLL"])
         frame.to_csv(path_or_buf=filepath, index_label="iter")
 
 
@@ -279,6 +279,6 @@ class LogLinearModel:
         Arguments:
             filepath {str} -- Path of the csv file
         """
-        frame = pd.DataFrame(data=self.loss_history, index=None, columns=["NLL", "MSE"])
+        frame = pd.DataFrame(data=self.loss_history, index=None, columns=["MSE", "NLL"])
         frame.insert(0, "iteration", range(0,len(frame)))
         return frame

@@ -64,11 +64,16 @@ class UtilTests(unittest.TestCase):
         scenario = scen.ASRankingScenario()
         scenario.read_scenario("aslib_data-aslib-v4.0/MIP-2016")
         performances = scenario.performance_data
-        feat,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(scenario.feature_data,performances,max_pairs_per_instance=1,seed=16)
+        feat,perf,rank = util.construct_numpy_representation_with_pairs_of_rankings(scenario.feature_data,performances,max_pairs_per_instance=1,seed=16)
         print(feat.shape)
         print(perf.shape)
         print(rank.shape)
-        print(feat[:5])
+        print(feat[:5,:5])
+        print(perf[:5])
+        print(rank[:5])
+        feat,perf,rank = util.construct_numpy_representation_with_pairs_of_rankings(scenario.feature_data,performances,max_pairs_per_instance=1,seed=16, order="desc")
+        print("\n")
+        print(feat[:5,:5])
         print(perf[:5])
         print(rank[:5])
 

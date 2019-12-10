@@ -95,7 +95,8 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         print(inst)
         print(perf)
         print(rank)
-        lambda_value = 0
+        lambda_value = 0.999
+        rank = np.flip(rank, axis=1)
         model1.fit_np(5, rank, inst, perf,lambda_value=lambda_value,regression_loss="Squared", maxiter=100, log_losses=True)
         model1.save_loss_history("loss_history1.csv")
 
