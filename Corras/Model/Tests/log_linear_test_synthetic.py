@@ -13,7 +13,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestLogLinearModelSynthetic, self).__init__(*args, **kwargs)
-        self.train_size = 250
+        self.train_size = 75
         self.test_size = 10
         self.noise_factor = 0.0
         features_train = np.asarray(onp.random.randint(low=0, high=30, size=(self.train_size,4)))
@@ -24,8 +24,8 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
                 # generate performances as functions linear in the features
                 performance_1 = 5 * features[0] + 2 * features[1] + 7 * features[2] + 42
                 performance_2 =  3 * features[1] + 5 * features[3] + 14
-                performance_3 = 2 * features[0] + 4 * features[1] + 11 * features[3] + 77
-                performance_4 = 7 * features[1] + 4 * features[0] + 11 * features[2] + features[3]
+                performance_3 = 2 * features[0] + 4 * features[1] + 8 * features[3] + 77
+                performance_4 = 7 * features[1] + 4 * features[0] + 3 * features[2] + features[3]
                 performance_5 = 2 * features[1] + 9 * features[2] + 7 * features[3] + 12 + features[0]
                 performances.append([performance_1, performance_2, performance_3, performance_4, performance_5])
             return performances
@@ -90,24 +90,27 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
 
     def test_regression(self):
         model1 = ll.LogLinearModel(use_exp_for_regression=False)
-
-        inst,perf,rank = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
+        perf = self.train_performances.to_numpy()
+        maximum = np.max(perf)
+        perf_max_inv = maximum - perf
+        max_inv = np.max(perf_max_inv)
+        perf_max_inv = perf_max_inv / max_inv
+        train_performances_max_inv = pd.DataFrame(data=perf_max_inv,index=self.train_performances.index,columns=self.train_performances.columns)
+        inst,perf,rank = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst,train_performances_max_inv,max_pairs_per_instance=15,seed=15, order="desc")
         print(inst)
         print(perf)
         print(rank)
-        lambda_value = 0.999
-        rank = np.flip(rank, axis=1)
-        model1.fit_np(5, rank, inst, perf,lambda_value=lambda_value,regression_loss="Squared", maxiter=100, log_losses=True)
+        lambda_value = 0.99
+        model1.fit_np(5, rank, inst, perf,lambda_value=lambda_value,regression_loss="Squared", maxiter=1000, log_losses=True)
         model1.save_loss_history("loss_history1.csv")
-
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
-            print("Predicted Performances Model 1", model1.predict_performances(row.values))
+            print("Predicted Performances Model 1", maximum - model1.predict_performances(row.values)*max_inv)
+            # print("Predicted Performances Model 1", model1.predict_performances(row.values))
             print("\n")
             print("True Ranking", self.test_ranking.loc[index].values)
             print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
-            print(model1.loss_history)
             print("\n")
         sns.set_style("darkgrid")
         df = model1.get_loss_history_frame()

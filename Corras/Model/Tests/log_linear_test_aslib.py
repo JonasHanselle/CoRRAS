@@ -4,8 +4,10 @@ import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.log_linear as ll
 import Corras.Util.ranking_util as util
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.impute import SimpleImputer
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 class TestLogLinearModelASLib(unittest.TestCase):
 
@@ -40,28 +42,58 @@ class TestLogLinearModelASLib(unittest.TestCase):
     #         print("\n")
 
     def test_regression(self):
-        model = ll.LogLinearModel()
-        features, performances, rankings = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst, self.train_performances)
-        print("raw features", features)
-        features = self.imputer.fit_transform(features)
-        features = self.scaler.fit_transform(features)
-        print("scaled features", features)
-        print(performances)
-        print(rankings)
-        # rankings = util.ordering_to_ranking_list(rankings)
-        # print(rankings)
-        # model.fit_list(len(self.scenario.algorithms),rankings,features,performances,lambda_value=0.5,regression_loss="Squared",maxiter=100)
-        model.fit_np(len(self.scenario.algorithms),rankings,features,performances,lambda_value=1,regression_loss="Squared",maxiter=30)
-        for i, (index, row) in enumerate(self.train_performances.iterrows()):
-            instance_values = self.train_inst.loc[index].values
-            imputed_row = self.imputer.transform([instance_values])
-            scaled_row = self.scaler.transform(imputed_row).flatten()
-            print("predicted", model.predict_performances(scaled_row))
-            print("truth performance", row.values)
-            print("\n")
-            print("Predicted Ranking", model.predict_ranking(scaled_row))
-            print("True Ranking", np.argsort(np.argsort(row.values))+1)
-            print("\n")
+        model1 = ll.LogLinearModel(use_exp_for_regression=False)
+        features, performances, rankings = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst, self.train_performances, order="asc")
+        features = features[:1001]
+        performances = performances[:1001]
+        rankings = rankings[:1001]
+        quad_feature_transform = PolynomialFeatures(2)
+        print("features", features.shape)
+        quad_features = quad_feature_transform.fit_transform(features[:999])
+        print("quad features", quad_features.shape)
+        feature_vec = features[1000]
+        print("feature vec", feature_vec.shape)
+        quad_feature_vec = quad_feature_transform.transform(feature_vec.reshape(1,-1))
+        print("quad feature vec", quad_feature_vec.shape)
+#         performances = performances / np.max(performances)
+#         print("raw features", features)
+#         features = self.imputer.fit_transform(features)
+#         features = self.scaler.fit_transform(features)
+#         print("scaled features", features)
+#         print(performances)
+#         print(rankings)
+#         maximum = np.max(performances)
+#         performances_max_inv = maximum - performances
+#         max_inv = np.max(performances_max_inv)
+#         performances_max_inv = performances_max_inv / max_inv
+#         lambda_value = 0.5
+#         model1.fit_np(5, rankings, features, performances_max_inv,lambda_value=lambda_value,regression_loss="Squared", maxiter=1000, log_losses=True)
 
-if __name__ == "__main__":
-    unittest.main()
+#         for i, (index, row) in enumerate(self.train_performances.iterrows()):
+#             instance_values = self.train_inst.loc[index].values
+#             imputed_row = self.imputer.transform([instance_values])
+#             scaled_row = self.scaler.transform(imputed_row).flatten()
+#             print("predicted", model1.predict_performances(scaled_row))
+#             print("truth performance", row.values)
+#             print("\n")
+#             print("Predicted Ranking", model1.predict_ranking(scaled_row))
+#             print("True Ranking", np.argsort(np.argsort(row.values))+1)
+#             print("\n")
+#         sns.set_style("darkgrid")
+#         df = model1.get_loss_history_frame()
+#         print(df)
+#         df = df.rename(columns={"NLL":"PL-NLL"})
+#         df["$\lambda$ PL-NLL"] = lambda_value * df["PL-NLL"]
+#         df["$(1 - \lambda)$ MSE"] = (1 - lambda_value) * df["MSE"]
+#         df["TOTAL_LOSS"] = df["$\lambda$ PL-NLL"] + df["$(1 - \lambda)$ MSE"]
+#         df = df.melt(id_vars=["iteration"])
+#         plt.clf()
+#         # plt.tight_layout()
+#         # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+#         print(df.head())
+#         lp = sns.lineplot(x="iteration", y="value", hue="variable", data=df)
+#         plt.title(self.scenario.scenario)
+#         plt.show()
+
+# if __name__ == "__main__":
+#     unittest.main()

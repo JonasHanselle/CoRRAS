@@ -25,17 +25,17 @@ class LogLinearModel:
             [type] -- [description]
         """
         loss = 0
-        # feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
-        # utilities = None
-        # if self.use_exp_for_regression:
-        #     utilities = np.exp(np.dot(weights, feature_values.T))
-        # else:
-        #     utilities = np.dot(weights, feature_values.T)
-        # inverse_utilities = utilities
-        # if self.use_reciprocal_for_regression:
-        #     inverse_utilities = np.reciprocal(utilities)
-        # loss += np.mean(np.square(np.subtract(performances.T,
-        #                                         inverse_utilities)))
+        feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
+        utilities = None
+        if self.use_exp_for_regression:
+            utilities = np.exp(np.dot(weights, feature_values.T))
+        else:
+            utilities = np.dot(weights, feature_values.T)
+        inverse_utilities = utilities
+        if self.use_reciprocal_for_regression:
+            inverse_utilities = np.reciprocal(utilities)
+        loss += np.mean(np.square(np.subtract(performances.T,
+                                                inverse_utilities)))
         return loss
 
     def negative_log_likelihood(self, rankings: pd.DataFrame, features: pd.DataFrame, weights: np.ndarray):
@@ -90,6 +90,8 @@ class LogLinearModel:
             new_logs.append(np.log(np.sum(utilities[:, m:], axis=1)))
         new_logs = np.asarray(new_logs)
         outer_nll = np.sum(np.sum(new_logs)) - sum1
+        outer_nll = outer_nll / rankings.shape[0]
+        # print(sum1/rankings.shape[0])
         return outer_nll
 
 
