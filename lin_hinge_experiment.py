@@ -16,38 +16,32 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import PolynomialFeatures
 
 # Corras
-from Corras.Model import log_linear
+from Corras.Model import linear_hinge as lh
 from Corras.Scenario import aslib_ranking_scenario
 from Corras.Util import ranking_util as util
 
-result_path = "./results-pl/"
-loss_path = "./losses-pl/"
+result_path = "./results-lh/"
+loss_path = "./losses-lh/"
 
 total_shards = int(sys.argv[1])
 shard_number = int(sys.argv[2])
 
 scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-# scenarios = ["MIP-2016"]
-lambda_values = [0.0, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-                 0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
-# lambda_values = [0.0, 0.2, 0.4, 0.6,
-#                  0.8, 1.0]
-# lambda_values = [0.5]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+                 0.7, 0.8, 0.9, 1.0]
+epsilon_values = [0, 0.0001, 0.001, 0.01, 0.1,
+                  0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [True, False]
-# use_quadratic_transform_values = [True]
 use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
-# use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True, False]
-# scale_target_to_unit_interval_values = [True]
 
+# splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1]
 
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-# splits = [1]
-
-params = [scenarios, lambda_values, splits, seeds, use_quadratic_transform_values,
+params = [scenarios, lambda_values, epsilon_values, splits, seeds, use_quadratic_transform_values,
           use_max_inverse_transform_values, scale_target_to_unit_interval_values]
 
 param_product = list(product(*params))
@@ -63,13 +57,13 @@ if shard_number == total_shards:
 else:
     shard = param_product[lower_bound:upper_bound]
 
-for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in shard:
+for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in shard:
     params_string = "-".join([scenario_name,
-                              str(lambda_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
+                              str(lambda_value), str(epsilon_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
 
     # filename = "pl_log_linear" + "-" + params_string + ".csv"
-    filename = "pl_log_linear-" + scenario_name + ".csv"
-    loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
+    filename = "linear_hinge-" + scenario_name + ".csv"
+    loss_filename = "linear_hinge" + "-" + params_string + "-losses.csv"
     filepath = result_path + filename
     loss_filepath = loss_path + loss_filename
     exists = os.path.exists(filepath)
@@ -83,7 +77,7 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
                 x + "_performance" for x in scenario.performance_data.columns]
 
             result_columns_corras = [
-                "split", "problem_instance", "lambda", "seed", "use_quadratic_transform", "use_max_inverse_transform", "scale_target_to_unit_interval", "predicted_ranking"]
+                "split", "problem_instance", "lambda", "epsilon", "seed", "use_quadratic_transform", "use_max_inverse_transform", "scale_target_to_unit_interval", "predicted_ranking"]
             result_columns_corras += performance_cols_corras
 
             results_corras = pd.DataFrame(
@@ -144,11 +138,9 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
         inst, perf, rank = util.construct_numpy_representation_with_pairs_of_rankings(
             train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed, order=order)
 
-        model = log_linear.LogLinearModel(
-            use_exp_for_regression=False, use_reciprocal_for_regression=False)
-
+        model = mode1 = lh.LinearHingeModel()
         model.fit_np(len(scenario.algorithms), rank, inst,
-                     perf, lambda_value=lambda_value, regression_loss="Squared", maxiter=maxiter, print_output=False, log_losses=True)
+                     perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", maxiter=maxiter, print_output=False, log_losses=True)
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)
@@ -173,14 +165,14 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
                 predicted_performances = par10 - predicted_performances
 
             result_data_corras.append(
-                [split, index, lambda_value, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, predicted_ranking, *predicted_performances])
+                [split, index, lambda_value, epsilon_value, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, predicted_ranking, *predicted_performances])
             # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
 
         performance_cols_corras = [
             x + "_performance" for x in scenario.performance_data.columns]
 
         result_columns_corras = [
-            "split", "problem_instance", "lambda", "seed", "use_quadratic_transform", "use_max_inverse_transform", "scale_target_to_unit_interval", "predicted_ranking"]
+            "split", "problem_instance", "lambda", "epsilon", "seed", "use_quadratic_transform", "use_max_inverse_transform", "scale_target_to_unit_interval", "predicted_ranking"]
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(
             data=result_data_corras, columns=result_columns_corras)

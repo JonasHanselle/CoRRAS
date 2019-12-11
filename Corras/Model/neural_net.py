@@ -9,7 +9,6 @@ from tensorflow_core import keras
 import tensorflow_core as tf
 import pandas as pd
 import numpy as np
-np.random.seed(15)
 
 
 class NeuralNetwork:
@@ -53,6 +52,7 @@ class NeuralNetwork:
             supported
         """
         # add one column for bias
+        np.random.seed(15)
         num_features = features.shape[1]+1
         self.network = self.build_network(num_labels, num_features)
 

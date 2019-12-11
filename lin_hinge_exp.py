@@ -55,7 +55,7 @@ for i_split in range(1, num_splits+1):
     inst,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(train_features,train_performances,max_pairs_per_instance=max_pairs_per_instance,seed=15)
     
     # scale performances to unit interval
-    perf = perf/np.max(perf)
+    perf = perf/np.max(perf) 
     # train models
     for lambda_value, epsilon_value in product(lambda_values,epsilon_values):
         model = model1 = lh.LinearHingeModel()

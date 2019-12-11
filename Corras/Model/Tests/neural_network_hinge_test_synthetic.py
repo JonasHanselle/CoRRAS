@@ -6,6 +6,8 @@ import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.neural_net_hinge as nn_hinge
 import Corras.Util.ranking_util as util
 from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
 
@@ -68,7 +70,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         print(perf)
         print(rank)
         rank = rank.astype("int32")
-        model1.fit(5, rank, inst, perf,lambda_value=1, epsilon_value=1, regression_loss="Squared", num_epochs=100, learning_rate=1, batch_size=32, early_stop_interval=2, patience=8)
+        model1.fit(5, rank, inst, perf,lambda_value=0, epsilon_value=1, regression_loss="Squared", num_epochs=20, learning_rate=0.1, batch_size=32, early_stop_interval=2, patience=8)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
@@ -77,8 +79,23 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
             print("True Ranking", self.test_ranking.loc[index].values)
             print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
             print("\n")
+        sns.set_style("darkgrid")
+        df = model1.get_loss_history_frame()
+        print(df)
+        # df = df.rename(columns={"NLL":"PL-NLL"})
+        # df["$\lambda$ PL-NLL"] = lambda_value * df["PL-NLL"]
+        # df["$(1 - \lambda)$ MSE"] = (1 - lambda_value) * df["MSE"]
+        # df["TOTAL_LOSS"] = df["$\lambda$ PL-NLL"] + df["$(1 - \lambda)$ MSE"]
+        df = df.melt(id_vars=["epoch"])
+        plt.clf()
+        # plt.tight_layout()
+        # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+        print(df.head())
+        lp = sns.lineplot(x="epoch", y="value", hue="variable", data=df)
+        plt.title("Synthetic data")
+        plt.show()
+        
 
-        # print("loss hist", model1.loss_history)
 
 if __name__ == "__main__":
     unittest.main()

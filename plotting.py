@@ -28,12 +28,13 @@ for scenario_name in scenario_names:
         print("Scenario " + scenario_name + " not found in corras evaluation data!")
         # continue
     try:
-        df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
+        # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
+        df_corras = pd.read_csv(evaluations_path + "corras-pl-log-linear-" + scenario_name + ".csv")
     except:
         print("Scenario " + scenario_name + " not found in corras evaluation data!")
         continue
     # plot average kendall tau
-
+    print(df_corras[:])
     for measure in df_corras.columns[8:]:
         plt.clf()
         # bp = sns.boxplot(x="lambda", y=measure, hue="epsilon", data=df_corras)
@@ -47,9 +48,11 @@ for scenario_name in scenario_names:
     for measure in df_corras.columns[8:]:
         plt.clf()
         # bp = sns.lineplot(x="lambda", y=measure, hue="epsilon", data=df_corras, palette=sns.color_palette("Set1", len(pd.unique(df_corras["epsilon"]))))
-        bp = sns.lineplot(x="lambda", y=measure, data=df_corras)
+        # g = sns.FacetGrid(df_corras, col="max_inverse_transform")
+        # g.map(sns.lineplot, "lambda", measure)
+        lp = sns.lineplot(x="lambda", y=measure, data=df_corras)
         if df_baseline is not None:
-            bp.axes.axhline(df_baseline[measure].mean(), c="g", ls="--", label="rf-baseline-mean")
+            g.axes.axhline(df_baseline[measure].mean(), c="g", ls="--", label="rf-baseline-mean")
         plt.title(scenario_name)
         plt.legend()
         plt.savefig(figures_path+scenario_name+"-" + measure +"-lineplot.pdf")
