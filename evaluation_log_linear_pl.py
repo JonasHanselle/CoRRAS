@@ -127,8 +127,9 @@ for scenario_name in scenarios:
             par10 = true_performances[np.argmin(corras_performances)]
             corras_measures.append([split, seed, problem_instance, lambda_value, use_quadratic_transform, use_max_inverse_transform,
                                     scale_target_to_unit_interval, tau_corr, tau_p, ndcg, mse, mae, abs_vbs_distance, par10])
-            print(corras_measures)
+            # print(corras_measures)
     df_corras = pd.DataFrame(data=corras_measures, columns=["split", "seed", "problem_instance", "lambda", "quadratic_transform",
                                                             "max_inverse_transform", "scale_to_unit_interval", "tau_corr", "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs", "par10"])
     df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" +
                      scenario_name + ".csv")
+                     

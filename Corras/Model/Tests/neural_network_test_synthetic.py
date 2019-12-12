@@ -1,9 +1,9 @@
 import unittest
 import numpy as np
 import pandas as pd
-import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.neural_net as nn
 import Corras.Util.ranking_util as util
+import Corras.Scenario.aslib_ranking_scenario as scen
 from sklearn.preprocessing import StandardScaler
 
 class TestNeuralNetworkSynthetic(unittest.TestCase):

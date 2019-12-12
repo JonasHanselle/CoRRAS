@@ -18,7 +18,7 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_baseline = "./results/results-rf/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
-scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND"]
+scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "CPMP-2015", "MAXSAT12-PMS", "SAT11-HAND"]
 
 def compute_distance_to_vbs(predicted_performances, true_performances):
     result = true_performances[np.argmin(predicted_performances)] - np.min(true_performances)

@@ -18,7 +18,7 @@ sns.set_style("darkgrid")
 
 scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND"]
 scenario_path = "./aslib_data-aslib-v4.0/"
-result_path = "./results/results-pl/"
+result_path = "./losses-pl/"
 figures_path = "./figures_loss_hist_pl/"
 lambda_values = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 # epsilon_values = [0.2,0.4,0.6,0.8,1]
@@ -28,18 +28,18 @@ seed = 15
 # scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
 # lambda_values = [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
 #     0.7, 0.8, 0.9, 0.95, 0.9999, 1.0]
-scenarios = ["SAT11-INDU"]
-lambda_values = [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-    0.7, 0.8, 0.9, 0.95, 0.9999, 1.0]
+# scenarios = ["SAT11-INDU"]
+# lambda_values = [0.0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+#     0.7, 0.8, 0.9, 0.95, 0.9999, 1.0]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [False]
+use_quadratic_transform_values = [False, True]
 use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
 scale_target_to_unit_interval_values = [True, False]
 
 splits = [4]
-params = [scenarios, lambda_values, splits, seeds, use_quadratic_transform_values, use_max_inverse_transform_values, scale_target_to_unit_interval_values]
+params = [scenario_names, lambda_values, splits, seeds, use_quadratic_transform_values, use_max_inverse_transform_values, scale_target_to_unit_interval_values]
 
 
 param_product = list(product(*params))
