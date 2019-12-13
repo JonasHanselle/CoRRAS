@@ -93,13 +93,13 @@ class NeuralNetworkSquaredHinge:
                 (tf.square(tf.subtract(y_hat_1, y_perf[:, 1]))))
             rank_loss = tf.reduce_mean(
                 tf.square(tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0))))
-            return lambda_value * reg_loss + (1 - lambda_value) * rank_loss
+            return lambda_value * reg_loss + (1 - lambda_value) * rank_loss, reg_loss, rank_loss
         # define gradient of custom loss function
 
         def grad(model, x, y_perf, y_rank):
             with tf.GradientTape() as tape:
-                loss_value = custom_loss(model, x, y_perf, y_rank)
-            return loss_value, tape.gradient(loss_value, model.trainable_weights)
+                loss_value, reg_loss, rank_loss = custom_loss(model, x, y_perf, y_rank)
+            return loss_value, tape.gradient(loss_value, model.trainable_weights), reg_loss, rank_loss
 
         # optimizer
         optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -109,13 +109,17 @@ class NeuralNetworkSquaredHinge:
         patience_cnt = 0
 
         for epoch in range(num_epochs):
-
+            epoch_reg_loss_avg = tf.keras.metrics.Mean()
+            epoch_rank_loss_avg = tf.keras.metrics.Mean()
             for x, y_perf, y_rank in train_data:
-                loss_value, grads = grad(self.network, x, y_perf, y_rank)
+                loss_value, grads, reg_loss, rank_loss = grad(self.network, x, y_perf, y_rank)
                 optimizer.apply_gradients(
                     zip(grads, self.network.trainable_weights))
-                if log_losses:
-                    self.loss_history.append([loss_value,loss_value])
+                epoch_reg_loss_avg(reg_loss)
+                epoch_rank_loss_avg(rank_loss)
+            if log_losses:
+                self.loss_history.append([float(epoch_reg_loss_avg.result()),float(epoch_rank_loss_avg.result())])
+            
             if epoch % early_stop_interval == 0:
                 losses = []
                 for x, y_perf, y_rank in val_data:
@@ -146,9 +150,6 @@ class NeuralNetworkSquaredHinge:
         """
         # add constant 1 for bias
         features = np.hstack((features, [1]))
-        # keras expects a 2 dimensional input
-        # features = np.expand_dims(features, axis=0)
-        # compute utility scores
         predictions = self.network(features[:, None].T)
         return self.network(features[:, None].T)
 

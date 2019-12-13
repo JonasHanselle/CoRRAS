@@ -26,11 +26,11 @@ loss_path = "./losses-lh/"
 total_shards = int(sys.argv[1])
 shard_number = int(sys.argv[2])
 
-scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
+scenarios = ["MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-                 0.7, 0.8, 0.9, 1.0]
+                 0.7, 0.8, 0.9]
 epsilon_values = [0, 0.0001, 0.001, 0.01, 0.1,
-                  0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+                  0.2, 0.3]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
@@ -38,8 +38,8 @@ use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
 scale_target_to_unit_interval_values = [True, False]
 
-# splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [1]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+# splits = [1]
 
 params = [scenarios, lambda_values, epsilon_values, splits, seeds, use_quadratic_transform_values,
           use_max_inverse_transform_values, scale_target_to_unit_interval_values]
@@ -135,12 +135,12 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         train_performances = pd.DataFrame(
             data=perf, index=train_performances.index, columns=train_performances.columns)
         print(order)
-        inst, perf, rank = util.construct_numpy_representation_with_pairs_of_rankings(
+        inst, perf, rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
             train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed, order=order)
 
         model = mode1 = lh.LinearHingeModel()
         model.fit_np(len(scenario.algorithms), rank, inst,
-                     perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", maxiter=maxiter, print_output=False, log_losses=True)
+                    perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", maxiter=maxiter, print_output=False, log_losses=True)
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)
@@ -177,7 +177,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         results_corras = pd.DataFrame(
             data=result_data_corras, columns=result_columns_corras)
         results_corras.to_csv(filepath, index_label="id",
-                              mode="a", header=False)
+                            mode="a", header=False)
         model.save_loss_history(loss_filepath)
 
     except Exception as exc:
