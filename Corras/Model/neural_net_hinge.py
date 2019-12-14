@@ -16,11 +16,13 @@ class NeuralNetworkSquaredHinge:
         self.network = None
         self.logger = logging.getLogger("CorrasNeuralNet")
         self.loss_history = []
+        self.es_val_history = []
         K.set_floatx("float64")
 
     def build_network(self, num_labels, num_features):
         input_layer = keras.layers.Input(num_features, name="input_layer")
-        hidden_layers = keras.layers.Dense(8, activation="relu")(input_layer)
+        hidden_layers = keras.layers.Dense(40, activation="relu")(input_layer)
+        hidden_layers = keras.layers.Dense(40, activation="relu")(input_layer)
         # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         output_layer = keras.layers.Dense(
             num_labels, activation="linear", name="output_layer")(input_layer)
@@ -47,6 +49,7 @@ class NeuralNetworkSquaredHinge:
         self.network.summary()
 
         self.loss_history = []
+        self.es_val_history = []
         # add constant 1 for bias and create tf dataset
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
         # print(feature_values.shape)
@@ -126,11 +129,10 @@ class NeuralNetworkSquaredHinge:
                     losses.append(custom_loss(self.network, x, y_perf, y_rank))
                 loss_tensor = np.average(losses)
                 current_val_loss = tf.reduce_mean(loss_tensor)
+                self.es_val_history.append(current_val_loss)
                 if current_val_loss < best_val_loss:
                     best_val_loss = current_val_loss
                     current_best_weights = self.network.get_weights()
-                    print(current_best_weights)
-                    print("new best validation loss", best_val_loss)
                     patience_cnt = 0
                 else:
                     patience_cnt += 1
@@ -151,7 +153,8 @@ class NeuralNetworkSquaredHinge:
         # add constant 1 for bias
         features = np.hstack((features, [1]))
         predictions = self.network(features[:, None].T)
-        return self.network(features[:, None].T)
+
+        return predictions.numpy()[0]
 
     def predict_ranking(self, features: np.ndarray):
         """Predict a label ranking.
@@ -187,4 +190,24 @@ class NeuralNetworkSquaredHinge:
         """
         frame = pd.DataFrame(data=self.loss_history, index=None, columns=["MSE", "SQH"])
         frame.insert(0, "epoch", range(0,len(frame)))
+        return frame
+
+    def save_es_val_history(self, filepath : str):
+        """Saves the history of losses after the model has been fit
+        
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.es_val_history, index=None, columns=["ES_VAL_LOSS"])
+        frame.to_csv(path_or_buf=filepath, index_label="es_call")
+
+
+    def get_es_val_history_frame(self):
+        """Saves the history of losses after the model has been fit
+        
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.es_val_history, index=None, columns=["ES_VAL_LOSS"])
+        frame.insert(0, "es_call", range(0,len(frame)))
         return frame
