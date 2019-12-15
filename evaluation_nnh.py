@@ -91,7 +91,7 @@ for scenario_name in scenarios:
 
     for lambda_value, epsilon_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio in param_product:
         current_frame = corras.loc[(corras["lambda"] == lambda_value) & (corras["epsilon"] == epsilon_value) & (corras["split"] == split) & (corras["seed"] == seed) & (corras["learning_rate"] == learning_rate) & (
-            corras["use_max_invees_intervalrse_transform"] == es_interval) & (corras["es_patience"] == es_patience) & (corras["es_val_ratio"] == es_val_ratio) & (corras["batch_size"] == batch_size)]
+            corras["es_interval"] == es_interval) & (corras["es_patience"] == es_patience) & (corras["es_val_ratio"] == es_val_ratio) & (corras["batch_size"] == batch_size)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if current_frame.empty:
