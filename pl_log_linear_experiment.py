@@ -30,6 +30,9 @@ scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
 # scenarios = ["MIP-2016"]
 lambda_values = [0.0, 0.001, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
                  0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
+epsilon_values = [0, 0.0001, 0.001, 0.01, 0.1,
+                  0.2, 0.3]
+
 # lambda_values = [0.0, 0.2, 0.4, 0.6,
 #                  0.8, 1.0]
 # lambda_values = [0.5]

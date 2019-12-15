@@ -35,7 +35,7 @@ maxiter = 1000
 seeds = [15]
 
 learning_rates = [0.1, 0.01]
-batch_sizes = [32]
+batch_sizes = [128]
 es_patiences = [32]
 es_intervals = [8]
 es_val_ratios = [0.3]
