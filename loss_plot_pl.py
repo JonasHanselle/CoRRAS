@@ -14,13 +14,13 @@ from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_uni
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set_style("darkgrid")
+sns.set_style("whitegrid")
 
-scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND"]
+scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU"]
 scenario_path = "./aslib_data-aslib-v4.0/"
 result_path = "./losses-pl/"
 figures_path = "./figures_loss_hist_pl/"
-lambda_values = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+lambda_values = [0.2]
 # epsilon_values = [0.2,0.4,0.6,0.8,1]
 split = 4
 seed = 15
@@ -35,8 +35,8 @@ max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [False, True]
-use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
-scale_target_to_unit_interval_values = [True, False]
+use_max_inverse_transform_values = ["none"]
+scale_target_to_unit_interval_values = [False]
 
 splits = [4]
 params = [scenario_names, lambda_values, splits, seeds, use_quadratic_transform_values, use_max_inverse_transform_values, scale_target_to_unit_interval_values]
@@ -54,7 +54,7 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
     loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
     filepath = result_path + filename
     loss_filepath = result_path + loss_filename    
-    figure_file = params_string + "losses" + ".pdf"
+    figure_file = params_string.replace(".","_") + "-losses" + ".pdf"
     df = None
     if not os.path.isfile(loss_filepath):
         print("File for " + params_string + " not found!")
