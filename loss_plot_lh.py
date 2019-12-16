@@ -28,9 +28,9 @@ epsilon_values = [0, 0.0001, 0.001, 0.01, 0.1,
 splits = [1]
 seeds = [15]
 
-use_quadratic_transform_values = [False, True]
-use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
-scale_target_to_unit_interval_values = [True, False]
+use_quadratic_transform_values = [False]
+use_max_inverse_transform_values = ["max_cutoff"]
+scale_target_to_unit_interval_values = [True]
 
 params = [scenario_names, lambda_values, epsilon_values, splits, seeds, use_quadratic_transform_values, use_max_inverse_transform_values, scale_target_to_unit_interval_values]
 param_product = list(product(*params))

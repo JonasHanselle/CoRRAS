@@ -24,24 +24,20 @@ def compute_distance_to_vbs(predicted_performances, true_performances):
     result = true_performances[np.argmin(predicted_performances)] - np.min(true_performances)
     return result
 
-scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
+scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND"]
 # scenarios = ["CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-                 0.7, 0.8, 0.9]
-epsilon_values = [0, 0.0001, 0.001, 0.01, 0.1,
-                  0.2, 0.3]
-# lambda_values = [0.5]
+lambda_values = [0.0, 0.3, 0.5, 0.7, 0.9]
+epsilon_values = [0, 0.01, 0.1,
+                  0.2, 1]
 max_pairs_per_instance = 5
-maxiter = 100
+maxiter = 1000
 seeds = [15]
+
 learning_rates = [0.1, 0.01]
 batch_sizes = [128]
-es_patiences = [32]
+es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
-
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -95,6 +91,7 @@ for scenario_name in scenarios:
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if current_frame.empty:
+            print("Current frame is empty!")
             continue
         for problem_instance, performances in scenario.performance_data.iterrows():
             if not problem_instance in current_frame.index:
@@ -133,5 +130,5 @@ for scenario_name in scenarios:
             # print(corras_measures)
     df_corras = pd.DataFrame(data=corras_measures, columns=["split", "seed", "problem_instance", "lambda", "epsilon", "learning_rate", "es_interval",
                                     "es_patience", "es_val_ratio", "batch_size", "tau_corr", "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs", "par10"])
-    df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
+    df_corras.to_csv(evaluations_path + "corras-hinge-nn-" +
                      scenario_name + ".csv")
