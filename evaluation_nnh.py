@@ -15,7 +15,7 @@ import seaborn as sns
 sns.set_style("darkgrid")
 
 scenario_path = "./aslib_data-aslib-v4.0/"
-results_path_corras = "./results-nnh/"
+results_path_corras = "./results-nnh-new/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND"]

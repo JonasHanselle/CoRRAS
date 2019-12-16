@@ -17,7 +17,7 @@ import seaborn as sns
 sns.set_style("whitegrid")
 
 scenario_path = "./aslib_data-aslib-v4.0/"
-result_path = "./losses-nnh/"
+result_path = "./losses-nnh-new/"
 figures_path = "./figures_loss_hist_nnh/"
 
 scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND"]
@@ -28,7 +28,7 @@ epsilon_values = [0, 0.01, 0.1,
 max_pairs_per_instance = 5
 seeds = [15]
 
-learning_rates = [0.1, 0.01]
+learning_rates = [0.01, 0.001]
 batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
@@ -45,39 +45,39 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, batc
     params_string = "-".join([scenario_name,
                               str(lambda_value), str(epsilon_value), str(split), str(seed), str(learning_rate), str(es_interval), str(es_patience), str(es_val_ratio), str(batch_size)])
 
-    # filename = "nn_hinge" + "-" + params_string + ".csv"
-    # loss_filename = "nn_hinge" + "-" + params_string + "-losses.csv"
-    # filepath = result_path + filename
-    # loss_filepath = result_path + loss_filename
-    # print(loss_filepath)
-    # figure_file = params_string + "losses" + ".pdf"
-    # try:
-    #     df = pd.read_csv(loss_filepath)
-    # except:
-    #     print("File " + loss_filename + " not found")
-    #     continue
-    # df["$\lambda$ MSE"] = lambda_value * df["MSE"]
-    # df["$(1 - \lambda)$ SQH"] = (1 - lambda_value) * df["SQH"]
-    # df["TOTAL_LOSS"] = df["$\lambda$ MSE"] + df["$(1 - \lambda)$ SQH"]
-    # df = df.melt(id_vars=["iter"])
-    # print(df.head())
-    # text = "$\lambda$ = " + str(lambda_value) + ", "
-    # text += "$\epsilon$ = " + str(epsilon_value) + ", "
-    # text += "split = " + str(split) + ", "
-    # text += "seed = " + str(seed) + ",\n"
-    # text += "learning rate = " + str(learning_rate) + ", "
-    # text += "es patience = " + str(es_patience) + ", "
-    # text += "es interval = " + \
-    #     str(es_interval) + ", "
-    # text += "es val raio = " + str(es_val_ratio) + ",\n"
-    # text += "batch size = " + str(batch_size)
-    # plt.clf()
-    # # plt.tight_layout()
-    # plt.annotate(text, (0, 0), (0, -40), xycoords="axes fraction",
-    #              textcoords="offset points", va="top")
-    # lp = sns.lineplot(x="iter", y="value", hue="variable", data=df)
-    # plt.title(scenario_name)
-    # plt.savefig(figures_path+figure_file, bbox_inches="tight")
+    filename = "nn_hinge" + "-" + params_string + ".csv"
+    loss_filename = "nn_hinge" + "-" + params_string + "-losses.csv"
+    filepath = result_path + filename
+    loss_filepath = result_path + loss_filename
+    print(loss_filepath)
+    figure_file = params_string + "-losses" + ".pdf"
+    try:
+        df = pd.read_csv(loss_filepath)
+    except:
+        print("File " + loss_filename + " not found")
+        continue
+    df["$\lambda$ MSE"] = lambda_value * df["MSE"]
+    df["$(1 - \lambda)$ SQH"] = (1 - lambda_value) * df["SQH"]
+    df["TOTAL_LOSS"] = df["$\lambda$ MSE"] + df["$(1 - \lambda)$ SQH"]
+    df = df.melt(id_vars=["iter"])
+    print(df.head())
+    text = "$\lambda$ = " + str(lambda_value) + ", "
+    text += "$\epsilon$ = " + str(epsilon_value) + ", "
+    text += "split = " + str(split) + ", "
+    text += "seed = " + str(seed) + ",\n"
+    text += "learning rate = " + str(learning_rate) + ", "
+    text += "es patience = " + str(es_patience) + ", "
+    text += "es interval = " + \
+        str(es_interval) + ", "
+    text += "es val raio = " + str(es_val_ratio) + ",\n"
+    text += "batch size = " + str(batch_size)
+    plt.clf()
+    # plt.tight_layout()
+    plt.annotate(text, (0, 0), (0, -40), xycoords="axes fraction",
+                 textcoords="offset points", va="top")
+    lp = sns.lineplot(x="iter", y="value", hue="variable", data=df)
+    plt.title(scenario_name)
+    plt.savefig(figures_path+figure_file, bbox_inches="tight")
     filename = "nn_hinge" + "-" + params_string + ".csv"
     loss_filename = "nn_hinge" + "-" + params_string + "-es-val.csv"
     filepath = result_path + filename
