@@ -21,14 +21,14 @@ class NeuralNetworkSquaredHinge:
 
     def build_network(self, num_labels, num_features):
         input_layer = keras.layers.Input(num_features, name="input_layer")
-        hidden_layers = keras.layers.Dense(40, activation="relu")(input_layer)
-        hidden_layers = keras.layers.Dense(40, activation="relu")(input_layer)
+        hidden_layers = keras.layers.Dense(num_features, activation="relu")(input_layer)
+        hidden_layers = keras.layers.Dense(num_features, activation="relu")(hidden_layers)
         # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         output_layer = keras.layers.Dense(
-            num_labels, activation="linear", name="output_layer")(input_layer)
+            num_labels, activation="linear", name="output_layer")(hidden_layers)
         return keras.Model(inputs=input_layer, outputs=output_layer)
 
-    def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances: np.ndarray, lambda_value=0.5, epsilon_value=1, regression_loss="Absolute", num_epochs=1000, learning_rate=0.1, batch_size=32, seed=1, patience=16, es_val_ratio=0.3, reshuffle_buffer_size=1000, early_stop_interval=5, log_losses=True):
+    def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances: np.ndarray, lambda_value=0.5, epsilon_value=1, regression_loss="Absolute", num_epochs=1000, learning_rate=0.001, batch_size=32, seed=1, patience=16, es_val_ratio=0.3, reshuffle_buffer_size=1000, early_stop_interval=5, log_losses=True):
         """Fit the network to the given data.
 
         Arguments:
