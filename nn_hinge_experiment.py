@@ -81,7 +81,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
             x + "_performance" for x in scenario.performance_data.columns]
 
         result_columns_corras = [
-            "split", "problem_instance", "lambda", "epsilon", "seed", "learning_rate", "es_interval", "es_patience", "es_val_ratio", "batch_size" "predicted_ranking"]
+            "split", "problem_instance", "lambda", "epsilon", "seed", "learning_rate", "es_interval", "es_patience", "es_val_ratio", "batch_size", "predicted_ranking"]
         result_columns_corras += performance_cols_corras
 
         results_corras = pd.DataFrame(
