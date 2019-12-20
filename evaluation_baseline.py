@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
@@ -12,7 +14,19 @@ from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_uni
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# Database
+import sqlalchemy as sql
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Table, MetaData
+from sqlalchemy.sql import exists, select, and_, or_
+import urllib
 sns.set_style("darkgrid")
+
+# DB data
+db_url = sys.argv[1]
+db_user = sys.argv[2]
+db_pw = urllib.parse.quote_plus(sys.argv[3])
+db_db = sys.argv[4]
 
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_baseline = "./results/results-rf/"
@@ -32,7 +46,13 @@ for scenario_name in scenario_names:
     relevance_scores = compute_relevance_scores_unit_interval(scenario)
 
     try:
-        baseline = pd.read_csv(results_path_baseline + "rf-" + scenario_name + ".csv")
+        table_name = "baseline_random_forest-" + scenario_name
+
+        engine = sql.create_engine("mysql://" + db_user +
+                                ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
+        connection = engine.connect()
+        baseline = pd.read_sql_table(table_name=table_name,con=connection)
+        connection.close()
     except:
         print("Scenario " + scenario_name + " not found in baseline result data!")
         continue
@@ -61,8 +81,6 @@ for scenario_name in scenario_names:
         par10 = true_performances[np.argmin(baseline_performances)]
         baseline_measures.append([problem_instance,tau_corr,tau_p,ndcg,mse,mae,abs_vbs_distance, par10])
 
-
-
     df_baseline = pd.DataFrame(data=baseline_measures,columns=["problem_instance", "tau_corr", "tau_p", "ndcg", "mse", "mae","abs_distance_to_vbs", "par10"])
     print(df_baseline.head())
-    df_baseline.to_csv(evaluations_path + "baseline-evaluation-" + scenario_name + ".csv")
+    df_baseline.to_csv(evaluations_path + "baseline-evaluation-random_forest" + scenario_name + ".csv")

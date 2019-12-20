@@ -1,7 +1,16 @@
+import sys
+
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from itertools import product
+
+# Database
+import sqlalchemy as sql
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Table, MetaData
+from sqlalchemy.sql import exists, select, and_, or_
+import urllib
 
 # measures
 from scipy.stats import kendalltau, describe
@@ -14,38 +23,41 @@ import seaborn as sns
 
 sns.set_style("darkgrid")
 
+def compute_distance_to_vbs(predicted_performances, true_performances):
+    result = true_performances[np.argmin(
+        predicted_performances)] - np.min(true_performances)
+    return result
+
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_corras = "./results-nnh-new/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
-scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND"]
+# DB data
+db_url = sys.argv[1]
+db_user = sys.argv[2]
+db_pw = urllib.parse.quote_plus(sys.argv[3])
+db_db = sys.argv[4]
 
-def compute_distance_to_vbs(predicted_performances, true_performances):
-    result = true_performances[np.argmin(predicted_performances)] - np.min(true_performances)
-    return result
-
-scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND"]
-# scenarios = ["CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-lambda_values = [0.0, 0.3, 0.5, 0.7, 0.9]
-epsilon_values = [0, 0.01, 0.1,
-                  0.2, 1]
+scenarios = ["MIP-2016", "CSP-2010", "CPMP-2015"]
+lambda_values = [0.0, 0.1, 0.5, 0.9, 1.0]
+epsilon_values = [0, 0.01, 0.1, 1]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
-learning_rates = [0.1, 0.01]
+learning_rates = [0.001]
 batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+# splits = [1]
 
 params = [lambda_values, epsilon_values, splits, seeds, learning_rates,
           batch_sizes, es_patiences, es_intervals, es_val_ratios]
 
 param_product = list(product(*params))
-
 
 for scenario_name in scenarios:
 
@@ -66,7 +78,13 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        corras = pd.read_csv(filepath)
+        table_name = "neural-net-squared-hinge-" + scenario_name + "-short"
+
+        engine = sql.create_engine("mysql://" + db_user +
+                                ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
+        connection = engine.connect()
+        corras = pd.read_sql_table(table_name=table_name,con=connection)
+        connection.close()
     except Exception as exc:
         print("File for " + scenario_name +
               " not found in corras result data! Exception " + str(exc))
@@ -86,13 +104,14 @@ for scenario_name in scenarios:
     # print(relevance_scores)
 
     for lambda_value, epsilon_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio in param_product:
-        current_frame = corras.loc[(corras["lambda"] == lambda_value) & (corras["epsilon"] == epsilon_value) & (corras["split"] == split) & (corras["seed"] == seed) & (corras["learning_rate"] == learning_rate) & (
+        current_frame = corras.loc[(corras["lambda"] == lambda_value) & (corras["epsilon"] == epsilon_value) & (corras["seed"] == seed) & (corras["learning_rate"] == learning_rate) & (
             corras["es_interval"] == es_interval) & (corras["es_patience"] == es_patience) & (corras["es_val_ratio"] == es_val_ratio) & (corras["batch_size"] == batch_size)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if current_frame.empty:
-            print("Current frame is empty!")
+            # print("Current frame is empty!")
             continue
+        # print(len(current_frame), len(scenario.instances))
         for problem_instance, performances in scenario.performance_data.iterrows():
             if not problem_instance in current_frame.index:
                 continue
@@ -111,6 +130,9 @@ for scenario_name in scenarios:
             # print(corras)
             corras_performances = current_frame.loc[problem_instance][performance_indices].astype(
                 "float64").to_numpy()
+            if(len(true_performances) != len(corras_performances)):
+                corras_performances = corras_performances[0]
+                continue
             corras_ranking = current_frame.loc[problem_instance][performance_indices].astype(
                 "float64").rank(method="min").fillna(-1).astype("int16").to_numpy()
             if np.isinf(corras_performances).any():
@@ -131,4 +153,4 @@ for scenario_name in scenarios:
     df_corras = pd.DataFrame(data=corras_measures, columns=["split", "seed", "problem_instance", "lambda", "epsilon", "learning_rate", "es_interval",
                                     "es_patience", "es_val_ratio", "batch_size", "tau_corr", "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs", "par10"])
     df_corras.to_csv(evaluations_path + "corras-hinge-nn-" +
-                     scenario_name + ".csv")
+                     scenario_name + "-short.csv")

@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
@@ -12,8 +14,14 @@ from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_uni
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set_style("darkgrid")
+# Database
+import sqlalchemy as sql
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Table, MetaData
+from sqlalchemy.sql import exists, select, and_, or_
+import urllib
 
+sns.set_style("darkgrid")
 
 def compute_distance_to_vbs(predicted_performances, true_performances):
     result = true_performances[np.argmin(
@@ -26,21 +34,21 @@ results_path_corras = "./results-lh/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 
+# DB data
+db_url = sys.argv[1]
+db_user = sys.argv[2]
+db_pw = urllib.parse.quote_plus(sys.argv[3])
+db_db = sys.argv[4]
 
-scenarios = ["MIP-2016", "CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-# scenarios = ["CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-                 0.7, 0.8, 0.9]
-epsilon_values = [0, 0.0001, 0.001, 0.01, 0.1,
-                  0.2, 0.3]
-# lambda_values = [0.5]
+scenarios = ["MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010", "CPMP-2015"]
+lambda_values = [0.0, 0.2, 0.5, 0.8, 1.0]
+epsilon_values = [0, 0.001, 0.01, 0.1, 1]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [True, False]
-use_max_inverse_transform_values = ["none", "max_cutoff", "max_par10"]
-scale_target_to_unit_interval_values = [True, False]
-
+use_max_inverse_transform_values = ["max_cutoff"]
+scale_target_to_unit_interval_values = [True]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -69,7 +77,13 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        corras = pd.read_csv(filepath)
+        table_name = "linear-squared-hinge-" + scenario_name
+
+        engine = sql.create_engine("mysql://" + db_user +
+                                ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
+        connection = engine.connect()
+        corras = pd.read_sql_table(table_name=table_name,con=connection)
+        connection.close()
     except Exception as exc:
         print("File for " + scenario_name +
               " not found in corras result data! Exception " + str(exc))
@@ -133,4 +147,4 @@ for scenario_name in scenarios:
     df_corras = pd.DataFrame(data=corras_measures, columns=["split", "seed", "problem_instance", "lambda", "epsilon", "quadratic_transform",
                                                             "max_inverse_transform", "scale_to_unit_interval", "tau_corr", "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs", "par10"])
     df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
-                     scenario_name + ".csv")
+                     scenario_name + "-new.csv")
