@@ -39,9 +39,10 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["MIP-2016", "CSP-2010", "CPMP-2015"]
-lambda_values = [0.0, 0.1, 0.5, 0.9, 1.0]
-epsilon_values = [0, 0.01, 0.1, 1]
+# scenarios = ["MIP-2016", "CSP-2010", "CPMP-2015"]
+scenarios = ["MIP-2016"]
+lambda_values = [0.0, 0.5, 1.0]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -51,6 +52,7 @@ batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
+
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # splits = [1]
@@ -71,43 +73,46 @@ if shard_number == total_shards:
 else:
     shard = param_product[lower_bound:upper_bound]
 
+print(shard)
+
 for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size in shard:
    
 
     table_name = "neural-net-squared-hinge-" + scenario_name + "-short"
 
-    engine = sql.create_engine("mysql://" + db_user +
-                                ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
-    connection = engine.connect()
-    if not engine.dialect.has_table(engine, table_name):
-        pass
-    else:
-        meta = MetaData(engine)
-        experiments = Table(table_name, meta, autoload=True,
-                            autoload_with=engine)
+    # engine = sql.create_engine("mysql://" + db_user +
+    #                             ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
+    # connection = engine.connect()
+    # if not engine.dialect.has_table(engine, table_name):
+    #     pass
+    # else:
+    #     meta = MetaData(engine)
+    #     experiments = Table(table_name, meta, autoload=True,
+    #                         autoload_with=engine)
 
-        slct = experiments.select(and_(experiments.columns["split"] == split,
-                                       experiments.columns["lambda"] == lambda_value,
-                                       experiments.columns["epsilon"] == epsilon_value,
-                                       experiments.columns["seed"] == seed,
-                                       experiments.columns["learning_rate"] == learning_rate,
-                                       experiments.columns["es_interval"] == es_interval,
-                                       experiments.columns["es_patience"] == es_patience,
-                                       experiments.columns["es_val_ratio"] == es_val_ratio,
-                                       experiments.columns["batch_size"] == batch_size,
-                                       )).limit(1)
-        rs = connection.execute(slct)
-        result = rs.first()
-        if result == None:
-            print("not in db")
-            pass
-        else:
-            print("already in db")
-            rs.close()
-            connection.close()
-            continue
-        rs.close()
-        connection.close()
+    #     slct = experiments.select(and_(experiments.columns["split"] == split,
+    #                                    experiments.columns["lambda"] == lambda_value,
+    #                                    experiments.columns["epsilon"] == epsilon_value,
+    #                                    experiments.columns["seed"] == seed,
+    #                                    experiments.columns["learning_rate"] == learning_rate,
+    #                                    experiments.columns["es_interval"] == es_interval,
+    #                                    experiments.columns["es_patience"] == es_patience,
+    #                                    experiments.columns["es_val_ratio"] == es_val_ratio,
+    #                                    experiments.columns["batch_size"] == batch_size,
+    #                                    )).limit(1)
+    #     rs = connection.execute(slct)
+    #     result = rs.first()
+    #     if result == None:
+    #         print("not in db")
+    #         print(scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size)
+    #         pass
+    #     else:
+    #         print("already in db")
+    #         rs.close()
+    #         connection.close()
+    #         continue
+    #     rs.close()
+    #     connection.close()
    
     params_string = "-".join([scenario_name,
                               str(lambda_value), str(epsilon_value), str(split), str(seed), str(learning_rate), str(es_interval), str(es_patience), str(es_val_ratio), str(batch_size)])
@@ -198,11 +203,13 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(
             data=result_data_corras, columns=result_columns_corras)
+        print("info", results_corras.info())
         # results_corras.to_csv(filepath, index_label="id",
         #                         mode="a", header=False)
-        connection = engine.connect()
-        results_corras.to_sql(name=table_name,con=connection,if_exists="append")
-        connection.close()
+        # connection = engine.connect()
+        # print("writing into db")
+        # results_corras.to_sql(name=table_name,con=connection,if_exists="append", dtype={})
+        # connection.close()
         model.save_loss_history(loss_filepath)
         model.save_es_val_history(es_val_filepath)
 

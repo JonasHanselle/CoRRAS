@@ -8,7 +8,7 @@ from scipy.stats import kendalltau
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-title = "bodyfat"
+title = "iris"
 df = pd.read_table(sep="\t",filepath_or_buffer="LabelRankingData/" + title + "_dense.txt")
 df = df.iloc[1:]
 feature_columns = [x for x in df.columns if x[0]=="A"]
@@ -55,15 +55,16 @@ for portion in training_portions:
 
     model1 = log_linear.LogLinearModel()
     model2 = log_linear.LogLinearModel()
-    # model3 = neural_net.NeuralNetwork()
+    model3 = neural_net.NeuralNetwork()
 
     # train_pairs = util.sample_pairs(train_rankings, 20, seed=15)
     # print(train_pairs.shape)
     # print(train_features.shape)
 
-    model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
-    model2.fit_np(train_rankings.shape[1],rank,inst,None,lambda_value=1,regression_loss="Squared", maxiter=50)
-    # model3.fit(4,train_rankings_np,train_features_np,None,lambda_value=1)
+    # model1.fit_list(train_rankings_np.shape[1],train_rankings_np_rank.tolist(),train_features_np,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    # model2.fit_np(train_rankings.shape[1],rank,inst,None,lambda_value=1,regression_loss="Squared", maxiter=50)
+    train_rankings_np = train_rankings_np.astype("int32")
+    model3.fit(train_rankings.shape[1],train_rankings_np,train_features_np,train_features_np,lambda_value=1)
     # model1.weights = model2.weights
     # test_weights = np.random.rand(train_rankings.shape[1], train_features.shape[1]+1)
     # print("test weights shape",test_weights.shape)
@@ -75,27 +76,18 @@ for portion in training_portions:
 #         current_taus = []
 
     for index, row in test_features.iterrows():
-        predicted_ranking1 = model1.predict_ranking(row)
+        # predicted_ranking1 = model1.predict_ranking(row)
         predicted_ranking2 = model2.predict_ranking(row)
+        predicted_ranking3 = model3.predict_ranking(row)
         true_ranking = test_rankings.loc[index].values
-        tau1 = kendalltau(predicted_ranking1,true_ranking).correlation
+        # tau1 = kendalltau(predicted_ranking1,true_ranking).correlation
         tau2 = kendalltau(predicted_ranking2,true_ranking).correlation
-        result_data.append([1, portion, tau1, tau2]) 
+        tau3 = kendalltau(predicted_ranking3,true_ranking).correlation
+        result_data.append([1, portion, tau2, tau3, tau3]) 
 
-results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau1", "tau2"])
+results = pd.DataFrame(data=result_data,columns=["split", "train_portion", "tau1", "tau2", "tau3"])
 sns.set_style("darkgrid")
 df = model2.get_loss_history_frame()
 print(df)
-df = df.rename(columns={"NLL":"PL-NLL"})
-# df = df.melt(id_vars=["iteration"])
-plt.clf()
-# plt.tight_layout()
-# plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
-print(df.head())
-lp = sns.lineplot(x="iteration", y="PL-NLL", data=df)
-plt.title("label ranking " + title)
-plt.show()
 print("avg kendalls tau model1:", results["tau1"].mean())
 print("avg kendalls tau model2:", results["tau2"].mean())
-# sb.lineplot(x="train_portion", y="tau2", data=results)
-# plt.show()

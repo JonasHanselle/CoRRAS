@@ -57,7 +57,7 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         max_inv = np.max(performances_max_inv)
         performances_max_inv = performances_max_inv / max_inv
         lambda_value = 0.5
-        model1.fit(5, rankings, features, performances_max_inv,lambda_value=lambda_value,regression_loss="Squared", num_epochs=250, log_losses=True)
+        model1.fit(5, rankings, features, performances_max_inv,lambda_value=lambda_value,regression_loss="Squared", num_epochs=250, log_losses=True, hidden_layer_sizes=[8,8,8,8], activation_function="tanh")
 
         for i, (index, row) in enumerate(self.train_performances.iterrows()):
             instance_values = self.train_inst.loc[index].values

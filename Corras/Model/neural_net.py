@@ -58,8 +58,6 @@ class NeuralNetwork:
 
         self.network._make_predict_function()
         self.network.summary()
-        early_stop = keras.callbacks.EarlyStopping(
-            monitor='val_loss', patience=10)
 
         # add constant 1 for bias and create tf dataset
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
@@ -81,37 +79,41 @@ class NeuralNetwork:
 
         def custom_loss(model, x, y_perf, y_rank, i):
             """Compute loss for i-th label
-            
+
             Arguments:
                 model {[type]} -- [Neural network]
                 x {[type]} -- [Feature vector]
                 y_perf {[type]} -- [Performances]
                 y_rank {[type]} -- [Rankings]
                 i {[type]} -- [Label]
-            
+
             Returns:
                 [float64] -- [Loss]
             """
             output = model(x)
             # compute MSE
-            reg_loss = tf.reduce_mean(tf.square(tf.subtract(output[:,i], y_perf[:,i])))
+            reg_loss = tf.reduce_mean(
+                tf.square(tf.subtract(output[:, i], y_perf[:, i])))
             exp_utils = np.exp(output)
             print(exp_utils)
-            exp_utils_ordered = exp_utils[np.arange(exp_utils.shape[0])[:,np.newaxis],y_rank-1]
+            exp_utils_ordered = exp_utils[np.arange(exp_utils.shape[0])[
+                :, np.newaxis], y_rank-1]
             inv_rank = np.argsort(y_rank)
             rank_loss = 0
             for k in range(num_labels):
-                indicator = inv_rank[:,i] >= k
+                indicator = inv_rank[:, i] >= k
                 # exp_utils_indicator = exp_utils[indicator]
-                indicator = np.repeat(indicator[:,None], num_labels, axis=1)
+                indicator = np.repeat(indicator[:, None], num_labels, axis=1)
                 # if inv_rank[i] >= k:
                 # if indicator.any():
-                exp_utils_indicator = np.where(indicator, exp_utils, np.zeros_like(exp_utils))
+                exp_utils_indicator = np.where(
+                    indicator, exp_utils, np.zeros_like(exp_utils))
                 # print(indicator)
                 # print("exp utils", exp_utils)
                 # print("exp utils ind", exp_utils_indicator)
                 # print("numerator" + str(k), exp_utils_indicator[:,i])
-                rank_loss += np.divide(exp_utils_indicator[:,i], np.sum(exp_utils_ordered[:,k:], axis=1))
+                rank_loss += np.divide(exp_utils_indicator[:, i], np.sum(
+                    exp_utils_ordered[:, k:], axis=1))
                 # print("exp ut ind", exp_utils_indicator[:,i])
                 # print("rank_loss " + str(k), rank_loss)
             if i < (num_labels - 1):
@@ -143,7 +145,8 @@ class NeuralNetwork:
                 zero_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_tvs]
 
                 for i in range(num_labels):
-                    loss_value, grads = grad(self.network, x, y_perf, y_rank, i)
+                    loss_value, grads = grad(
+                        self.network, x, y_perf, y_rank, i)
                     for j in range(len(accum_tvs)):
                         accum_tvs[j].assign_add(grads[j])
 
