@@ -35,7 +35,7 @@ class LinearHingeModel:
                                                 inverse_utilities)))
         return loss
 
-    def fit_np(self, num_labels, labels, features, performances, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=100, print_output=False, log_losses=True):
+    def fit_np(self, num_labels, labels, features, performances, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=100, print_output=False, log_losses=True, reg_param = 0.01):
         """[summary]
 
         Arguments:
@@ -83,7 +83,8 @@ class LinearHingeModel:
             hinge_loss = hinge_loss / labels.shape[0]
             squared_error = lambda_value * squared_error
             hinge_loss = (1 - lambda_value) * hinge_loss
-            total_error = squared_error + hinge_loss
+            # TODO check whether whole matrix or only current weight vectors should be taken into account
+            total_error = squared_error + hinge_loss + reg_param * w**2
             return np.mean(total_error)
 
         jac = grad(g)
