@@ -126,7 +126,7 @@ class LogLinearModel:
             g2 += sum2
         return g2-g1
 
-    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True):
+    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True, reg_param = 0.01):
         """[summary]
 
         Arguments:
@@ -158,14 +158,14 @@ class LogLinearModel:
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
-                reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
+                reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x) + reg_param * x**2
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
-                nll_value = lambda_value * nll(rankings, features, x)
+                nll_value = lambda_value * nll(rankings, features, x) + reg_param * x**2
                 return nll(rankings, features, x)
             nll_value = lambda_value * nll(rankings, features, x)
             reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
-            return nll_value + reg_loss_value
+            return nll_value + reg_loss_value + reg_param * x**2
 
         jac = grad(g)
 
@@ -210,14 +210,14 @@ class LogLinearModel:
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
-                reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
+                reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x) + reg_param * x**2
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
-                nll_value = lambda_value * nll(rankings, features, x)
+                nll_value = lambda_value * nll(rankings, features, x) + reg_param * x**2
                 return nll(rankings, features, x)
             nll_value = lambda_value * nll(rankings, features, x)
-            reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x)
-            return nll_value + reg_loss_value
+            reg_loss_value = (1 - lambda_value) * reg_loss(performances, features, x) 
+            return nll_value + reg_loss_value  + reg_param * x**2
             
         jac = grad(g)
 
