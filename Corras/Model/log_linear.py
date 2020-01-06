@@ -179,7 +179,7 @@ class LogLinearModel:
 
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
-    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True):
+    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True, reg_param = 0.01):
         """[summary]
 
         Arguments:
@@ -194,7 +194,7 @@ class LogLinearModel:
             [type] -- [description]
         """
         # add one column for bias
-        num_features = features.shape[1]+1        
+        num_features = features.shape[1]+1
         self.weights = np.ones((num_labels, num_features)) / (num_features * num_labels)
         self.loss_history = []
         nll = self.list_nll
