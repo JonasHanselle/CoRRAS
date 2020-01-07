@@ -256,7 +256,7 @@ def construct_numpy_representation_with_pairs_of_rankings(features: pd.DataFrame
 
     Returns:
         [type] -- Triple of numpy ndarrays, first stores the feature
-        values, the second stores the algirhtm performances and the
+        values, the second stores the algorithm performances and the
         third stores the algorithm rankings
     """
     rankings = sample_pairs(
@@ -297,10 +297,6 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(f
     np_rankings = joined[[x for x in rankings.columns]].values + 1
     np_performances = np_performances[np.arange(np_performances.shape[0])[
         :, np.newaxis], np_rankings-1]
-    maxes = np.amax(np_performances, axis=1)
-    print("maxes", maxes)
-    weights = np.exp(maxes)
-    print("weights", weights)
     # TODO check for maximization problems
     # if order == "desc":
     #     np_rankings = np.flip(np_rankings,axis=1)
@@ -329,7 +325,7 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     np_rankings = joined[[x for x in rankings.columns]].values + 1
     np_performances = np_performances[np.arange(np_performances.shape[0])[
         :, np.newaxis], np_rankings-1]
-
+        
     # TODO check for maximization problems
     # if order == "desc":
     #     np_rankings = np.flip(np_rankings,axis=1)

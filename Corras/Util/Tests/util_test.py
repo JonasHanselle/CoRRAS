@@ -64,6 +64,7 @@ class UtilTests(unittest.TestCase):
         scenario = scen.ASRankingScenario()
         scenario.read_scenario("aslib_data-aslib-v4.0/SAT12-ALL")
         performances = scenario.performance_data
+        performances = performances / (10*scenario.algorithm_cutoff_time)
         feat,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(scenario.feature_data,performances,max_pairs_per_instance=1,seed=2, skip_value = float(scenario.algorithm_cutoff_time*10))
         print(feat.shape)
         print(perf.shape)
@@ -75,7 +76,9 @@ class UtilTests(unittest.TestCase):
         print("\n")
         print(feat[:5,:5])
         print(perf[:5])
-        print(rank[:5]) 
+        print(rank[:5])
+        
+
 
     # def test_ranking_conversion(self):
     #     scenario = scen.ASRankingScenario()

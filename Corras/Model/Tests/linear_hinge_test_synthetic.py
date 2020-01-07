@@ -93,7 +93,14 @@ class TestLinearHingeSynthetic(unittest.TestCase):
         print(inst)
         print(perf)
         print(rank)
-        model1.fit_np(5, rank, inst, perf,lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=250, log_losses=False)
+        max_entry = perf.max()
+        scaled_perf = perf / perf.max()
+        sample_weights = np.ones(inst.shape[0])
+        mins = np.amin(scaled_perf, axis=1)
+        print("mins", mins)
+        sample_weights = - np.log(mins)
+        print("weights", sample_weights)
+        model1.fit_np(5, rank, inst, perf, sample_weights=sample_weights, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=250, log_losses=False)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)

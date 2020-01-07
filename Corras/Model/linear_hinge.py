@@ -35,7 +35,7 @@ class LinearHingeModel:
                                                 inverse_utilities)))
         return loss
 
-    def fit_np(self, num_labels, labels, features, performances, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=100, print_output=False, log_losses=True, reg_param = 0.01):
+    def fit_np(self, num_labels, labels, features, performances, sample_weights, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=100, print_output=False, log_losses=True, reg_param = 0.0):
         """[summary]
 
         Arguments:
@@ -68,17 +68,18 @@ class LinearHingeModel:
             squared_error = lambda_value * squared_error
             hinge_loss = (1 - lambda_value) * hinge_loss
             total_error = squared_error + hinge_loss
-            
+ 
 
         # minimize loss function
         def g(w):
             w = np.reshape(w, (num_labels, num_features))
             squared_error = 0
             hinge_loss = 0
-            for cur_labels, cur_features, cur_performances in zip(labels,feature_values,performances):
+            for cur_labels, cur_features, cur_performances, sample_weight in zip(labels,feature_values,performances, sample_weights):
                 y_hats = np.dot(w[[cur_labels-1]],cur_features)
-                squared_error = squared_error + np.sum(np.square(y_hats-cur_performances))
+                squared_error = squared_error + sample_weight * np.sum(np.square(y_hats-cur_performances))
                 hinge_loss = hinge_loss + max(0, epsilon_value - (y_hats[1] - y_hats[0]))**2
+                hinge_loss = sample_weight * hinge_loss
             squared_error = squared_error  / labels.shape[0]
             hinge_loss = hinge_loss / labels.shape[0]
             squared_error = lambda_value * squared_error

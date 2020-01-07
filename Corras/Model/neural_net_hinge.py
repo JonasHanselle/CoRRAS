@@ -48,6 +48,7 @@ class NeuralNetworkSquaredHinge:
             rankings: np.ndarray,
             features: np.ndarray,
             performances: np.ndarray,
+            sample_weights: np.ndarray,
             lambda_value=0.5,
             epsilon_value=1,
             regression_loss="Absolute",
@@ -93,28 +94,28 @@ class NeuralNetworkSquaredHinge:
         # print(performances.shape)
 
         # split feature and performance data
-        feature_values, performances, rankings = shuffle(feature_values,
-                                                         performances,
-                                                         rankings,
-                                                         random_state=seed)
+        feature_values, performances, rankings, sample_weights = shuffle(feature_values,
+                                                                         performances,
+                                                                         rankings, sample_weights,
+                                                                         random_state=seed)
         val_data = Dataset.from_tensor_slices(
             (feature_values[:int(es_val_ratio * feature_values.shape[0])],
              performances[:int(es_val_ratio * performances.shape[0])],
-             rankings[:int(es_val_ratio * rankings.shape[0])]))
+             rankings[:int(es_val_ratio * rankings.shape[0])],
+             sample_weights[:int(es_val_ratio * sample_weights.shape[0])]))
         train_data = Dataset.from_tensor_slices(
             (feature_values[int(es_val_ratio * feature_values.shape[0]):],
              performances[int(es_val_ratio * performances.shape[0]):],
-             rankings[int(es_val_ratio * rankings.shape[0]):]))
+             rankings[int(es_val_ratio * rankings.shape[0]):],
+             sample_weights[int(es_val_ratio * sample_weights.shape[0]):]))
         # print(val_data)
         # print("train data", train_data)
-        train_data = Dataset.from_tensor_slices(
-            (feature_values, performances, rankings))
         train_data = train_data.batch(batch_size)
         val_data = val_data.batch(1)
 
         # define custom loss function
 
-        def custom_loss(model, x, y_perf, y_rank):
+        def custom_loss(model, x, y_perf, y_rank, sample_weight):
             """Compute loss for i-th label
 
             Arguments:
@@ -134,21 +135,21 @@ class NeuralNetworkSquaredHinge:
             added_indices_1 = tf.stack([row_indices, y_ind[:, 1]], axis=1)
             y_hat_0 = tf.gather_nd(output, added_indices_0)
             y_hat_1 = tf.gather_nd(output, added_indices_1)
-            reg_loss = tf.reduce_mean(
-                (tf.square(tf.subtract(y_hat_0, y_perf[:, 0]))))
+            reg_loss = tf.reduce_mean(tf.multiply(sample_weight,
+                                                  (tf.square(tf.subtract(y_hat_0, y_perf[:, 0])))))
             reg_loss += tf.reduce_mean(
                 (tf.square(tf.subtract(y_hat_1, y_perf[:, 1]))))
-            rank_loss = tf.reduce_mean(
-                tf.square(tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0))))
+            rank_loss = tf.reduce_mean(tf.multiply(sample_weight,
+                                                   tf.square(tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0)))))
             return lambda_value * reg_loss + (
                 1 - lambda_value) * rank_loss, reg_loss, rank_loss
 
         # define gradient of custom loss function
 
-        def grad(model, x, y_perf, y_rank):
+        def grad(model, x, y_perf, y_rank, sample_weight):
             with tf.GradientTape() as tape:
                 loss_value, reg_loss, rank_loss = custom_loss(
-                    model, x, y_perf, y_rank)
+                    model, x, y_perf, y_rank, sample_weight)
             return loss_value, tape.gradient(
                 loss_value, model.trainable_weights), reg_loss, rank_loss
 
@@ -162,9 +163,9 @@ class NeuralNetworkSquaredHinge:
         for epoch in range(num_epochs):
             epoch_reg_loss_avg = tf.keras.metrics.Mean()
             epoch_rank_loss_avg = tf.keras.metrics.Mean()
-            for x, y_perf, y_rank in train_data:
+            for x, y_perf, y_rank, sample_weight in train_data:
                 loss_value, grads, reg_loss, rank_loss = grad(
-                    self.network, x, y_perf, y_rank)
+                    self.network, x, y_perf, y_rank, sample_weight)
                 optimizer.apply_gradients(
                     zip(grads, self.network.trainable_weights))
                 epoch_reg_loss_avg(reg_loss)
@@ -177,8 +178,8 @@ class NeuralNetworkSquaredHinge:
 
             if epoch % early_stop_interval == 0:
                 losses = []
-                for x, y_perf, y_rank in val_data:
-                    losses.append(custom_loss(self.network, x, y_perf, y_rank))
+                for x, y_perf, y_rank, sample_weight in val_data:
+                    losses.append(custom_loss(self.network, x, y_perf, y_rank, sample_weight))
                 loss_tensor = np.average(losses)
                 current_val_loss = tf.reduce_mean(loss_tensor)
                 self.es_val_history.append(current_val_loss)
@@ -225,7 +226,7 @@ class NeuralNetworkSquaredHinge:
 
     def save_loss_history(self, filepath: str):
         """Saves the history of losses after the model has been fit
-        
+
         Arguments:
             filepath {str} -- Path of the csv file
         """
@@ -236,7 +237,7 @@ class NeuralNetworkSquaredHinge:
 
     def get_loss_history_frame(self):
         """Saves the history of losses after the model has been fit
-        
+
         Arguments:
             filepath {str} -- Path of the csv file
         """
@@ -248,7 +249,7 @@ class NeuralNetworkSquaredHinge:
 
     def save_es_val_history(self, filepath: str):
         """Saves the history of losses after the model has been fit
-        
+
         Arguments:
             filepath {str} -- Path of the csv file
         """
@@ -259,7 +260,7 @@ class NeuralNetworkSquaredHinge:
 
     def get_es_val_history_frame(self):
         """Saves the history of losses after the model has been fit
-        
+
         Arguments:
             filepath {str} -- Path of the csv file
         """

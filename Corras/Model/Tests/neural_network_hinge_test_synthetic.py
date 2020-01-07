@@ -67,7 +67,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         print(rank)
         perf = perf / np.max(perf)
         rank = rank.astype("int32")
-        model1.fit(5, rank, inst, perf,lambda_value=1, epsilon_value=0.1, regression_loss="Squared", num_epochs=150, learning_rate=0.1, batch_size=32, early_stop_interval=10, patience=32)
+        model1.fit(5, rank, inst, perf, sample_weights=np.ones(perf.shape[0]),lambda_value=1, epsilon_value=0.1, regression_loss="Squared", num_epochs=150, learning_rate=0.1, batch_size=32, early_stop_interval=10, patience=32)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)

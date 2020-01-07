@@ -13,7 +13,7 @@ class LogLinearModel:
         self.use_exp_for_regression = use_exp_for_regression
         self.use_reciprocal_for_regression = use_reciprocal_for_regression
 
-    def squared_error(self, performances: np.ndarray, features: np.ndarray, weights: np.ndarray):
+    def squared_error(self, performances: np.ndarray, features: np.ndarray, weights: np.ndarray, sample_weights : np.ndarray):
         """Compute squared error for regression
 
         Arguments:
@@ -126,7 +126,7 @@ class LogLinearModel:
             g2 += sum2
         return g2-g1
 
-    def fit_np(self, num_labels, rankings, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True, reg_param = 0.01):
+    def fit_np(self, num_labels, rankings, features, performances, sample_weights=None, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True, reg_param = 0.0):
         """[summary]
 
         Arguments:
@@ -141,6 +141,8 @@ class LogLinearModel:
         """
         # num_labels = rankings.shape[1]
         # add one column for bias
+        if sample_weights is None:
+            sample_weights = np.ones(rankings.shape[0])
         num_features = features.shape[1]+1
         # self.weights = np.random.rand(num_labels, num_features)
         self.weights = np.ones((num_labels, num_features)) / (num_features * num_labels)
@@ -179,7 +181,7 @@ class LogLinearModel:
 
         self.weights = np.reshape(result.x, (num_labels, num_features))
 
-    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True, reg_param = 0.01):
+    def fit_list(self, num_labels, rankings : list, features, performances, lambda_value=0.5, regression_loss="Squared", maxiter=1000, print_output=False, log_losses=True, reg_param = 0.0):
         """[summary]
 
         Arguments:
