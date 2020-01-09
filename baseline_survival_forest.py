@@ -33,10 +33,10 @@ import urllib
 result_path = "./results/"
 
 # DB data
-db_url = sys.argv[1]
-db_user = sys.argv[2]
-db_pw = urllib.parse.quote_plus(sys.argv[3])
-db_db = sys.argv[4]
+# db_url = sys.argv[1]
+# db_user = sys.argv[2]
+# db_pw = urllib.parse.quote_plus(sys.argv[3])
+# db_db = sys.argv[4]
 
 # max_rankings_per_instance = 5
 seed = 15
@@ -52,6 +52,7 @@ scenarios = [
 # scenarios = ["MIP-2016"]
 
 X, y = load_gbsg2()
+
 for scenario_name in scenarios:
     try:
         result_data_rsf = []
@@ -67,11 +68,16 @@ for scenario_name in scenarios:
             test_scenario, train_scenario = scenario.get_split(i_split)
             train_features_np, train_performances_np = util.construct_numpy_representation_only_performances(
                 train_scenario.feature_data, train_scenario.performance_data)
+
             mask = train_performances_np != scenario.algorithm_cutoff_time * 10
-            timeouted_runs = ~mask            train_performances_np[
+
+            timeouted_runs = ~mask
+            train_performances_np[
                 timeouted_runs] = scenario.algorithm_cutoff_time
             structured_array = np.rec.fromarrays([mask, train_performances_np],
                                                  names="terminated,runtime")
+
+
             # preprocessing
             imputer = SimpleImputer()
             scaler = StandardScaler()
@@ -104,7 +110,8 @@ for scenario_name in scenarios:
                 for label in range(
                         0, len(train_scenario.performance_data.columns)):
                     predicted_performances[label] = baselines[label].predict(
-                        scaled_row)[0]                result_data_rsf.append(
+                        scaled_row)[0]
+                result_data_rsf.append(
                     [i_split, index, *predicted_performances])
 
         performance_cols = [
@@ -113,7 +120,8 @@ for scenario_name in scenarios:
         result_columns_rsf = ["split", "problem_instance"]
         result_columns_rsf += performance_cols
         results_rsf = pd.DataFrame(data=result_data_rsf,
-                                   columns=result_columns_rsf)        results_rsf.to_csv(result_path + "rf-" + scenario.scenario + ".csv",
+                                   columns=result_columns_rsf)
+        results_rsf.to_csv(result_path + "rf-" + scenario.scenario + ".csv",
                            index_label="id")
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
