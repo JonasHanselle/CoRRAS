@@ -34,8 +34,7 @@ class NeuralNetworkSquaredHinge:
         else:
             for layer_size in hidden_layer_sizes:
                 hidden_layers = keras.layers.Dense(
-                    layer_size,
-                    activation=activation_function)(hidden_layers)
+                    layer_size, activation=activation_function)(hidden_layers)
 
         # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
         output_layer = keras.layers.Dense(num_labels,
@@ -51,13 +50,13 @@ class NeuralNetworkSquaredHinge:
             sample_weights: np.ndarray,
             lambda_value=0.5,
             epsilon_value=1,
-            regression_loss="Absolute",
             num_epochs=1000,
             learning_rate=0.001,
             batch_size=32,
             seed=1,
             patience=16,
             es_val_ratio=0.3,
+            regression_loss="Squared",
             reshuffle_buffer_size=1000,
             early_stop_interval=5,
             log_losses=True,
@@ -94,10 +93,13 @@ class NeuralNetworkSquaredHinge:
         # print(performances.shape)
 
         # split feature and performance data
-        feature_values, performances, rankings, sample_weights = shuffle(feature_values,
-                                                                         performances,
-                                                                         rankings, sample_weights,
-                                                                         random_state=seed)
+        feature_values, performances, rankings, sample_weights = shuffle(
+            feature_values,
+            performances,
+            rankings,
+            sample_weights,
+            random_state=seed,
+        )
         val_data = Dataset.from_tensor_slices(
             (feature_values[:int(es_val_ratio * feature_values.shape[0])],
              performances[:int(es_val_ratio * performances.shape[0])],
@@ -135,12 +137,16 @@ class NeuralNetworkSquaredHinge:
             added_indices_1 = tf.stack([row_indices, y_ind[:, 1]], axis=1)
             y_hat_0 = tf.gather_nd(output, added_indices_0)
             y_hat_1 = tf.gather_nd(output, added_indices_1)
-            reg_loss = tf.reduce_mean(tf.multiply(sample_weight,
-                                                  (tf.square(tf.subtract(y_hat_0, y_perf[:, 0])))))
+            reg_loss = tf.reduce_mean(
+                tf.multiply(sample_weight,
+                            (tf.square(tf.subtract(y_hat_0, y_perf[:, 0])))))
             reg_loss += tf.reduce_mean(
                 (tf.square(tf.subtract(y_hat_1, y_perf[:, 1]))))
-            rank_loss = tf.reduce_mean(tf.multiply(sample_weight,
-                                                   tf.square(tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0)))))
+            rank_loss = tf.reduce_mean(
+                tf.multiply(
+                    sample_weight,
+                    tf.square(
+                        tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0)))))
             return lambda_value * reg_loss + (
                 1 - lambda_value) * rank_loss, reg_loss, rank_loss
 
@@ -179,7 +185,9 @@ class NeuralNetworkSquaredHinge:
             if epoch % early_stop_interval == 0:
                 losses = []
                 for x, y_perf, y_rank, sample_weight in val_data:
-                    losses.append(custom_loss(self.network, x, y_perf, y_rank, sample_weight))
+                    losses.append(
+                        custom_loss(self.network, x, y_perf, y_rank,
+                                    sample_weight))
                 loss_tensor = np.average(losses)
                 current_val_loss = tf.reduce_mean(loss_tensor)
                 self.es_val_history.append(current_val_loss)

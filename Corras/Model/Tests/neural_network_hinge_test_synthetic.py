@@ -65,9 +65,14 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         print(inst)
         print(perf)
         print(rank)
-        perf = perf / np.max(perf)
+        # perf = perf / np.max(perf)
         rank = rank.astype("int32")
-        model1.fit(5, rank, inst, perf, sample_weights=np.ones(perf.shape[0]),lambda_value=1, epsilon_value=0.1, regression_loss="Squared", num_epochs=150, learning_rate=0.1, batch_size=32, early_stop_interval=10, patience=32)
+        weights = np.ones(perf.shape[0])
+        # weights = np.amin(perf, axis=1)
+        # print("maxes", weights)
+        # weights = -np.log(weights)
+        # print("weights", weights)
+        model1.fit(5, rank, inst, perf, sample_weights=weights,lambda_value=1, epsilon_value=0.1, regression_loss="Squared", num_epochs=150, learning_rate=0.1, batch_size=32, early_stop_interval=10, patience=32, hidden_layer_sizes=[8,8],activation_function="relu")
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)
@@ -76,31 +81,31 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
             print("True Ranking", self.test_ranking.loc[index].values)
             print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
             print("\n")
-        sns.set_style("darkgrid")
-        df = model1.get_loss_history_frame()
-        df2 = model1.get_es_val_history_frame()
-        print(df)
-        # df = df.rename(columns={"NLL":"PL-NLL"})
-        # df["$\lambda$ PL-NLL"] = lambda_value * df["PL-NLL"]
-        # df["$(1 - \lambda)$ MSE"] = (1 - lambda_value) * df["MSE"]
-        # df["TOTAL_LOSS"] = df["$\lambda$ PL-NLL"] + df["$(1 - \lambda)$ MSE"]
-        df = df.melt(id_vars=["epoch"])
-        plt.clf()
-        # plt.tight_layout()
-        # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
-        print(df.head())
-        lp = sns.lineplot(x="epoch", y="value", hue="variable", data=df)
-        plt.title("Synthetic data")
-        plt.show()
+        # sns.set_style("darkgrid")
+        # df = model1.get_loss_history_frame()
+        # df2 = model1.get_es_val_history_frame()
+        # print(df)
+        # # df = df.rename(columns={"NLL":"PL-NLL"})
+        # # df["$\lambda$ PL-NLL"] = lambda_value * df["PL-NLL"]
+        # # df["$(1 - \lambda)$ MSE"] = (1 - lambda_value) * df["MSE"]
+        # # df["TOTAL_LOSS"] = df["$\lambda$ PL-NLL"] + df["$(1 - \lambda)$ MSE"]
+        # df = df.melt(id_vars=["epoch"])
+        # plt.clf()
+        # # plt.tight_layout()
+        # # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+        # print(df.head())
+        # lp = sns.lineplot(x="epoch", y="value", hue="variable", data=df)
+        # plt.title("Synthetic data")
+        # plt.show()
 
-        df2 = df2.melt(id_vars=["es_call"])
-        plt.clf()
-        # plt.tight_layout()
-        # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
-        print(df2.head())
-        lp = sns.lineplot(x="es_call", y="value", hue="variable", data=df2)
-        plt.title("Synthetic data")
-        plt.show()
+        # df2 = df2.melt(id_vars=["es_call"])
+        # plt.clf()
+        # # plt.tight_layout()
+        # # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+        # print(df2.head())
+        # lp = sns.lineplot(x="es_call", y="value", hue="variable", data=df2)
+        # plt.title("Synthetic data")
+        # plt.show()
 
         
 

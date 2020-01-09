@@ -61,8 +61,6 @@ for scenario_name in scenarios:
             print(train_performances_np)
             print(train_scenario.feature_data)
             print(train_features_np)
-            # train_features_np = scenario.feature_data.to_numpy
-            # train_performances_np = scenario.perform
 
             print(train_scenario)
             # preprocessing
@@ -71,7 +69,7 @@ for scenario_name in scenarios:
             train_features_np = imputer.fit_transform(train_features_np)
             train_features_np = scaler.fit_transform(train_features_np)
 
-            # Create one linear regressor regressor per label
+            # Create one linear regressor per label
             baselines = []
             for label in range(0,len(train_scenario.performance_data.columns)):
                 baselines.append(LinearRegression())
