@@ -56,15 +56,15 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         performances_max_inv = maximum - performances
         max_inv = np.max(performances_max_inv)
         performances_max_inv = performances_max_inv / max_inv
-        max_entry = perf.max()
-        scaled_perf = perf / perf.max()
-        sample_weights = np.ones(inst.shape[0])
+        max_entry = performances.max()
+        scaled_perf = performances / performances.max()
+        sample_weights = np.ones(features.shape[0])
         mins = np.amin(scaled_perf, axis=1)
         print("mins", mins)
         sample_weights = - np.log(mins)
         print("weights", sample_weights)
         lambda_value = 0.5
-        model1.fit(5, rankings, features, performances_max_inv,lambda_value=lambda_value,regression_loss="Squared", num_epochs=1000, log_losses=True, hidden_layer_sizes=[8,8], activation_function="tanh")
+        model1.fit(5, rankings, features, performances, sample_weights=sample_weights,lambda_value=lambda_value,regression_loss="Squared", num_epochs=1000, log_losses=True, hidden_layer_sizes=[8,8], activation_function="tanh")
         for i, (index, row) in enumerate(self.train_performances.iterrows()):
             instance_values = self.train_inst.loc[index].values
             imputed_row = self.imputer.transform([instance_values])

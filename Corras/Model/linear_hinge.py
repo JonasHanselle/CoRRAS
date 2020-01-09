@@ -35,7 +35,7 @@ class LinearHingeModel:
                                                 inverse_utilities)))
         return loss
 
-    def fit_np(self, num_labels, labels, features, performances, sample_weights, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=100, print_output=False, log_losses=True, reg_param = 0.0):
+    def fit_np(self, num_labels, labels, features, performances, sample_weights=None, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=100, print_output=False, log_losses=True, reg_param = 0.0):
         """[summary]
 
         Arguments:
@@ -47,6 +47,8 @@ class LinearHingeModel:
         Returns:
             [type] -- [description]
         """
+        if sample_weights == None:
+            sample_weights = np.ones(features.shape[0])
         # add one column for bias
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
         num_features = feature_values.shape[1]
