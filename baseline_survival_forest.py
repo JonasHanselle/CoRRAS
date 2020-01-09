@@ -130,3 +130,5 @@ for scenario_name in scenarios:
         results_rsf.to_sql(name=table_name, con=connection)
         connection.close()
     except Exception as exc:
+        print("Something went wrong during computation. Message: " + str(exc))
+
