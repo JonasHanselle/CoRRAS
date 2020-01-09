@@ -52,13 +52,15 @@ use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [True, False]
 regulerization_params_values = [0.1, 0.01, 0.001, 0.0]
+use_weighted_samples_values = [False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1, 2, 3]
 
 params = [
     scenarios, lambda_values, epsilon_values, splits, seeds,
     use_quadratic_transform_values, use_max_inverse_transform_values,
     scale_target_to_unit_interval_values, skip_censored_values,
-    regulerization_params_values
+    regulerization_params_values, use_weighted_samples_values
 ]
 
 param_product = list(product(*params))
@@ -76,11 +78,11 @@ else:
 
 print("shard length", len(shard))
 
-for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, skip_censored, regulerization_param in shard:
+for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, skip_censored, regulerization_param, use_weighted_samples in shard:
 
     # check if table for scenario_name exists
 
-    table_name = "linear-squared-hinge-new-" + scenario_name
+    table_name = "linear-squared-hinge-new-params-" + scenario_name
 
     engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                db_url + "/" + db_db,
@@ -106,6 +108,8 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                 experiments.columns["skip_censored"] == skip_censored,
                 experiments.columns["regulerization_param"] ==
                 regulerization_param,
+                experiments.columns["use_weighted_samples"] ==
+                use_weighted_samples,
                 experiments.columns["scale_target_to_unit_interval"] ==
                 scale_target_to_unit_interval)).limit(1)
         rs = connection.execute(slct)
@@ -129,6 +133,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         str(skip_censored),
         str(regulerization_param),
         str(scale_target_to_unit_interval),
+        str(use_weighted_samples)
     ])
 
     # filename = "pl_log_linear" + "-" + params_string + ".csv"
@@ -151,7 +156,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                 "split", "problem_instance", "lambda", "epsilon", "seed",
                 "use_quadratic_transform", "use_max_inverse_transform",
                 "scale_target_to_unit_interval", "skip_censored",
-                "regulerization_param"
+                "regulerization_param", "use_weighted_samples"
             ]
             result_columns_corras += performance_cols_corras
 
@@ -262,7 +267,8 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                 split, index, lambda_value, epsilon_value, seed,
                 use_quadratic_transform, use_max_inverse_transform,
                 scale_target_to_unit_interval, skip_censored,
-                regulerization_param, *predicted_performances
+                regulerization_param, use_weighted_samples,
+                *predicted_performances
             ])
             # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
 
@@ -274,13 +280,15 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
             "split", "problem_instance", "lambda", "epsilon", "seed",
             "use_quadratic_transform", "use_max_inverse_transform",
             "scale_target_to_unit_interval", "skip_censored",
-            "regulerization_param"
+            "regulerization_param", "use_weighted_samples"
         ]
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(data=result_data_corras,
                                       columns=result_columns_corras)
-        # results_corras.to_csv(filepath, index_label="id",
-        #                       mode="a", header=False)
+        results_corras.to_csv(filepath,
+                              index_label="id",
+                              mode="a",
+                              header=False)
         connection = engine.connect()
         results_corras.to_sql(name=table_name,
                               con=connection,
