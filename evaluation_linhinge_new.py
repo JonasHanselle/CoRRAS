@@ -41,25 +41,27 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = [
-    "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010",
-    "CPMP-2015"
-]
-lambda_values = [0.0, 0.2, 0.5, 0.8, 1.0]
-epsilon_values = [0, 0.001, 0.01, 0.1, 1]
+scenarios = ["MIP-2016"]
+
+lambda_values = [0.0, 0.5, 0.9]
+epsilon_values = [0.3]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-
+skip_censored_values = [True, False]
+regulerization_params_values = [0.1, 0.01, 0.001, 0.0]
+use_weighted_samples_values = [False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1, 2, 3]
 
 params = [
     lambda_values, epsilon_values, splits, seeds,
     use_quadratic_transform_values, use_max_inverse_transform_values,
-    scale_target_to_unit_interval_values
+    scale_target_to_unit_interval_values, skip_censored_values,
+    regulerization_params_values, use_weighted_samples_values
 ]
 
 param_product = list(product(*params))
@@ -83,7 +85,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "linear-squared-hinge-" + scenario_name
+        table_name = "linear-squared-hinge-new-params-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -110,7 +112,7 @@ for scenario_name in scenarios:
     # print(scenario.performance_data)
     # print(relevance_scores)
 
-    for lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in param_product:
+    for lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, skip_censored, regulerization_param, use_weighted_samples in param_product:
         current_frame = corras.loc[
             (corras["lambda"] == lambda_value)
             & (corras["epsilon"] == epsilon_value) & (corras["split"] == split)
@@ -118,7 +120,10 @@ for scenario_name in scenarios:
             (corras["use_quadratic_transform"] == use_quadratic_transform) &
             (corras["use_max_inverse_transform"] == use_max_inverse_transform)
             & (corras["scale_target_to_unit_interval"] ==
-               scale_target_to_unit_interval)]
+               scale_target_to_unit_interval)
+            & (corras["skip_censored"] == skip_censored)
+            & (corras["regulerization_param"] == regulerization_param)
+            & (corras["use_weighted_samples"] == use_weighted_samples)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if current_frame.empty:
@@ -163,18 +168,19 @@ for scenario_name in scenarios:
             corras_measures.append([
                 split, seed, problem_instance, lambda_value, epsilon_value,
                 use_quadratic_transform, use_max_inverse_transform,
-                scale_target_to_unit_interval, tau_corr, tau_p, ndcg, mse, mae,
-                abs_vbs_distance, par10, run_status
+                scale_target_to_unit_interval, skip_censored,
+                regulerization_param, use_weighted_samples, tau_corr, tau_p,
+                ndcg, mse, mae, abs_vbs_distance, par10, run_status
             ])
             # print(corras_measures)
-    df_corras = pd.DataFrame(data=corras_measures,
-                             columns=[
-                                 "split", "seed", "problem_instance", "lambda",
-                                 "epsilon", "quadratic_transform",
-                                 "max_inverse_transform",
-                                 "scale_to_unit_interval", "tau_corr", "tau_p",
-                                 "ndcg", "mse", "mae", "abs_distance_to_vbs",
-                                 "par10", "run_status"
-                             ])
+    df_corras = pd.DataFrame(
+        data=corras_measures,
+        columns=[
+            "split", "seed", "problem_instance", "lambda", "epsilon",
+            "quadratic_transform", "max_inverse_transform",
+            "scale_to_unit_interval", "skip_censored", "regularization_param",
+            "use_weighted_samples", "tau_corr", "tau_p", "ndcg", "mse", "mae",
+            "abs_distance_to_vbs", "par10", "run_status"
+        ])
     df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
-                     scenario_name + "-new.csv")
+                     scenario_name + "-new-params.csv")
