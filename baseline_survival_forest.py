@@ -31,10 +31,10 @@ import urllib
 result_path = "./results/"
 
 # DB data
-# db_url = sys.argv[1]
-# db_user = sys.argv[2]
-# db_pw = urllib.parse.quote_plus(sys.argv[3])
-# db_db = sys.argv[4]
+db_url = sys.argv[1]
+db_user = sys.argv[2]
+db_pw = urllib.parse.quote_plus(sys.argv[3])
+db_db = sys.argv[4]
 
 # max_rankings_per_instance = 5
 seed = 15
@@ -42,12 +42,12 @@ num_splits = 10
 result_data_corras = []
 baselines = None
 
-# scenarios = [
-#     "CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
-#     "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND",
-#     "SAT12-ALL", "TTP-2016"
-# ]
-scenarios = ["MIP-2016"]
+scenarios = [
+    "CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
+    "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND",
+    "SAT12-ALL", "TTP-2016"
+]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 for scenario_name in scenarios:
     try:
@@ -59,7 +59,7 @@ for scenario_name in scenarios:
 
         table_name = "baseline_random_survival_forest-" + scenario.scenario
 
-        for i_split in range(1, num_splits + 1):
+        for i_split in splits:
 
             test_scenario, train_scenario = scenario.get_split(i_split)
 
@@ -78,8 +78,6 @@ for scenario_name in scenarios:
                 "category")
             encoder = OneHotEncoder()
             train_data = encoder.fit_transform(joined_train_data)
-            X_train = train_data.to_numpy()[:,:-1]
-            y_train = train_data.to_numpy()[:,-1]
 
             melted_test_performances = pd.melt(test_performances.reset_index(
             ), id_vars="instance_id", value_name="performance")
@@ -88,72 +86,86 @@ for scenario_name in scenarios:
             joined_test_data["algorithm"] = joined_test_data["algorithm"].astype(
                 "category")
             test_data = encoder.transform(joined_test_data)
-            X_test = test_data.to_numpy()[:,:-1]
-            y_test = test_data.to_numpy()[:,-1]
-            one_hot_columns = [i for (i,col) in enumerate(train_data.columns) if "algorithm=" in col]
-            for i in one_hot_columns:
-                print(train_data.columns[i])
-            # print(X_train, y_train)
-            # print(X_test, y_test)
 
             # preprocessing
-            # imputer = SimpleImputer()
-            # scaler = StandardScaler()
-            # X_train = imputer.fit_transform(X_train)
-            # X_train = scaler.fit_transform(X_train)
+            imputer = SimpleImputer()
+            scaler = StandardScaler()
 
-            # model = RandomSurvivalForest(n_estimators=1000,
-            #                              min_samples_split=10,
-            #                              min_samples_leaf=15,
-            #                              max_features="sqrt",
-            #                              n_jobs=1,
-            #                              random_state=seed)
+            scalable_columns = [col for (i, col) in enumerate(
+                train_data.columns) if "algorithm=" not in col]
 
-            # mask = y_train != scenario.algorithm_cutoff_time * 10
+            train_data[scalable_columns] = imputer.fit_transform(
+                train_data[scalable_columns])
+            train_data[scalable_columns] = scaler.fit_transform(
+                train_data[scalable_columns])
+            print(train_data.columns)
+            X_train = train_data.iloc[:, :-1]
+            y_train = train_data.iloc[:, -1]
 
-            # timeouted_runs = ~mask
+            # X_test = test_data.iloc[:, :-1]
+            # y_test = test_data.iloc[:, -1]
 
-            # # the time at which the observation ends is actually the cutoff, not the par10
-            # y_train[timeouted_runs] = scenario.algorithm_cutoff_time
+            model = RandomSurvivalForest(n_estimators=1000,
+                                         min_samples_split=10,
+                                         min_samples_leaf=15,
+                                         max_features="sqrt",
+                                         n_jobs=1,
+                                         random_state=seed)
 
-            # structured_y_train = np.rec.fromarrays([mask, y_train],
-            #                                        names="terminated,runtime")
+            mask = y_train != scenario.algorithm_cutoff_time * 10
 
-            # print(X_train, structured_y_train)
-            # # model.fit(X_train, structured_y_train)
+            timeouted_runs = ~mask
+
+            # the time at which the observation ends is actually the cutoff, not the par10
+            y_train[timeouted_runs] = scenario.algorithm_cutoff_time
+
+            structured_y_train = np.rec.fromarrays([mask, y_train],
+                                                   names="terminated,runtime")
+
+            print(X_train.shape, structured_y_train.shape)
+            model.fit(X_train, structured_y_train)
 
             # X_test = imputer.transform(X_test)
             # X_test = scaler.transform(X_test)
 
-            # # predictions = model.predict(X_test)
-            # # print("predictions", predictions)
+            # predictions = model.predict(X_test)
+            # print("predictions", predictions)
 
-            # for index, row in test_scenario.feature_data.iterrows():
-            #     imputed_row = imputer.transform([row.values])
-            #     scaled_row = scaler.transform(imputed_row)
-            #     predicted_performances = [-1] * len(
-            #         train_scenario.performance_data.columns)
-            #     for algorithm in scenario.algorithms:
-            #         new_row = row.append(a)
-            #         predicted_performances[label] = predict(
-            #             scaled_row)[0]
-            #     result_data_rsf.append(
-            #         [i_split, index, *predicted_performances])
+            for index, row in test_scenario.feature_data.iterrows():
+                predicted_performances = []
+                # predicted_performances = [-1] * len(
+                #     test_scenario.performance_data.columns)
+                for algorithm in scenario.algorithms:
+                    temp_features = row.append(
+                        pd.Series(data=[algorithm], index=["algorithm"]))
+                    features_df = pd.DataFrame([temp_features])
+                    features_df["algorithm"] = features_df["algorithm"].astype(
+                        "category")
+                    encoded_features = encoder.transform(features_df)
+                    encoded_features[scalable_columns] = imputer.transform(
+                        encoded_features[scalable_columns])
+                    encoded_features[scalable_columns] = scaler.transform(
+                        encoded_features[scalable_columns])
+                    encoded_features_np = encoded_features.to_numpy()[:, :-1]
+                    predicted_performance = model.predict(encoded_features_np)
+                    predicted_performances.append(predicted_performance[0])
+                result_data_rsf.append(
+                    [i_split, index, *predicted_performances])
 
-        # performance_cols = [
-        #     x + "_performance" for x in scenario.performance_data.columns
-        # ]
-        # result_columns_rsf = ["split", "problem_instance"]
-        # result_columns_rsf += performance_cols
-        # results_rsf = pd.DataFrame(data=result_data_rsf,
-        #                            columns=result_columns_rsf)
-        # results_rsf.to_csv(result_path + "rf-" + scenario.scenario + ".csv",
-        #                    index_label="id")
-        # engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-        #                            db_url + "/" + db_db,
-        #                            echo=False)
-        # connection = engine.connect()
-        # results_rsf.to_sql(name=table_name, con=connection)
-        # connection.close()
+        performance_cols = [
+            x + "_performance" for x in scenario.performance_data.columns
+        ]
+        result_columns_rsf = ["split", "problem_instance"]
+        result_columns_rsf += performance_cols
+        results_rsf = pd.DataFrame(data=result_data_rsf,
+                                   columns=result_columns_rsf)
+        results_rsf.to_csv(result_path + "rsf-" + scenario.scenario + ".csv",
+                           index_label="id")
+        engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
+                                   db_url + "/" + db_db,
+                                   echo=False)
+        connection = engine.connect()
+        results_rsf.to_sql(name=table_name, con=connection)
+        connection.close()
     except Exception as exc:
         print("Something went wrong during computation. Message: " + str(exc))

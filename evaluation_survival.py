@@ -29,34 +29,29 @@ db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
 scenario_path = "./aslib_data-aslib-v4.0/"
-results_path_baseline = "./results/results-rf/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
-scenario_names = ["CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
-                  "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND",
-                  "SAT12-ALL"]
-baselines = ["linear_regression", "random_forest"]
-
+# scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010",
+#                   "SAT11-INDU", "CPMP-2015", "MAXSAT12-PMS", "SAT11-HAND"]
+scenario_names = ["MIP-2016", "CPMP-2015"]
 
 def compute_distance_to_vbs(predicted_performances, true_performances):
     result = true_performances[np.argmin(
         predicted_performances)] - np.min(true_performances)
     return result
 
-
-for scenario_name, baseline in product(scenario_names, baselines):
+for scenario_name in scenario_names:
 
     scenario = ASRankingScenario()
     scenario.read_scenario(scenario_path + scenario_name)
     scenario.compute_rankings(False)
     relevance_scores = compute_relevance_scores_unit_interval(scenario)
-    table_name = "baseline_" + baseline + "-" + scenario_name
+    table_name = "baseline_random_survival_forest-" + scenario_name
     try:
         engine = sql.create_engine("mysql://" + db_user +
                                    ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
         connection = engine.connect()
-        baseline_df = pd.read_sql_table(
-            table_name=table_name, con=connection)
+        baseline_df = pd.read_sql_table(table_name=table_name, con=connection)
         connection.close()
     except:
         print("Scenario " + scenario_name +
@@ -69,13 +64,11 @@ for scenario_name, baseline in product(scenario_names, baselines):
     baseline_measures = []
 
     for problem_instance, performances in scenario.performance_data.iterrows():
-        filepath = evaluations_path + "baseline-evaluation-" + \
-            baseline + scenario_name + ".csv"
+        filepath = evaluations_path + "baseline-evaluation-survival-forest-" + scenario_name + ".csv"
         feature_cost = 0
         # we use all features, so we sum up the individual costs
         if scenario.feature_cost_data is not None:
-            feature_cost = scenario.feature_cost_data.loc[problem_instance].sum(
-            )
+            feature_cost = scenario.feature_cost_data.loc[problem_instance].sum()
         tau_corr = 0
         tau_p = 0
         ndcg = 0

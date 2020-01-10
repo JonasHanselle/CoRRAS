@@ -339,7 +339,7 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     performances: pd.DataFrame,
     max_pairs_per_instance=100,
     seed=15,
-    order="asc"):
+    order="asc", skip_value=None):
     """Get numpy representation of features, performances and rankings
 
     Arguments:
@@ -351,9 +351,9 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
         values, the second stores the algirhtm performances and the
         third stores the algorithm rankings
     """
-    rankings = sample_pairs(performances,
+    rankings, weights = sample_pairs(performances,
                             pairs_per_instance=max_pairs_per_instance,
-                            seed=seed)
+                            seed=seed, skip_value=skip_value)
     joined = rankings.join(features).join(performances,
                                           lsuffix="_rank",
                                           rsuffix="_performance")
@@ -362,7 +362,11 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     np_rankings = joined[[x for x in rankings.columns]].values + 1
     np_performances = np_performances[
         np.arange(np_performances.shape[0])[:, np.newaxis], np_rankings - 1]
-    np_weights = np.ones(np_performances.shape[0])
+    max_len = len(performances.columns)
+    np_weights = max_len - np.amin(weights)
+    print("np_weights", np_weights)
+    np_weights = np.exp2(np_weights)
+    print("exp np_weights", np_weights)
 
     # TODO check for maximization problems
     # if order == "desc":
@@ -410,7 +414,7 @@ def sample_pairs(performances: pd.DataFrame,
     random.seed(seed)
     pairs = enumerate_pairs(len(performances.columns))
     for index, row in performances.iterrows():
-        ranks = row.rank(method="min")
+        ranks = row.rank(method="max")
         random.shuffle(pairs)
         candidates = pairs[:]
         i = 0

@@ -41,20 +41,36 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = [
-    "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010",
-    "CPMP-2015"
-]
-lambda_values = [0.0, 0.2, 0.5, 0.8, 1.0]
-epsilon_values = [0, 0.001, 0.01, 0.1, 1]
+# scenarios = [
+#     "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010",
+#     "CPMP-2015"
+# ]
+# lambda_values = [0.0, 0.2, 0.5, 0.8, 1.0]
+# epsilon_values = [0, 0.001, 0.01, 0.1, 1]
+# max_pairs_per_instance = 5
+# maxiter = 100
+# seeds = [15]
+# use_quadratic_transform_values = [True, False]
+# use_max_inverse_transform_values = ["max_cutoff"]
+# scale_target_to_unit_interval_values = [True]
+
+# splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+scenarios = ["MIP-2016"]
+
+lambda_values = [0.0, 0.5, 0.9]
+epsilon_values = [0.3]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-
+skip_censored_values = [True, False]
+regulerization_params_values = [0.1, 0.01, 0.001, 0.0]
+use_weighted_samples_values = [False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1, 2, 3]
 
 params = [
     lambda_values, epsilon_values, splits, seeds,
