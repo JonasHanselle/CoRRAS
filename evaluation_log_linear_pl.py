@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
@@ -12,38 +14,67 @@ from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_uni
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set_style("darkgrid")
-
+# Database
+import sqlalchemy as sql
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Table, MetaData
+from sqlalchemy.sql import exists, select, and_, or_
+import urllib
 
 def compute_distance_to_vbs(predicted_performances, true_performances):
     result = true_performances[np.argmin(predicted_performances)] - np.min(
         true_performances)
     return result
 
-
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_corras = "./results-pl/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 
-scenarios = ["CPMP-2015", "MAXSAT-PMS-2016", "MAXSAT-WPMS-2016", "SAT11-INDU" "SAT12-ALL", "TTP-2016"]
-# scenarios = ["MIP-2016"]
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-                 0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
-# lambda_values = [0.0, 0.2, 0.4, 0.6,
-#                  0.8, 1.0]
-# lambda_values = [0.5]
-max_pairs_per_instance = 5
-maxiter = 100
-seeds = [15]
-use_quadratic_transform_values = [True, False]
-# use_quadratic_transform_values = [True]
-use_max_inverse_transform_values = ["max_cutoff"]
-# use_max_inverse_transform_values = ["max_cutoff"]
-scale_target_to_unit_interval_values = [False]
-# scale_target_to_unit_interval_values = [True]
+# DB data
+db_url = sys.argv[1]
+db_user = sys.argv[2]
+db_pw = urllib.parse.quote_plus(sys.argv[3])
+db_db = sys.argv[4]
 
+# scenarios = ["CPMP-2015", "MAXSAT-PMS-2016", "MAXSAT-WPMS-2016", "SAT11-INDU" "SAT12-ALL", "TTP-2016"]
+# # scenarios = ["MIP-2016"]
+# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+#                  0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
+# # lambda_values = [0.0, 0.2, 0.4, 0.6,
+# #                  0.8, 1.0]
+# # lambda_values = [0.5]
+# max_pairs_per_instance = 5
+# maxiter = 100
+# seeds = [15]
+# use_quadratic_transform_values = [True, False]
+# # use_quadratic_transform_values = [True]
+# use_max_inverse_transform_values = ["max_cutoff"]
+# # use_max_inverse_transform_values = ["max_cutoff"]
+# scale_target_to_unit_interval_values = [False]
+# # scale_target_to_unit_interval_values = [True]
+
+# splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+seeds = [15]
+# use_quadratic_transform_values = [True, False]
+# use_max_inverse_transform_values = ["max_cutoff"]
+# scale_target_to_unit_interval_values = [True]
+# skip_censored_values = [True, False]
+# regulerization_params_values = [0.1, 0.01, 0.001, 0.0]
+# use_weighted_samples_values = [False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+scenarios = [
+    "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-HAND",
+    "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
+    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"
+]
+lambda_values = [0.5]
+use_quadratic_transform_values = [True, False]
+use_max_inverse_transform_values = ["max_cutoff"]
+# scale_target_to_unit_interval_values = [True, False]
+scale_target_to_unit_interval_values = [True]
 
 params = [
     lambda_values, splits, seeds, use_quadratic_transform_values,
@@ -64,17 +95,39 @@ for scenario_name in scenarios:
     # params_string = "-".join([scenario_name,
     #     str(lambda_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
 
-    filename = "pl_log_linear" + "-" + scenario_name + ".csv"
-    # loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
-    filepath = results_path_corras + filename
-    # print(filepath)
-    # loss_filepath = results_path_corras + loss_filename
+    # filename = "pl_log_linear" + "-" + scenario_name + ".csv"
+    # # loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
+    # filepath = results_path_corras + filename
+    # # print(filepath)
+    # # loss_filepath = results_path_corras + loss_filename
+    # corras = None
+    # try:
+    #     corras = pd.read_csv(filepath)
+    # except Exception as exc:
+    #     print("File for " + scenario_name +
+    #           " not found in corras result data! Exception " + str(exc))
+    #     continue
+    # # for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in param_product:
+    # # print(corras.head())
+    # corras.set_index("problem_instance", inplace=True)
+    # performance_indices = [
+    #     x for x in corras.columns if x.endswith("_performance")
+    # ]
+
     corras = None
     try:
-        corras = pd.read_csv(filepath)
+        table_name = "linear-plackett-luce-" + scenario_name
+
+        engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
+                                   db_url + "/" + db_db,
+                                   echo=False)
+        connection = engine.connect()
+        corras = pd.read_sql_table(table_name=table_name, con=connection)
+        connection.close()
     except Exception as exc:
         print("File for " + scenario_name +
               " not found in corras result data! Exception " + str(exc))
+        break
         continue
     # for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in param_product:
     # print(corras.head())
@@ -82,6 +135,7 @@ for scenario_name in scenarios:
     performance_indices = [
         x for x in corras.columns if x.endswith("_performance")
     ]
+
 
     # lambda_values = pd.unique(corras["lambda"])
     # epsilon_values = pd.unique(corras["epsilon"])
@@ -165,4 +219,4 @@ for scenario_name in scenarios:
             "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" +
-                     scenario_name + ".csv")
+                     scenario_name + "-new.csv")

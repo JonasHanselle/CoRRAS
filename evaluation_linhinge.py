@@ -32,7 +32,7 @@ def compute_distance_to_vbs(predicted_performances, true_performances):
 
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_corras = "./results-lh/"
-evaluations_path = "./evaluations-lh-new-params/"
+evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 
 # DB data
@@ -56,21 +56,32 @@ db_db = sys.argv[4]
 
 # splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-scenarios = ["MIP-2016"]
+# scenarios = ["MIP-2016"]
 
-lambda_values = [0.0, 0.5, 0.9]
-epsilon_values = [0.3]
-max_pairs_per_instance = 5
-maxiter = 100
+# lambda_values = [0.5]
+# epsilon_values = [0.3]
+# max_pairs_per_instance = 5
+# maxiter = 100
 seeds = [15]
+# use_quadratic_transform_values = [True, False]
+# use_max_inverse_transform_values = ["max_cutoff"]
+# scale_target_to_unit_interval_values = [True]
+# skip_censored_values = [True, False]
+# regulerization_params_values = [0.1, 0.01, 0.001, 0.0]
+# use_weighted_samples_values = [False]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+scenarios = [
+    "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND",
+    "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
+    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"
+]
+lambda_values = [0.5]
+epsilon_values = [1.0]
 use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
+# scale_target_to_unit_interval_values = [True, False]
 scale_target_to_unit_interval_values = [True]
-skip_censored_values = [True, False]
-regulerization_params_values = [0.1, 0.01, 0.001, 0.0]
-use_weighted_samples_values = [False]
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [1, 2, 3]
 
 params = [
     lambda_values, epsilon_values, splits, seeds,

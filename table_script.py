@@ -17,13 +17,16 @@ evaluations_path = "./evaluations/"
 
 figures_path = "./figures/progression-plots/"
 
-scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND", "CPMP-2015",
-    "QBF-2016", "SAT12-ALL", "SAT03-16_INDU", "TTP-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"]
+scenario_names = [
+    "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND",
+    "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
+    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"
+]
 
-use_quadratic_transform_values = [True]
+use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff", "max_par10"]
 # scale_target_to_unit_interval_values = [True, False]
-scale_target_to_unit_interval_values = [True]
+scale_target_to_unit_interval_values = [True, False]
 seed = 15
 
 params = [
@@ -33,19 +36,22 @@ params = [
 
 param_product = list(product(*params))
 
-lambda_value_pl = 0.9
+lambda_value_pl = 0.5
 lambda_value_hinge = 0.5
 epsilon_value_hinge = 1.0
 
 
 def create_latex(df: pd.DataFrame, decimal_format="{:10.3f}"):
-    result = "\\begin{tabular}{" + "l" + "r" * (len(df.columns)-1) + "} \n"
+    result = "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
     result += "\\toprule \n"
     result += " & ".join(df.columns) + " \\\\ \n"
     result += "\\midrule \n"
     for index, row in df.iterrows():
-        result += row[0] + " & " + " & ".join(["\\textbf{" + decimal_format.format(
-            x) + "}" if x == row[1:].values.min() else decimal_format.format(x) for x in row[1:]]) + " \\\\ \n"
+        result += row[0] + " & " + " & ".join([
+            "\\textbf{" + decimal_format.format(x) +
+            "}" if x == row[1:].values.min() else decimal_format.format(x)
+            for x in row[1:]
+        ]) + " \\\\ \n"
     result += "\\toprule \n"
     result += "\\end{tabular} \n"
     print(result)
@@ -62,6 +68,10 @@ def max_formatter(x):
 
 comparison_data = []
 for scenario_name in scenario_names:
+
+    scenario = ASRankingScenario()
+    scenario.read_scenario(scenario_path + scenario_name)
+
     df_baseline_rf = None
     df_baseline_lr = None
     df_baseline_sf = None
@@ -82,7 +92,7 @@ for scenario_name in scenario_names:
                                      scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
-                                    ".csv")
+                                    "-new.csv")
         df_corras_linear = df_corras_all.loc[
             (df_corras_all["seed"] == seed)
             & (df_corras_all["quadratic_transform"] == False) &
@@ -102,124 +112,62 @@ for scenario_name in scenario_names:
             & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
             (df_corras_nnh_all["learning_rate"] == 0.001) &
             (df_corras_nnh_all["lambda"] == lambda_value_hinge)]
-        print(df_corras_nnh.columns)
         # dfs = [df_baseline_lr, df_baseline_rf,
         #        df_corras_linear, df_corras_quadratic]
 
-    except:
-        print("Scenario " + scenario_name +
-              " not found in corras evaluation data!")
+    except Exception as ex:
+        print(ex)
+
     val_rf = float("nan")
     val_lr = float("nan")
     val_sf = float("nan")
     val_pl_linear = float("nan")
     val_pl_quad = float("nan")
     val_nnh = float("nan")
-
+    print(scenario_name)
     if df_baseline_rf is not None:
-        val_rf = df_baseline_rf["run_status"].value_counts(normalize=True)["ok"]
+        val_rf = df_baseline_rf["run_status"].value_counts(
+            normalize=True)["ok"]
     if df_baseline_lr is not None:
-        val_lr = df_baseline_lr["run_status"].value_counts(normalize=True)["ok"]
+        val_lr = df_baseline_lr["run_status"].value_counts(
+            normalize=True)["ok"]
     if df_baseline_sf is not None:
-        val_sf = df_baseline_sf["run_status"].value_counts(normalize=True)["ok"]
+        val_sf = df_baseline_sf["run_status"].value_counts(
+            normalize=True)["ok"]
     if df_baseline_sf is not None:
-        val_baseline_sf = df_baseline_sf["run_status"].value_counts(normalize=True)["ok"]
+        val_baseline_sf = df_baseline_sf["run_status"].value_counts(
+            normalize=True)["ok"]
     if df_corras_linear is not None:
-        val_pl_linear = df_corras_linear["run_status"].value_counts(normalize=True)["ok"]
+        val_pl_linear = df_corras_linear["run_status"].value_counts(
+            normalize=True)["ok"]
     if df_corras_quadratic is not None:
-        val_pl_quad = df_corras_quadratic["run_status"].value_counts(normalize=True)["ok"]
+        val_pl_quad = df_corras_quadratic["run_status"].value_counts(
+            normalize=True)["ok"]
     if df_corras_nnh is not None:
-        val_nnh = df_corras_nnh["run_status"].value_counts(normalize=True)["ok"]
+        val_nnh = df_corras_nnh["run_status"].value_counts(
+            normalize=True)["ok"]
     comparison_data.append([
-        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad, val_nnh
+        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
+        val_nnh
     ])
 comparison_frame = pd.DataFrame(
     data=comparison_data,
     columns=["Scenario", "RF", "LR", "SF", "PL-Lin", "PL-Quad", "Hinge-NN"])
-
-print(comparison_frame.to_latex())
-# print(
-#     comparison_frame.to_latex(na_rep="-",
-#                               index=False,
-#                               bold_rows=True,
-#                               float_format="%.3f",
-#                               formatters={"tau_corr": max_formatter},
-#                               escape=False))
-
-# comparison_data = []
-# for scenario_name in scenario_names:
-#     try:
-#         df_baseline_lr = pd.read_csv(evaluations_path +
-#                                      "baseline-evaluation-linear-regression" +
-#                                      scenario_name + ".csv")
-#         df_baseline_rf = pd.read_csv(evaluations_path +
-#                                      "baseline-evaluation-random_forest" +
-#                                      scenario_name + ".csv")
-#         df_corras_all = pd.read_csv(evaluations_path +
-#                                     "corras-pl-log-linear-" + scenario_name +
-#                                     ".csv")
-#         df_corras_linear = df_corras_all.loc[
-#             (df_corras_all["seed"] == seed)
-#             & (df_corras_all["quadratic_transform"] == False) &
-#             (df_corras_all["scale_to_unit_interval"] == True) &
-#             (df_corras_all["max_inverse_transform"] == "max_cutoff") &
-#             (df_corras_all["lambda"] == lambda_value_pl)]
-#         df_corras_quadratic = df_corras_all.loc[
-#             (df_corras_all["seed"] == seed)
-#             & (df_corras_all["quadratic_transform"] == True) &
-#             (df_corras_all["scale_to_unit_interval"] == True) &
-#             (df_corras_all["max_inverse_transform"] == "max_cutoff") &
-#             (df_corras_all["lambda"] == lambda_value_pl)]
-#         df_corras_hinge_linear_all = pd.read_csv(evaluations_path +
-#                                                  "corras-hinge-linear-" +
-#                                                  scenario_name + "-new" +
-#                                                  ".csv")
-#         df_corras_hinge_linear = df_corras_hinge_linear_all.loc[
-#             (df_corras_hinge_linear_all["seed"] == seed)
-#             & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
-#             (df_corras_all["quadratic_transform"] == False) &
-#             (df_corras_all["scale_to_unit_interval"] == True) &
-#             (df_corras_all["max_inverse_transform"] == "max_cutoff")]
-#         df_corras_hinge_quadratic = df_corras_hinge_linear_all.loc[
-#             (df_corras_hinge_linear_all["seed"] == seed)
-#             & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
-#             (df_corras_all["quadratic_transform"] == True) &
-#             (df_corras_all["scale_to_unit_interval"] == True) &
-#             (df_corras_all["max_inverse_transform"] == "max_cutoff")]
-#         df_corras_nnh_all = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
-#                                         scenario_name + "-short.csv")
-#         df_corras_nnh = df_corras_nnh_all.loc[
-#             (df_corras_nnh_all["seed"] == seed)
-#             & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
-#             (df_corras_nnh_all["learning_rate"] == 0.001) &
-#             (df_corras_nnh_all["lambda"] == lambda_value_hinge) &
-#             (df_corras_nnh_all["split"] == 5)]
-#         print(len(df_corras_hinge_linear), len(df_corras_hinge_quadratic),
-#               len(df_corras_linear), len(df_corras_quadratic),
-#               len(df_corras_nnh), len(df_baseline_lr), len(df_baseline_rf))
-#         print(df_corras_nnh)
-
-#     except:
-#         print("Scenario " + scenario_name +
-#               " not found in corras evaluation data!")
-#         continue
-#     comparison_data.append([
-#         scenario_name, df_baseline_rf["par10"].mean(),
-#         df_baseline_lr["par10"].mean(), df_corras_linear["par10"].mean(),
-#         df_corras_quadratic["par10"].mean(), df_corras_nnh["par10"].mean(),
-#         df_corras_hinge_linear["par10"].mean(),
-#         df_corras_hinge_quadratic["par10"].mean()
-#     ])
-# comparison_frame = pd.DataFrame(data=comparison_data,
-#                                 columns=[
-#                                     "Scenario", "Random Forest",
-#                                     "Linear Regression", "pl linear",
-#                                     "pl quadratic", "hinge nn", "hinge lin",
-#                                     "hinge quad"
-#                                 ])
+print("success rate")
+print(
+    comparison_frame.to_latex(na_rep="-",
+                              index=False,
+                              bold_rows=True,
+                              float_format="%.3f",
+                              formatters={"tau_corr": max_formatter},
+                              escape=False))
 
 comparison_data = []
 for scenario_name in scenario_names:
+
+    scenario = ASRankingScenario()
+    scenario.read_scenario(scenario_path + scenario_name)
+
     df_baseline_rf = None
     df_baseline_lr = None
     df_baseline_sf = None
@@ -240,7 +188,7 @@ for scenario_name in scenario_names:
                                      scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
-                                    ".csv")
+                                    "-new.csv")
         df_corras_linear = df_corras_all.loc[
             (df_corras_all["seed"] == seed)
             & (df_corras_all["quadratic_transform"] == False) &
@@ -255,12 +203,18 @@ for scenario_name in scenario_names:
             (df_corras_all["lambda"] == lambda_value_pl)]
         df_corras_nnh_all = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
                                         scenario_name + "-short.csv")
+        df_corras_hinge_linear_all = pd.read_csv(evaluations_path +
+                                                 "corras-hinge-linear-" +
+                                                 scenario_name + "-new" +
+                                                 ".csv")
         df_corras_hinge_linear = df_corras_hinge_linear_all.loc[
             (df_corras_hinge_linear_all["seed"] == seed)
             & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
             (df_corras_all["quadratic_transform"] == False) &
             (df_corras_all["scale_to_unit_interval"] == True) &
             (df_corras_all["max_inverse_transform"] == "max_cutoff")]
+        print("hinge all", df_corras_hinge_linear_all)
+        print("hinge linear", df_corras_hinge_linear)
         df_corras_hinge_quadratic = df_corras_hinge_linear_all.loc[
             (df_corras_hinge_linear_all["seed"] == seed)
             & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
@@ -272,13 +226,11 @@ for scenario_name in scenario_names:
             & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
             (df_corras_nnh_all["learning_rate"] == 0.001) &
             (df_corras_nnh_all["lambda"] == lambda_value_hinge)]
-        print(df_corras_nnh.columns)
         # dfs = [df_baseline_lr, df_baseline_rf,
         #        df_corras_linear, df_corras_quadratic]
 
-    except:
-        print("Scenario " + scenario_name +
-              " not found in corras evaluation data!")
+    except Exception as ex:
+        print(ex)
     val_rf = float("nan")
     val_lr = float("nan")
     val_sf = float("nan")
@@ -304,15 +256,19 @@ for scenario_name in scenario_names:
     if df_corras_hinge_quadratic is not None:
         val_hinge_quad = df_corras_hinge_quadratic["par10"].mean()
     comparison_data.append([
-        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad, val_hinge_linear, val_hinge_quad, val_nnh
+        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
+        val_hinge_linear, val_hinge_quad, val_nnh
     ])
-comparison_frame = pd.DataFrame(
-    data=comparison_data,
-    columns=["Scenario", "RF", "LR", "RSF", "PL-Lin", "PL-Quad", "Hinge-Lin", "Hinge-Quad", "Hinge-NN"])
+comparison_frame = pd.DataFrame(data=comparison_data,
+                                columns=[
+                                    "Scenario", "RF", "LR", "RSF", "PL-Lin",
+                                    "PL-Quad", "Hinge-Lin", "Hinge-Quad",
+                                    "Hinge-NN"
+                                ])
 
 create_latex(comparison_frame)
 
-
+print("par10")
 print(
     comparison_frame.to_latex(na_rep="-",
                               index=False,
@@ -325,14 +281,18 @@ create_latex(comparison_frame)
 
 comparison_data = []
 for scenario_name in scenario_names:
-    df_baseline_rf = float("nan")
-    df_baseline_lr = float("nan")
-    df_baseline_sf = float("nan")
-    df_corras_nnh = float("nan")
-    df_corras_hinge_linear = float("nan")
-    df_corras_hinge_quadratic = float("nan")
-    df_corras_linear = float("nan")
-    df_corras_quadratic = float("nan")
+
+    scenario = ASRankingScenario()
+    scenario.read_scenario(scenario_path + scenario_name)
+
+    df_baseline_rf = None
+    df_baseline_lr = None
+    df_baseline_sf = None
+    df_corras_nnh = None
+    df_corras_hinge_linear = None
+    df_corras_hinge_quadratic = None
+    df_corras_linear = None
+    df_corras_quadratic = None
     try:
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
@@ -345,7 +305,7 @@ for scenario_name in scenario_names:
                                      scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
-                                    ".csv")
+                                    "-new.csv")
         df_corras_linear = df_corras_all.loc[
             (df_corras_all["seed"] == seed)
             & (df_corras_all["quadratic_transform"] == False) &
@@ -360,18 +320,127 @@ for scenario_name in scenario_names:
             (df_corras_all["lambda"] == lambda_value_pl)]
         df_corras_nnh_all = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
                                         scenario_name + "-short.csv")
+        df_corras_hinge_linear_all = pd.read_csv(evaluations_path +
+                                                 "corras-hinge-linear-" +
+                                                 scenario_name + "-new" +
+                                                 ".csv")
         df_corras_nnh = df_corras_nnh_all.loc[
             (df_corras_nnh_all["seed"] == seed)
             & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
             (df_corras_nnh_all["learning_rate"] == 0.001) &
             (df_corras_nnh_all["lambda"] == lambda_value_hinge)]
-        print(df_corras_nnh.columns)
         # dfs = [df_baseline_lr, df_baseline_rf,
         #        df_corras_linear, df_corras_quadratic]
 
-    except:
-        print("Scenario " + scenario_name +
-              " not found in corras evaluation data!")
+    except Exception as ex:
+        print(ex)
+
+    val_rf = float("nan")
+    val_lr = float("nan")
+    val_sf = float("nan")
+    val_pl_linear = float("nan")
+    val_pl_quad = float("nan")
+    val_nnh = float("nan")
+    print("scenario " + scenario.scenario + " length", len(scenario.performance_data))
+    if df_baseline_rf is not None:
+        if len(df_baseline_rf) == len(scenario.instances):
+            val_rf = df_baseline_rf["tau_corr"].mean()
+        print("rf", len(df_baseline_rf))
+    if df_baseline_lr is not None:
+        if len(df_baseline_lr) == len(scenario.instances):
+            val_lr = df_baseline_lr["tau_corr"].mean()
+        print("lr", len(df_baseline_lr))
+    if df_baseline_sf is not None:
+        if len(df_baseline_sf) == len(scenario.instances):
+            val_sf = df_baseline_sf["tau_corr"].mean()
+        print("sf", len(df_baseline_sf))
+    if df_corras_linear is not None:
+        if len(df_corras_linear) == len(scenario.instances):
+            val_pl_linear = df_corras_linear["tau_corr"].mean()
+        print("pl-lin", len(df_corras_linear))
+    if df_corras_quadratic is not None:
+        if len(df_corras_quadratic) == len(scenario.instances):
+            val_pl_quad = df_corras_quadratic["tau_corr"].mean()
+        print("pl-quad", len(df_corras_quadratic))
+    if df_corras_nnh is not None:
+        if len(df_corras_nnh) == len(scenario.instances):
+            val_nnh = df_corras_nnh["tau_corr"].mean()
+        print("nnh", len(df_corras_nnh))
+
+    comparison_data.append([
+        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
+        val_nnh
+    ])
+comparison_frame = pd.DataFrame(
+    data=comparison_data,
+    columns=["Scenario", "RF", "LR", "RSF", "PL-Lin", "PL-Quad", "Hinge-NN"])
+
+create_latex(comparison_frame)
+print("tau_corr")
+print(
+    comparison_frame.to_latex(na_rep="-",
+                              index=False,
+                              bold_rows=True,
+                              float_format="%.3f",
+                              formatters={"tau_corr": max_formatter},
+                              escape=False))
+
+comparison_data = []
+for scenario_name in scenario_names:
+
+    scenario = ASRankingScenario()
+    scenario.read_scenario(scenario_path + scenario_name)
+
+    df_baseline_rf = None
+    df_baseline_lr = None
+    df_baseline_sf = None
+    df_corras_nnh = None
+    df_corras_hinge_linear = None
+    df_corras_hinge_quadratic = None
+    df_corras_linear = None
+    df_corras_quadratic = None
+    try:
+        df_baseline_lr = pd.read_csv(evaluations_path +
+                                     "baseline-evaluation-linear_regression" +
+                                     scenario_name + ".csv")
+        df_baseline_rf = pd.read_csv(evaluations_path +
+                                     "baseline-evaluation-random_forest" +
+                                     scenario_name + ".csv")
+        df_baseline_sf = pd.read_csv(evaluations_path +
+                                     "baseline-evaluation-survival-forest-" +
+                                     scenario_name + ".csv")
+        df_corras_all = pd.read_csv(evaluations_path +
+                                    "corras-pl-log-linear-" + scenario_name +
+                                    "-new.csv")
+        df_corras_linear = df_corras_all.loc[
+            (df_corras_all["seed"] == seed)
+            & (df_corras_all["quadratic_transform"] == False) &
+            (df_corras_all["scale_to_unit_interval"] == True) &
+            (df_corras_all["max_inverse_transform"] == "max_cutoff") &
+            (df_corras_all["lambda"] == lambda_value_pl)]
+        df_corras_quadratic = df_corras_all.loc[
+            (df_corras_all["seed"] == seed)
+            & (df_corras_all["quadratic_transform"] == True) &
+            (df_corras_all["scale_to_unit_interval"] == True) &
+            (df_corras_all["max_inverse_transform"] == "max_cutoff") &
+            (df_corras_all["lambda"] == lambda_value_pl)]
+        df_corras_nnh_all = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
+                                        scenario_name + "-short.csv")
+        df_corras_hinge_linear_all = pd.read_csv(evaluations_path +
+                                                 "corras-hinge-linear-" +
+                                                 scenario_name + "-new" +
+                                                 ".csv")
+        df_corras_nnh = df_corras_nnh_all.loc[
+            (df_corras_nnh_all["seed"] == seed)
+            & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
+            (df_corras_nnh_all["learning_rate"] == 0.001) &
+            (df_corras_nnh_all["lambda"] == lambda_value_hinge)]
+        # dfs = [df_baseline_lr, df_baseline_rf,
+        #        df_corras_linear, df_corras_quadratic]
+
+    except Exception as ex:
+        print(ex)
+
     val_rf = float("nan")
     val_lr = float("nan")
     val_sf = float("nan")
@@ -391,7 +460,8 @@ for scenario_name in scenario_names:
     if df_corras_nnh is not None:
         val_nnh = df_corras_nnh["tau_corr"].mean()
     comparison_data.append([
-        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad, val_nnh
+        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
+        val_nnh
     ])
 comparison_frame = pd.DataFrame(
     data=comparison_data,

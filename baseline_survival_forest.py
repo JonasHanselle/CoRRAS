@@ -31,10 +31,10 @@ import urllib
 result_path = "./results/"
 
 # DB data
-db_url = sys.argv[1]
-db_user = sys.argv[2]
-db_pw = urllib.parse.quote_plus(sys.argv[3])
-db_db = sys.argv[4]
+# db_url = sys.argv[1]
+# db_user = sys.argv[2]
+# db_pw = urllib.parse.quote_plus(sys.argv[3])
+# db_db = sys.argv[4]
 
 # max_rankings_per_instance = 5
 seed = 15
@@ -42,11 +42,7 @@ num_splits = 10
 result_data_corras = []
 baselines = None
 
-scenarios = [
-    "CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
-    "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND",
-    "SAT12-ALL", "TTP-2016"
-]
+scenarios = ["SAT12-ALL"]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 for scenario_name in scenarios:
@@ -105,11 +101,12 @@ for scenario_name in scenarios:
             # X_test = test_data.iloc[:, :-1]
             # y_test = test_data.iloc[:, -1]
 
-            model = RandomSurvivalForest(n_estimators=1000,
+            model = RandomSurvivalForest(n_estimators=10,
+                                        max_depth=5,
                                          min_samples_split=10,
                                          min_samples_leaf=15,
                                          max_features="sqrt",
-                                         n_jobs=1,
+                                         n_jobs=-1,
                                          random_state=seed)
 
             mask = y_train != scenario.algorithm_cutoff_time * 10
@@ -122,7 +119,7 @@ for scenario_name in scenarios:
             structured_y_train = np.rec.fromarrays([mask, y_train],
                                                    names="terminated,runtime")
 
-            print(X_train.shape, structured_y_train.shape)
+            print("Starting to fit model")
             model.fit(X_train, structured_y_train)
 
             # X_test = imputer.transform(X_test)
@@ -161,11 +158,11 @@ for scenario_name in scenarios:
                                    columns=result_columns_rsf)
         results_rsf.to_csv(result_path + "rsf-" + scenario.scenario + ".csv",
                            index_label="id")
-        engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-                                   db_url + "/" + db_db,
-                                   echo=False)
-        connection = engine.connect()
-        results_rsf.to_sql(name=table_name, con=connection)
-        connection.close()
+        # engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
+        #                            db_url + "/" + db_db,
+        #                            echo=False)
+        # connection = engine.connect()
+        # results_rsf.to_sql(name=table_name, con=connection)
+        # connection.close()
     except Exception as exc:
         print("Something went wrong during computation. Message: " + str(exc))
