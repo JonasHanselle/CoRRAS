@@ -42,7 +42,7 @@ db_db = sys.argv[6]
 scenarios = ["MIP-2016"]
 lambda_values = [0.0, 0.5, 1.0]
 epsilon_values = [1.0]
-max_pairs_per_instance = 5
+max_pairs_per_instance = 5 
 maxiter = 1000
 seeds = [15]
 

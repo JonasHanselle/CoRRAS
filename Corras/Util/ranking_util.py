@@ -363,7 +363,8 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     np_performances = np_performances[
         np.arange(np_performances.shape[0])[:, np.newaxis], np_rankings - 1]
     max_len = len(performances.columns)
-    np_weights = max_len - np.amin(weights)
+    np_weights = weights.to_numpy()
+    np_weights = np.amax(np_weights, axis=1)
     print("np_weights", np_weights)
     np_weights = np.exp2(np_weights)
     print("exp np_weights", np_weights)

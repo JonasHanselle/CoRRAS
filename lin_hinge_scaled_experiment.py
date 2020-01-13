@@ -50,9 +50,9 @@ seeds = [15]
 use_quadratic_transform_values = [False]
 use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-skip_censored_values = [True, False]
+skip_censored_values = [False]
 regulerization_params_values = [0.0]
-use_weighted_samples_values = [False]
+use_weighted_samples_values = [True, False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
@@ -223,7 +223,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
             else:
                 skip_value = train_performances.to_numpy().min()
         print("skip value", skip_value)
-        inst, perf, rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
+        inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
             train_features,
             train_performances,
             max_pairs_per_instance=max_pairs_per_instance,
@@ -242,7 +242,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                      maxiter=maxiter,
                      print_output=False,
                      log_losses=True,
-                     reg_param=regulerization_param)
+                     reg_param=regulerization_param, sample_weights=sample_weights)
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)

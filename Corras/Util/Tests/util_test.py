@@ -2,6 +2,7 @@ import unittest
 import Corras.Util.ranking_util as util
 import Corras.Scenario.aslib_ranking_scenario as scen
 
+
 class UtilTests(unittest.TestCase):
 
     # def test_rankings(self):
@@ -42,7 +43,6 @@ class UtilTests(unittest.TestCase):
     #     print("rankings",np_r)
     #     print("list",util.ordering_to_ranking_list(np_r))
 
-
     # def test_ordering_to_ranking_list(self):
     #     scenario = scen.ASRankingScenario()
     #     scenario.read_scenario("aslib_data-aslib-v4.0/SAT11-INDU")
@@ -64,22 +64,33 @@ class UtilTests(unittest.TestCase):
         scenario = scen.ASRankingScenario()
         scenario.read_scenario("aslib_data-aslib-v4.0/SAT12-ALL")
         performances = scenario.performance_data
-        performances = performances / (10*scenario.algorithm_cutoff_time)
-        feat,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(scenario.feature_data,performances,max_pairs_per_instance=1,seed=2, skip_value = float(scenario.algorithm_cutoff_time*10))
+        performances = performances / (10 * scenario.algorithm_cutoff_time)
+        feat, perf, rank, weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
+            scenario.feature_data,
+            performances,
+            max_pairs_per_instance=1,
+            seed=2,
+            skip_value=float(scenario.algorithm_cutoff_time * 10))
         print(feat.shape)
         print(perf.shape)
         print(rank.shape)
-        print(feat[:5,:5])
+        print(feat[:5, :5])
         print(perf[:5])
         print(rank[:5])
-        print(weights[:5])
-        feat,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(scenario.feature_data,performances,max_pairs_per_instance=1,seed=2, order="desc", skip_value = float(scenario.algorithm_cutoff_time*10))
-        print("\n")
-        print(feat[:5,:5])
-        print(perf[:5])
-        print(rank[:5])
-        print(weights[:5])
+        print("np_weights", weights[:5])
+        feat, perf, rank, weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
+            scenario.feature_data,
+            performances,
+            max_pairs_per_instance=1,
+            seed=2,
+            order="desc",
+            skip_value=float(scenario.algorithm_cutoff_time * 10))
 
+        print("\n")
+        print(feat[:5, :5])
+        print(perf[:5])
+        print(rank[:5])
+        print("np_weights", weights[:5])
 
     # def test_ranking_conversion(self):
     #     scenario = scen.ASRankingScenario()
@@ -99,6 +110,7 @@ class UtilTests(unittest.TestCase):
     #     assert(util.custom_tau(ranking_a,ranking_b)==1)
     #     assert(util.custom_tau(ranking_a,ranking_c)==0)
     #     assert(util.custom_tau(ranking_c,ranking_d)==-1)
-        
+
+
 if __name__ == "__main__":
     unittest.main()
