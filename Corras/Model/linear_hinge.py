@@ -47,7 +47,7 @@ class LinearHingeModel:
         Returns:
             [type] -- [description]
         """
-        if sample_weights == None:
+        if sample_weights is None:
             sample_weights = np.ones(features.shape[0])
         # add one column for bias
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
