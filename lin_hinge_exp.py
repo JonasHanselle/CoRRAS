@@ -34,7 +34,7 @@ result_data_corras = []
 result_data_rf = []
 baselines = None
 
-scenario.create_cv_splits(n_folds=num_splits)
+# scenario.create_cv_splits(n_folds=num_splits)
 for i_split in range(1, num_splits+1):
 
     test_scenario, train_scenario = scenario.get_split(i_split)

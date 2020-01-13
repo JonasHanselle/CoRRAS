@@ -42,7 +42,7 @@ num_splits = 10
 result_data_corras = []
 baselines = None
 
-scenarios = ["SAT12-ALL"]
+scenarios = ["CPMP-2015"]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 for scenario_name in scenarios:
@@ -51,7 +51,7 @@ for scenario_name in scenarios:
         scenario = aslib_ranking_scenario.ASRankingScenario()
         scenario.read_scenario("aslib_data-aslib-v4.0/" + scenario_name)
 
-        scenario.create_cv_splits(n_folds=num_splits)
+        # scenario.create_cv_splits(n_folds=num_splits)
 
         table_name = "baseline_random_survival_forest-" + scenario.scenario
 
@@ -66,6 +66,7 @@ for scenario_name in scenarios:
             test_performances = test_scenario.performance_data
             test_features = test_scenario.feature_data
 
+            print(train_performances)
             melted_train_performances = pd.melt(train_performances.reset_index(
             ), id_vars="instance_id", value_name="performance")
             joined_train_data = train_features.join(
@@ -88,25 +89,26 @@ for scenario_name in scenarios:
             scaler = StandardScaler()
 
             scalable_columns = [col for (i, col) in enumerate(
-                train_data.columns) if "algorithm=" not in col]
+                train_data.columns) if "algorithm=" not in col and "performance" not in col]
 
             train_data[scalable_columns] = imputer.fit_transform(
                 train_data[scalable_columns])
             train_data[scalable_columns] = scaler.fit_transform(
                 train_data[scalable_columns])
-            print(train_data.columns)
+            print("train data", train_data)
             X_train = train_data.iloc[:, :-1]
+            print("X_train", X_train)
             y_train = train_data.iloc[:, -1]
-
+            print("y_train", y_train)
             # X_test = test_data.iloc[:, :-1]
             # y_test = test_data.iloc[:, -1]
 
-            model = RandomSurvivalForest(n_estimators=10,
-                                        max_depth=5,
+            model = RandomSurvivalForest(n_estimators=50,
+                                        max_depth=3,
                                          min_samples_split=10,
                                          min_samples_leaf=15,
                                          max_features="sqrt",
-                                         n_jobs=-1,
+                                         n_jobs=1,
                                          random_state=seed)
 
             mask = y_train != scenario.algorithm_cutoff_time * 10
@@ -118,6 +120,8 @@ for scenario_name in scenarios:
 
             structured_y_train = np.rec.fromarrays([mask, y_train],
                                                    names="terminated,runtime")
+
+            print(structured_y_train)
 
             print("Starting to fit model")
             model.fit(X_train, structured_y_train)
@@ -133,6 +137,7 @@ for scenario_name in scenarios:
                 # predicted_performances = [-1] * len(
                 #     test_scenario.performance_data.columns)
                 for algorithm in scenario.algorithms:
+                    print(algorithm)
                     temp_features = row.append(
                         pd.Series(data=[algorithm], index=["algorithm"]))
                     features_df = pd.DataFrame([temp_features])
@@ -143,7 +148,11 @@ for scenario_name in scenarios:
                         encoded_features[scalable_columns])
                     encoded_features[scalable_columns] = scaler.transform(
                         encoded_features[scalable_columns])
-                    encoded_features_np = encoded_features.to_numpy()[:, :-1]
+                    encoded_features = encoded_features.iloc[:,:-1]
+                    print("encoded features", encoded_features)
+                    encoded_features_np = encoded_features.to_numpy()
+                    print("encoded features np", encoded_features_np)
+                    predicted_performance = [0]
                     predicted_performance = model.predict(encoded_features_np)
                     predicted_performances.append(predicted_performance[0])
                 result_data_rsf.append(

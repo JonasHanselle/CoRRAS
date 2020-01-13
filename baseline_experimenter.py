@@ -52,7 +52,7 @@ for scenario_name in scenarios:
         scenario = aslib_ranking_scenario.ASRankingScenario()
         scenario.read_scenario("aslib_data-aslib-v4.0/" + scenario_name)
 
-        scenario.create_cv_splits(n_folds=num_splits)
+        # scenario.create_cv_splits(n_folds=num_splits)
 
         table_name = "baseline_linear_regression-" + scenario.scenario
 

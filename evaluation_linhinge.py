@@ -78,10 +78,16 @@ scenarios = [
 ]
 lambda_values = [0.5]
 epsilon_values = [1.0]
-use_quadratic_transform_values = [True, False]
+max_pairs_per_instance = 5
+maxiter = 1000
+seeds = [15]
+use_quadratic_transform_values = [False]
 use_max_inverse_transform_values = ["max_cutoff"]
-# scale_target_to_unit_interval_values = [True, False]
 scale_target_to_unit_interval_values = [True]
+skip_censored_values = [True, False]
+regulerization_params_values = [0.0]
+use_weighted_samples_values = [False]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
     lambda_values, epsilon_values, splits, seeds,
@@ -110,7 +116,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "linear-squared-hinge-" + scenario_name
+        table_name = "linear-squared-hinge-new-params-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,

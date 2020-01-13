@@ -41,7 +41,7 @@ lambda_value_hinge = 0.5
 epsilon_value_hinge = 1.0
 
 
-def create_latex(df: pd.DataFrame, decimal_format="{:10.3f}"):
+def create_latex_max(df: pd.DataFrame, decimal_format="{:10.3f}"):
     result = "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
     result += "\\toprule \n"
     result += " & ".join(df.columns) + " \\\\ \n"
@@ -49,7 +49,22 @@ def create_latex(df: pd.DataFrame, decimal_format="{:10.3f}"):
     for index, row in df.iterrows():
         result += row[0] + " & " + " & ".join([
             "\\textbf{" + decimal_format.format(x) +
-            "}" if x == row[1:].values.min() else decimal_format.format(x)
+            "}" if x == np.nanmax(row[1:]) else decimal_format.format(x)
+            for x in row[1:]
+        ]) + " \\\\ \n"
+    result += "\\toprule \n"
+    result += "\\end{tabular} \n"
+    print(result)
+
+def create_latex_min(df: pd.DataFrame, decimal_format="{:10.3f}"):
+    result = "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
+    result += "\\toprule \n"
+    result += " & ".join(df.columns) + " \\\\ \n"
+    result += "\\midrule \n"
+    for index, row in df.iterrows():
+        result += row[0] + " & " + " & ".join([
+            "\\textbf{" + decimal_format.format(x) +
+            "}" if x == np.nanmin(row[1:]) else decimal_format.format(x)
             for x in row[1:]
         ]) + " \\\\ \n"
     result += "\\toprule \n"
@@ -88,7 +103,7 @@ for scenario_name in scenario_names:
                                      "baseline-evaluation-random_forest" +
                                      scenario_name + ".csv")
         df_baseline_sf = pd.read_csv(evaluations_path +
-                                     "baseline-evaluation-survival-forest-" +
+                                     "baseline-evaluation-survival-forest-fixed-" +
                                      scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
@@ -124,6 +139,8 @@ for scenario_name in scenario_names:
     val_pl_linear = float("nan")
     val_pl_quad = float("nan")
     val_nnh = float("nan")
+    val_hinge_linear = float("nan")
+    val_hinge_quad = float("nan")
     print(scenario_name)
     if df_baseline_rf is not None:
         val_rf = df_baseline_rf["run_status"].value_counts(
@@ -146,14 +163,26 @@ for scenario_name in scenario_names:
     if df_corras_nnh is not None:
         val_nnh = df_corras_nnh["run_status"].value_counts(
             normalize=True)["ok"]
+    if df_corras_hinge_linear is not None:
+        val_hinge_linear = df_corras_hinge_linear["run_status"].value_counts(
+            normalize=True)["ok"]
+    if df_corras_hinge_quadratic is not None:
+        val_hinge_quad = df_corras_hinge_quadratic["run_status"].value_counts(
+            normalize=True)["ok"]
     comparison_data.append([
         scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
-        val_nnh
+        val_hinge_linear, val_hinge_quad, val_nnh
     ])
-comparison_frame = pd.DataFrame(
-    data=comparison_data,
-    columns=["Scenario", "RF", "LR", "SF", "PL-Lin", "PL-Quad", "Hinge-NN"])
+
+comparison_frame = pd.DataFrame(data=comparison_data,
+                                columns=[
+                                    "Scenario", "RF", "LR", "RSF", "PL-Lin",
+                                    "PL-Quad", "Hinge-Lin", "Hinge-Quad",
+                                    "Hinge-NN"
+                                ])
+
 print("success rate")
+# create_latex_max(comparison_frame)
 print(
     comparison_frame.to_latex(na_rep="-",
                               index=False,
@@ -184,7 +213,7 @@ for scenario_name in scenario_names:
                                      "baseline-evaluation-random_forest" +
                                      scenario_name + ".csv")
         df_baseline_sf = pd.read_csv(evaluations_path +
-                                     "baseline-evaluation-survival-forest-" +
+                                     "baseline-evaluation-survival-forest-fixed-" +
                                      scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
@@ -266,8 +295,6 @@ comparison_frame = pd.DataFrame(data=comparison_data,
                                     "Hinge-NN"
                                 ])
 
-create_latex(comparison_frame)
-
 print("par10")
 print(
     comparison_frame.to_latex(na_rep="-",
@@ -277,7 +304,7 @@ print(
                               formatters={"tau_corr": max_formatter},
                               escape=False))
 
-create_latex(comparison_frame)
+# create_latex_min(comparison_frame)
 
 comparison_data = []
 for scenario_name in scenario_names:
@@ -301,7 +328,7 @@ for scenario_name in scenario_names:
                                      "baseline-evaluation-random_forest" +
                                      scenario_name + ".csv")
         df_baseline_sf = pd.read_csv(evaluations_path +
-                                     "baseline-evaluation-survival-forest-" +
+                                     "baseline-evaluation-survival-forest-fixed-" +
                                      scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
@@ -324,6 +351,20 @@ for scenario_name in scenario_names:
                                                  "corras-hinge-linear-" +
                                                  scenario_name + "-new" +
                                                  ".csv")
+        df_corras_hinge_linear = df_corras_hinge_linear_all.loc[
+            (df_corras_hinge_linear_all["seed"] == seed)
+            & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
+            (df_corras_all["quadratic_transform"] == False) &
+            (df_corras_all["scale_to_unit_interval"] == True) &
+            (df_corras_all["max_inverse_transform"] == "max_cutoff")]
+        print("hinge all", df_corras_hinge_linear_all)
+        print("hinge linear", df_corras_hinge_linear)
+        df_corras_hinge_quadratic = df_corras_hinge_linear_all.loc[
+            (df_corras_hinge_linear_all["seed"] == seed)
+            & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
+            (df_corras_all["quadratic_transform"] == True) &
+            (df_corras_all["scale_to_unit_interval"] == True) &
+            (df_corras_all["max_inverse_transform"] == "max_cutoff")]
         df_corras_nnh = df_corras_nnh_all.loc[
             (df_corras_nnh_all["seed"] == seed)
             & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
@@ -368,15 +409,20 @@ for scenario_name in scenario_names:
         print("nnh", len(df_corras_nnh))
 
     comparison_data.append([
-        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
+        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad, val_hinge_linear, val_hinge_quad,
         val_nnh
     ])
-comparison_frame = pd.DataFrame(
-    data=comparison_data,
-    columns=["Scenario", "RF", "LR", "RSF", "PL-Lin", "PL-Quad", "Hinge-NN"])
 
-create_latex(comparison_frame)
+comparison_frame = pd.DataFrame(data=comparison_data,
+                                columns=[
+                                    "Scenario", "RF", "LR", "RSF", "PL-Lin",
+                                    "PL-Quad", "Hinge-Lin", "Hinge-Quad",
+                                    "Hinge-NN"
+                                ])
+
+
 print("tau_corr")
+# create_latex_max(comparison_frame)
 print(
     comparison_frame.to_latex(na_rep="-",
                               index=False,
@@ -407,7 +453,7 @@ for scenario_name in scenario_names:
                                      "baseline-evaluation-random_forest" +
                                      scenario_name + ".csv")
         df_baseline_sf = pd.read_csv(evaluations_path +
-                                     "baseline-evaluation-survival-forest-" +
+                                     "baseline-evaluation-survival-forest-fixed-" +
                                      scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
@@ -430,6 +476,20 @@ for scenario_name in scenario_names:
                                                  "corras-hinge-linear-" +
                                                  scenario_name + "-new" +
                                                  ".csv")
+        df_corras_hinge_linear = df_corras_hinge_linear_all.loc[
+            (df_corras_hinge_linear_all["seed"] == seed)
+            & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
+            (df_corras_all["quadratic_transform"] == False) &
+            (df_corras_all["scale_to_unit_interval"] == True) &
+            (df_corras_all["max_inverse_transform"] == "max_cutoff")]
+        print("hinge all", df_corras_hinge_linear_all)
+        print("hinge linear", df_corras_hinge_linear)
+        df_corras_hinge_quadratic = df_corras_hinge_linear_all.loc[
+            (df_corras_hinge_linear_all["seed"] == seed)
+            & (df_corras_hinge_linear_all["epsilon"] == epsilon_value_hinge) &
+            (df_corras_all["quadratic_transform"] == True) &
+            (df_corras_all["scale_to_unit_interval"] == True) &
+            (df_corras_all["max_inverse_transform"] == "max_cutoff")]
         df_corras_nnh = df_corras_nnh_all.loc[
             (df_corras_nnh_all["seed"] == seed)
             & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
@@ -447,6 +507,8 @@ for scenario_name in scenario_names:
     val_pl_linear = float("nan")
     val_pl_quad = float("nan")
     val_nnh = float("nan")
+    val_hinge_linear = float("nan")
+    val_hinge_quad = float("nan")
     if df_baseline_rf is not None:
         val_rf = df_baseline_rf["tau_corr"].mean()
     if df_baseline_lr is not None:
@@ -459,12 +521,24 @@ for scenario_name in scenario_names:
         val_pl_quad = df_corras_quadratic["tau_corr"].mean()
     if df_corras_nnh is not None:
         val_nnh = df_corras_nnh["tau_corr"].mean()
+    if df_corras_hinge_linear is not None:
+        val_hinge_linear = df_corras_hinge_linear["tau_corr"].mean()
+    if df_corras_hinge_quadratic is not None:
+        val_hinge_quad = df_corras_hinge_quadratic["tau_corr"].mean()
+    comparison_data.append([
+        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
+        val_hinge_linear, val_hinge_quad, val_nnh
+    ])
     comparison_data.append([
         scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
         val_nnh
     ])
-comparison_frame = pd.DataFrame(
-    data=comparison_data,
-    columns=["Scenario", "RF", "LR", "RSF", "PL-Lin", "PL-Quad", "Hinge-NN"])
+comparison_frame = pd.DataFrame(data=comparison_data,
+                                columns=[
+                                    "Scenario", "RF", "LR", "RSF", "PL-Lin",
+                                    "PL-Quad", "Hinge-Lin", "Hinge-Quad",
+                                    "Hinge-NN"
+                                ])
 
-create_latex(comparison_frame)
+print("tau_corr")
+# create_latex_max(comparison_frame)
