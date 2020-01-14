@@ -40,9 +40,9 @@ db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
 # scenarios = ["MIP-2016", "CSP-2010", "CPMP-2015"]
-scenarios = ["MIP-2016"]
-lambda_values = [0.0, 0.5, 1.0]
-epsilon_values = [1.0]
+scenarios = ["CPMP-2015", "SAT11-RAND", "SAT11-HAND", "SAT11-INDU"]
+lambda_values = [0.0, 0.1, 0.5, 0.9, 1.0]
+epsilon_values = [0.0, 0.01, 0.1, 1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -52,7 +52,6 @@ batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
-
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # splits = [1]
@@ -78,7 +77,7 @@ print(shard)
 for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size in shard:
    
 
-    table_name = "neural-net-squared-hinge-" + scenario_name + "-short"
+    table_name = "neural-net-squared-hinge-" + scenario_name + "-short-new"
 
     # engine = sql.create_engine("mysql://" + db_user +
     #                             ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)

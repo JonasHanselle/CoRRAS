@@ -365,9 +365,9 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     max_len = len(performances.columns)
     np_weights = weights.to_numpy()
     np_weights = np.amax(np_weights, axis=1)
-    print("np_weights", np_weights)
+    # print("np_weights", np_weights)
     np_weights = np.exp2(np_weights)
-    print("exp np_weights", np_weights)
+    # print("exp np_weights", np_weights)
 
     # TODO check for maximization problems
     # if order == "desc":
