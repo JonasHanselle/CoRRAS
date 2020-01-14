@@ -89,13 +89,12 @@ class TestLinearHingeSynthetic(unittest.TestCase):
     def test_regression(self):
         model1 = lh.LinearHingeModel()
 
-        inst,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
+        inst,perf,rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
         print(inst)
         print(perf)
         print(rank)
         max_entry = perf.max()
         scaled_perf = perf / perf.max()
-        sample_weights = np.ones(inst.shape[0])
         mins = np.amin(scaled_perf, axis=1)
         print("mins", mins)
         sample_weights = - np.log(mins)

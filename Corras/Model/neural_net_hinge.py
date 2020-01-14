@@ -47,7 +47,7 @@ class NeuralNetworkSquaredHinge:
             rankings: np.ndarray,
             features: np.ndarray,
             performances: np.ndarray,
-            sample_weights: np.ndarray,
+            sample_weights = None,
             lambda_value=0.5,
             epsilon_value=1,
             num_epochs=1000,
@@ -74,6 +74,9 @@ class NeuralNetworkSquaredHinge:
             should be applied, "Squared" and "Absolute" are
             supported
         """
+        if sample_weights is None:
+            sample_weights = np.ones(features.shape[0])
+        
         # add one column for bias
         num_features = features.shape[1] + 1
         self.network = self.build_network(
