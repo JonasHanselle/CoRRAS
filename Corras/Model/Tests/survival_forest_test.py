@@ -1,5 +1,5 @@
 import unittest
-import autograd.numpy as np
+import numpy as np
 import numpy as onp
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
@@ -7,6 +7,7 @@ import Corras.Model.neural_net_hinge as nn_hinge
 import Corras.Util.ranking_util as util
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import kendalltau
 
 from itertools import product
 
@@ -70,18 +71,20 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         features_train = scaler.fit_transform(features_train)
         features_test = scaler.transform(features_test)
 
+        self.algorithms = ["alg1", "alg2", "alg3", "alg4", "alg5"]
+
         self.train_inst = pd.DataFrame(
             data=features_train, columns=["a", "b", "c", "d"])
         self.test_inst = pd.DataFrame(
             data=features_test, columns=["a", "b", "c", "d"])
-        self.train_performances = pd.DataFrame(data=performances_train, columns=[
-                                               "alg1", "alg2", "alg3", "alg4", "alg5"])
-        self.test_performances = pd.DataFrame(data=performances_test, columns=[
-                                              "alg1", "alg2", "alg3", "alg4", "alg5"])
-        self.train_ranking = pd.DataFrame(data=rankings_train, columns=[
-                                          "alg1", "alg2", "alg3", "alg4", "alg5"])
-        self.test_ranking = pd.DataFrame(data=rankings_test, columns=[
-                                         "alg1", "alg2", "alg3", "alg4", "alg5"])
+        self.train_performances = pd.DataFrame(
+            data=performances_train, columns=self.algorithms)
+        self.test_performances = pd.DataFrame(
+            data=performances_test, columns=self.algorithms)
+        self.train_ranking = pd.DataFrame(
+            data=rankings_train, columns=self.algorithms)
+        self.test_ranking = pd.DataFrame(
+            data=rankings_test, columns=self.algorithms)
 
         print("train instances", self.train_inst)
         print("test instances", self.test_inst)
@@ -91,13 +94,14 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         print("test rankings", self.test_ranking)
 
     def test_regression(self):
+        seed = 15
         train_performances = self.train_performances
         train_features = self.train_inst
         test_performances = self.test_performances
         test_features = self.test_inst
         print(train_performances)
         melted_train_performances = pd.melt(train_performances.reset_index(
-        ), id_vars="index", value_name="performance")
+        ), id_vars="index", value_name="performance", var_name="algorithm")
         print(melted_train_performances)
         joined_train_data = train_features.join(
             melted_train_performances.set_index("index"))
@@ -107,7 +111,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         train_data = encoder.fit_transform(joined_train_data)
 
         melted_test_performances = pd.melt(test_performances.reset_index(
-        ), id_vars="index", value_name="performance")
+        ), id_vars="index", value_name="performance", var_name="algorithm")
         joined_test_data = test_features.join(
             melted_test_performances.set_index("index"))
         joined_test_data["algorithm"] = joined_test_data["algorithm"].astype(
@@ -135,6 +139,18 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         # X_test = test_data.iloc[:, :-1]
         # y_test = test_data.iloc[:, -1]
 
+        X_train = X_train.to_numpy().astype(np.float64)
+        y_train = y_train.to_numpy().astype(np.float64)
+
+        mask = y_train <= 300.0
+        timeouted_runs = ~mask
+
+        # the time at which the observation ends is actually the cutoff, not the par10
+        y_train[timeouted_runs] = 300.0
+        structured_y_train = np.rec.fromarrays([mask, y_train],
+                                               names="terminated,runtime")
+        print(structured_y_train)
+
         model = RandomSurvivalForest(n_estimators=50,
                                      max_depth=3,
                                      min_samples_split=10,
@@ -142,29 +158,65 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
                                      max_features="sqrt",
                                      n_jobs=1,
                                      random_state=seed)
-
-        mask = y_train != scenario.algorithm_cutoff_time * 10
-
-        timeouted_runs = ~mask
-
-        # the time at which the observation ends is actually the cutoff, not the par10
-        y_train[timeouted_runs] = scenario.algorithm_cutoff_time
-
-        structured_y_train = np.rec.fromarrays([mask, y_train],
-                                               names="terminated,runtime")
-
-        print(structured_y_train)
-
         print("Starting to fit model")
         model.fit(X_train, structured_y_train)
 
-        for index, row in self.test_inst.iterrows():
-            print("True Performances",
-                  self.test_performances.loc[index].values)
-            print("Predicted Performances Model 1",
-                  model1.predict_performances(row.values))
-            print("\n")
+        # evaluate model
+        result_data_rsf = []
+        for index, row in test_features.iterrows():
+            predicted_performances = []
+            # predicted_performances = [-1] * len(
+            #     test_scenario.performance_data.columns)
+            for algorithm in self.algorithms:
+                # print(algorithm)
+                temp_features = row.append(
+                    pd.Series(data=[algorithm], index=["algorithm"]))
+                features_df = pd.DataFrame([temp_features])
+                features_df["algorithm"] = features_df["algorithm"].astype(
+                    "category")
+                encoded_features = encoder.transform(features_df)
+                encoded_features[scalable_columns] = imputer.transform(
+                    encoded_features[scalable_columns])
+                encoded_features[scalable_columns] = scaler.transform(
+                    encoded_features[scalable_columns])
+                encoded_features = encoded_features.iloc[:, :-1]
+                # print("encoded features", encoded_features)
+                encoded_features_np = encoded_features.to_numpy()
+                # print("encoded features np", encoded_features_np)
+                predicted_performance = [0]
+                predicted_performance = model.predict(encoded_features_np)
+                predicted_performances.append(predicted_performance[0])
+            result_data_rsf.append(
+                [index, *predicted_performances])
 
+        performance_cols = [
+            x + "_performance" for x in self.algorithms
+        ]
+        result_columns_rsf = ["problem_instance"]
+        result_columns_rsf += performance_cols
+        results_rsf = pd.DataFrame(data=result_data_rsf,
+                                   columns=result_columns_rsf)
+        print(results_rsf)
+
+
+        taus = []
+        for index, row in self.test_performances.iterrows():
+            true_performances = row.to_numpy()
+            true_ranking = np.argsort(true_performances)
+            predicted_scores = results_rsf.loc[index].to_numpy()[1:]
+            predicted_ranking = np.argsort(predicted_scores)[::-1]
+            print("true", true_performances[true_ranking])
+            print("predicted", predicted_scores[predicted_ranking])
+            print(predicted_scores)
+            print()
+            print("argmax", np.argmax(predicted_scores))
+            print("true ranking", true_ranking)
+            print("predicted ranking", predicted_ranking)
+            print("\n")
+            # print("predicted scores", predicted_scores)
+            taus.append(kendalltau(true_ranking, predicted_ranking))
+
+        print("Average Kendalls tau", np.mean(taus))
 
 if __name__ == "__main__":
     unittest.main()

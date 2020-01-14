@@ -39,7 +39,7 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010"]
+scenarios = ["MIP-2016", "CPMP-2015", "CSP-2010", "SAT11-INDU", "SAT11-HAND", "SAT11-RAND"]
 # scenarios = ["MIP-2016"]
 
 lambda_values = [0.5]
@@ -166,6 +166,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         test_scenario, train_scenario = scenario.get_split(split)
 
         train_performances = train_scenario.performance_data
+        print(train_performances)
         train_features = train_scenario.feature_data
         # preprocessing
         imputer = SimpleImputer()
@@ -222,7 +223,6 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                 skip_value = train_performances.to_numpy().max()
             else:
                 skip_value = train_performances.to_numpy().min()
-        print("skip value", skip_value)
         inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
             train_features,
             train_performances,
@@ -230,7 +230,8 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
             seed=seed,
             order=order,
             skip_value=skip_value)
-
+        sample_weights = sample_weights / sample_weights.max()
+        print("sample weights", sample_weights)
         model = mode1 = lh.LinearHingeModel()
         model.fit_np(len(scenario.algorithms),
                      rank,

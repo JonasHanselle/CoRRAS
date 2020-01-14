@@ -89,6 +89,7 @@ for scenario_name in scenario_names:
 
     df_baseline_rf = None
     df_baseline_lr = None
+    df_baseline_sbs = None
     df_baseline_sf = None
     df_corras_nnh = None
     df_corras_hinge_linear = None
@@ -96,6 +97,9 @@ for scenario_name in scenario_names:
     df_corras_linear = None
     df_corras_quadratic = None
     try:
+        df_baseline_sbs = pd.read_csv(evaluations_path +
+                                     "sbs-" +
+                                     scenario_name + ".csv")
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
                                      scenario_name + ".csv")
@@ -141,7 +145,12 @@ for scenario_name in scenario_names:
     val_nnh = float("nan")
     val_hinge_linear = float("nan")
     val_hinge_quad = float("nan")
+    val_sbs_par10 = float("nan")
+    val_sbs_succ = float("nan")
     print(scenario_name)
+    if df_baseline_sbs is not None:
+        val_sbs_par10 = df_baseline_sbs["success_rate_sbs_par10"].iloc[0]
+        val_sbs_succ = df_baseline_sbs["success_rate_sbs_succ"].iloc[0]
     if df_baseline_rf is not None:
         val_rf = df_baseline_rf["run_status"].value_counts(
             normalize=True)["ok"]
@@ -170,13 +179,13 @@ for scenario_name in scenario_names:
         val_hinge_quad = df_corras_hinge_quadratic["run_status"].value_counts(
             normalize=True)["ok"]
     comparison_data.append([
-        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
+        scenario_name, val_sbs_par10, val_sbs_succ, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
         val_hinge_linear, val_hinge_quad, val_nnh
     ])
 
 comparison_frame = pd.DataFrame(data=comparison_data,
                                 columns=[
-                                    "Scenario", "RF", "LR", "RSF", "PL-Lin",
+                                    "Scenario", "SBS_by_PAR10", "SBS_by_Succ", "RF", "LR", "RSF", "PL-Lin",
                                     "PL-Quad", "Hinge-Lin", "Hinge-Quad",
                                     "Hinge-NN"
                                 ])
@@ -206,6 +215,9 @@ for scenario_name in scenario_names:
     df_corras_linear = None
     df_corras_quadratic = None
     try:
+        df_baseline_sbs = pd.read_csv(evaluations_path +
+                                     "sbs-" +
+                                     scenario_name + ".csv")
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
                                      scenario_name + ".csv")
@@ -268,6 +280,11 @@ for scenario_name in scenario_names:
     val_nnh = float("nan")
     val_hinge_linear = float("nan")
     val_hinge_quad = float("nan")
+    val_sbs_par10 = float("nan")
+    val_sbs_succ = float("nan")
+    if df_baseline_sbs is not None:
+        val_sbs_par10 = df_baseline_sbs["par10_sbs_par10"].mean
+        val_sbs_par10 = df_baseline_sbs["par10_sbs_succ"].mean
     if df_baseline_rf is not None:
         val_rf = df_baseline_rf["par10"].mean()
     if df_baseline_lr is not None:
@@ -312,6 +329,8 @@ for scenario_name in scenario_names:
     scenario = ASRankingScenario()
     scenario.read_scenario(scenario_path + scenario_name)
 
+    sbs = scenario.performance_data.sum().idxmin()
+
     df_baseline_rf = None
     df_baseline_lr = None
     df_baseline_sf = None
@@ -321,6 +340,9 @@ for scenario_name in scenario_names:
     df_corras_linear = None
     df_corras_quadratic = None
     try:
+        df_baseline_sbs = pd.read_csv(evaluations_path +
+                                     "sbs-" +
+                                     scenario_name + ".csv")
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
                                      scenario_name + ".csv")
@@ -382,7 +404,12 @@ for scenario_name in scenario_names:
     val_pl_linear = float("nan")
     val_pl_quad = float("nan")
     val_nnh = float("nan")
+    val_sbs_par10 = float("nan")
+    val_sbs_succ = float("nan")
     print("scenario " + scenario.scenario + " length", len(scenario.performance_data))
+    if df_baseline_sbs is not None:
+        val_sbs_par10 = df_baseline_sbs["success_rate_sbs_par10"].iloc[0]
+        val_sbs_par10 = df_baseline_sbs["success_rate_sbs_succ"].iloc[0]
     if df_baseline_rf is not None:
         if len(df_baseline_rf) == len(scenario.instances):
             val_rf = df_baseline_rf["tau_corr"].mean()
@@ -409,13 +436,13 @@ for scenario_name in scenario_names:
         print("nnh", len(df_corras_nnh))
 
     comparison_data.append([
-        scenario_name, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad, val_hinge_linear, val_hinge_quad,
+        scenario_name, val_sbs_par10, val_sbs_succ, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad, val_hinge_linear, val_hinge_quad,
         val_nnh
     ])
 
 comparison_frame = pd.DataFrame(data=comparison_data,
                                 columns=[
-                                    "Scenario", "RF", "LR", "RSF", "PL-Lin",
+                                    "Scenario", "SBS_by_PAR10", "SBS_by_Succ", "RF", "LR", "RSF", "PL-Lin",
                                     "PL-Quad", "Hinge-Lin", "Hinge-Quad",
                                     "Hinge-NN"
                                 ])
@@ -446,6 +473,9 @@ for scenario_name in scenario_names:
     df_corras_linear = None
     df_corras_quadratic = None
     try:
+        df_baseline_sbs = pd.read_csv(evaluations_path +
+                                     "sbs-" +
+                                     scenario_name + ".csv")
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
                                      scenario_name + ".csv")
@@ -509,6 +539,8 @@ for scenario_name in scenario_names:
     val_nnh = float("nan")
     val_hinge_linear = float("nan")
     val_hinge_quad = float("nan")
+    val_sbs_par10 = float("nan")
+    val_sbs_succ = float("nan")
     if df_baseline_rf is not None:
         val_rf = df_baseline_rf["tau_corr"].mean()
     if df_baseline_lr is not None:

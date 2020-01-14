@@ -31,12 +31,12 @@ db_db = sys.argv[4]
 scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
-scenario_names = [
-    "CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
-    "SAT12-ALL", "TTP-2016", "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND",
-    "SAT11-INDU", "SAT11-RAND", "SAT12-ALL"
-]
-# scenario_names = ["MIP-2016", "CPMP-2015"]
+# scenario_names = [
+#     "CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
+#     "SAT12-ALL", "TTP-2016", "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND",
+#     "SAT11-INDU", "SAT11-RAND", "SAT12-ALL"
+# ]
+scenario_names = ["MIP-2016", "CPMP-2015"]
 
 
 def compute_distance_to_vbs(predicted_performances, true_performances):
@@ -95,6 +95,10 @@ for scenario_name in scenario_names:
         baseline_ranking = baseline_df[performance_indices].loc[
             problem_instance].astype("float64").rank(
                 method="min").astype("int16").to_numpy()[::-1]
+        # print("true performances", true_performances)
+        # print("true ranking", true_ranking)
+        # print("baseline performances", baseline_performances)
+        # print("baseline ranking", baseline_ranking)
         run_stati = scenario.runstatus_data.loc[problem_instance]
         mse = mean_squared_error(true_performances, baseline_performances)
         mae = mean_absolute_error(true_performances, baseline_performances)

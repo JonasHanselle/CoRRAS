@@ -61,13 +61,13 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
     def test_regression(self):
         model1 = nn_hinge.NeuralNetworkSquaredHinge()
 
-        inst,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
+        inst,perf,rank, weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
         print(inst)
         print(perf)
         print(rank)
         # perf = perf / np.max(perf)
         rank = rank.astype("int32")
-        weights = np.ones(perf.shape[0])
+        # weights = np.ones(perf.shape[0])
         # weights = np.amin(perf, axis=1)
         # print("maxes", weights)
         # weights = -np.log(weights)

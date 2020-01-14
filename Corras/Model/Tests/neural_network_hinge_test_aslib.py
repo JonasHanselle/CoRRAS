@@ -3,11 +3,13 @@ import numpy as np
 import pandas as pd
 import Corras.Scenario.aslib_ranking_scenario as scen
 import Corras.Model.neural_net_hinge as nnh
+import Corras.Model.linear_hinge as lh
 import Corras.Util.ranking_util as util
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.impute import SimpleImputer
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 
 class NeuralNetworkHingeTest(unittest.TestCase):
 
@@ -30,20 +32,10 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         self.train_ranking = self.train_scen.performance_rankings
         self.test_ranking = self.test_scen.performance_rankings
 
-    # def test_fit(self):
-    #     model = ll.LogLinearModel()
-    #     for index, row in self.test_ranking.iterrows():
-    #         instance_values = self.test_inst.loc[index].values
-    #         print("True Performances", self.test_performances.loc[index].values)
-    #         print("Predicted Performances", model.predict_performances(instance_values))
-    #         print("\n")
-    #         print("True Ranking", self.test_ranking.loc[index].values)
-    #         print("Predicted Ranking", model.predict_ranking(instance_values))
-    #         print("\n")
-
-    def test_regression(self):
-        model1 = nnh.NeuralNetworkSquaredHinge()
-        features, performances, rankings = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(self.train_inst, self.train_performances, order="asc", skip_value=10*self.scenario.algorithm_cutoff_time)
+    def test_fit(self):
+        model1 = lh.LinearHingeModel()
+        features, performances, rankings, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
+            self.train_inst, self.train_performances, order="asc", skip_value=None)
         rankings = rankings.astype("int32")
         performances = performances / np.max(performances)
         print("raw features", features)
@@ -58,13 +50,8 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         performances_max_inv = performances_max_inv / max_inv
         max_entry = performances.max()
         scaled_perf = performances / performances.max()
-        sample_weights = np.ones(features.shape[0])
-        mins = np.amin(scaled_perf, axis=1)
-        print("mins", mins)
-        sample_weights = - np.log(mins)
-        print("weights", sample_weights)
         lambda_value = 0.5
-        model1.fit(5, rankings, features, performances, sample_weights=sample_weights,lambda_value=lambda_value,regression_loss="Squared", num_epochs=1000, log_losses=True, hidden_layer_sizes=[8,8], activation_function="tanh")
+        model1.fit_np(5, rankings, features, performances, sample_weights=sample_weights, lambda_value=lambda_value)
         for i, (index, row) in enumerate(self.train_performances.iterrows()):
             instance_values = self.train_inst.loc[index].values
             imputed_row = self.imputer.transform([instance_values])
@@ -90,6 +77,7 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         # lp = sns.lineplot(x="iteration", y="value", hue="variable", data=df)
         # plt.title(self.scenario.scenario)
         # plt.show()
+
 
 if __name__ == "__main__":
     unittest.main()
