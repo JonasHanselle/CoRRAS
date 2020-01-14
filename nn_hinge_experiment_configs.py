@@ -39,10 +39,20 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["MIP-2016"]
-lambda_values = [0.0, 0.5, 1.0]
-epsilon_values = [1.0]
-max_pairs_per_instance = 5 
+scenarios = [
+    "CPMP-2015",
+    "CSP-2010",
+    "CSP-Minizinc-Time-2016",
+    "SAT12-ALL",
+    "MIP-2016",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
+    "SAT12-ALL",
+]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+epsilon_values = [0.0, 0.1, 1.0]
+max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
@@ -51,14 +61,14 @@ batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
-layer_sizes = [[16,16], [16,16,16], [16,16,16,16]]
-activation_functions = ["relu", "tanh", "sigmoid"]
+layer_sizes_vals = [[16, 16]]
+activation_functions = ["sigmoid"]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # splits = [1]
 
 params = [scenarios, lambda_values, epsilon_values, splits, seeds,
-          learning_rates, es_intervals, es_patiences, es_val_ratios, batch_sizes, layer_sizes, activation_functions]
+          learning_rates, es_intervals, es_patiences, es_val_ratios, batch_sizes, layer_sizes_vals, activation_functions]
 
 param_product = list(product(*params))
 
