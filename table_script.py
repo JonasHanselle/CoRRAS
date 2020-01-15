@@ -238,48 +238,18 @@ for scenario_name in scenario_names:
         scenario_name, val_vbs_par10, val_sbs_par10, val_sbs_succ, val_rf, val_lr, val_sf, val_pl_linear, val_pl_quad,
         val_hinge_linear, val_hinge_quad, val_nnh
     ])
-print("succ")
 comparison_frame_succ = pd.DataFrame(data=comparison_data_succ,
                                      columns=[
                                          "Scenario", "VBS", "SBS by PAR10", "SBS by Succ", "RF", "LR", "RSF", "PL-Lin",
                                          "PL-Quad", "Hinge-Lin", "Hinge-Quad",
                                          "Hinge-NN"
                                      ])
-print("par10")
 comparison_frame_par10 = pd.DataFrame(data=comparison_data_par10,
                                       columns=[
                                           "Scenario", "VBS", "SBS by PAR10", "SBS by Succ", "RF", "LR", "RSF", "PL-Lin",
                                           "PL-Quad", "Hinge-Lin", "Hinge-Quad",
                                           "Hinge-NN"
                                       ])
-
-comparison_frame_succ_over_sbs = comparison_frame_succ
-comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
-    comparison_frame_succ.iloc[:, 2], axis=0)
-comparison_frame_par10_over_sbs = comparison_frame_par10
-comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
-    comparison_frame_par10.iloc[:, 2], axis=0)
-
-gap_numerator_succ = comparison_frame_succ.iloc[:,1:].subtract(comparison_frame_succ.iloc[:,1])
-gap_denominator_succ = comparison_frame_succ.iloc[:,2] - comparison_frame_succ.iloc[:,1]
-
-gap_numerator_par10 = comparison_frame_par10.iloc[:,1:].subtract(comparison_frame_par10.iloc[:,1])
-gap_denominator_par10 = comparison_frame_par10.iloc[:,2] -  comparison_frame_par10.iloc[:,1]
-
-comparison_frame_succ_gap = comparison_frame_succ
-comparison_frame_succ_gap.iloc[:,1:] = gap_numerator_succ.div(gap_denominator_succ, axis=0)
-
-comparison_frame_par10_gap = comparison_frame_par10
-comparison_frame_par10_gap.iloc[:,1:] = gap_numerator_par10.div(gap_denominator_par10, axis=0)
-
-
-comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
-    comparison_frame_succ.iloc[:, 2], axis=0)
-comparison_frame_par10_over_sbs = comparison_frame_par10
-comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
-    comparison_frame_par10.iloc[:, 2], axis=0)
-
-
 
 print("success rate")
 # create_latex_max(comparison_frame)
@@ -301,6 +271,34 @@ print(
                                     float_format="%.3f",
                                     formatters={"tau_corr": max_formatter},
                                     escape=False))
+
+comparison_frame_succ_over_sbs = comparison_frame_succ.copy()
+comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
+    comparison_frame_succ.iloc[:, 2], axis=0)
+comparison_frame_par10_over_sbs = comparison_frame_par10.copy()
+comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
+    comparison_frame_par10.iloc[:, 2], axis=0)
+
+# gap_numerator_succ = comparison_frame_succ.iloc[:,1:].subtract(comparison_frame_succ.iloc[:,1])
+# gap_denominator_succ = comparison_frame_succ.iloc[:,2] - comparison_frame_succ.iloc[:,1]
+
+# gap_numerator_par10 = comparison_frame_par10.iloc[:,1:].subtract(comparison_frame_par10.iloc[:,1])
+# gap_denominator_par10 = comparison_frame_par10.iloc[:,2] -  comparison_frame_par10.iloc[:,1]
+
+# comparison_frame_succ_gap = comparison_frame_succ
+# comparison_frame_succ_gap.iloc[:,1:] = gap_numerator_succ.div(gap_denominator_succ, axis=0)
+
+# comparison_frame_par10_gap = comparison_frame_par10
+# comparison_frame_par10_gap.iloc[:,1:] = gap_numerator_par10.div(gap_denominator_par10, axis=0)
+
+
+comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
+    comparison_frame_succ.iloc[:, 2], axis=0)
+comparison_frame_par10_over_sbs = comparison_frame_par10
+comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
+    comparison_frame_par10.iloc[:, 2], axis=0)
+
+
 
 print("success rate over sbs")
 # create_latex_max(comparison_frame)
@@ -326,28 +324,43 @@ print(
                                              escape=False))
 
 
-print("success rate gap")
-# create_latex_max(comparison_frame)
-print(
-    comparison_frame_succ_gap.to_latex(na_rep="-",
-                                            index=False,
-                                            bold_rows=True,
-                                            float_format="%.3f",
-                                            formatters={
-                                                "tau_corr": max_formatter},
-                                            escape=False))
+gap_numerator_succ = comparison_frame_succ.iloc[:,1:].subtract(comparison_frame_succ.iloc[:,1])
+gap_denominator_succ = comparison_frame_succ.iloc[:,2] - comparison_frame_succ.iloc[:,1]
+
+print(gap_numerator_succ)
+print(gap_denominator_succ)
+
+# gap_numerator_par10 = comparison_frame_par10.iloc[:,1:].subtract(comparison_frame_par10.iloc[:,1])
+# gap_denominator_par10 = comparison_frame_par10.iloc[:,2] -  comparison_frame_par10.iloc[:,1]
+
+# comparison_frame_succ_gap = comparison_frame_succ.copy()
+# comparison_frame_succ_gap.iloc[:,1:] = gap_numerator_succ[:,:]
+
+# comparison_frame_par10_gap = comparison_frame_par10.copy()
+# # comparison_frame_par10_gap.iloc[:,1:] = gap_numerator_par10
 
 
-print("par10 gap")
-# create_latex_max(comparison_frame)
-print(
-    comparison_frame_par10_gap.to_latex(na_rep="-",
-                                             index=False,
-                                             bold_rows=True,
-                                             float_format="%.3f",
-                                             formatters={
-                                                 "tau_corr": max_formatter},
-                                             escape=False))
+# print("success rate gap")
+# # create_latex_max(comparison_frame)
+# print(
+#     comparison_frame_succ_gap.to_latex(na_rep="-",
+#                                             index=False,
+#                                             bold_rows=True,
+#                                             float_format="%.3f",
+#                                             formatters={
+#                                                 "tau_corr": max_formatter},
+#                                             escape=False))
+
+# print("par10 gap")
+# # create_latex_max(comparison_frame)
+# print(
+#     comparison_frame_par10_gap.to_latex(na_rep="-",
+#                                              index=False,
+#                                              bold_rows=True,
+#                                              float_format="%.3f",
+#                                              formatters={
+#                                                  "tau_corr": max_formatter},
+#                                              escape=False))
 
 
 comparison_data_tau = []

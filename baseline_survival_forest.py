@@ -42,7 +42,7 @@ num_splits = 10
 result_data_corras = []
 baselines = None
 
-scenarios = ["CPMP-2015"]
+scenarios = ["MIP-2016"]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 for scenario_name in scenarios:
@@ -53,7 +53,7 @@ for scenario_name in scenarios:
 
         # scenario.create_cv_splits(n_folds=num_splits)
 
-        table_name = "baseline_random_survival_forest-" + scenario.scenario
+        table_name = "baseline_random_survival_forest-temp-" + scenario.scenario
 
         for i_split in splits:
 
@@ -103,8 +103,8 @@ for scenario_name in scenarios:
             # X_test = test_data.iloc[:, :-1]
             # y_test = test_data.iloc[:, -1]
 
-            model = RandomSurvivalForest(n_estimators=50,
-                                        max_depth=3,
+            model = RandomSurvivalForest(n_estimators=1000,
+                                        max_depth=5,
                                          min_samples_split=10,
                                          min_samples_leaf=15,
                                          max_features="sqrt",
@@ -116,7 +116,7 @@ for scenario_name in scenarios:
             timeouted_runs = ~mask
 
             # the time at which the observation ends is actually the cutoff, not the par10
-            y_train[timeouted_runs] = scenario.algorithm_cutoff_time
+            y_train[timeouted_runs] = scenario.algorithm_cutoff_time * 10
 
             structured_y_train = np.rec.fromarrays([mask, y_train],
                                                    names="terminated,runtime")
@@ -167,11 +167,11 @@ for scenario_name in scenarios:
                                    columns=result_columns_rsf)
         results_rsf.to_csv(result_path + "rsf-" + scenario.scenario + ".csv",
                            index_label="id")
-        # engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-        #                            db_url + "/" + db_db,
-        #                            echo=False)
-        # connection = engine.connect()
-        # results_rsf.to_sql(name=table_name, con=connection)
-        # connection.close()
+        engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
+                                   db_url + "/" + db_db,
+                                   echo=False)
+        connection = engine.connect()
+        results_rsf.to_sql(name=table_name, con=connection)
+        connection.close()
     except Exception as exc:
         print("Something went wrong during computation. Message: " + str(exc))
