@@ -77,7 +77,7 @@ class LinearHingeModel:
             w = np.reshape(w, (num_labels, num_features))
             squared_error = 0
             hinge_loss = 0
-            for cur_labels, cur_features, cur_performances, sample_weight in zip(labels,feature_values,performances, sample_weights):
+            for cur_labels, cur_features, cur_performances, sample_weight in zip(labels,feature_values, performances, sample_weights):
                 y_hats = np.dot(w[[cur_labels-1]],cur_features)
                 squared_error = squared_error + sample_weight * np.sum(np.square(y_hats-cur_performances))
                 hinge_loss = hinge_loss + max(0, epsilon_value - (y_hats[1] - y_hats[0]))**2

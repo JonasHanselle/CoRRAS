@@ -89,18 +89,15 @@ class TestLinearHingeSynthetic(unittest.TestCase):
     def test_regression(self):
         model1 = lh.LinearHingeModel()
 
-        inst,perf,rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
+        inst,perf,rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(self.train_inst,self.train_performances,max_pairs_per_instance=15,seed=15)
         print(inst)
         print(perf)
         print(rank)
         max_entry = perf.max()
         scaled_perf = perf / perf.max()
-        sample_weights = np.ones(inst.shape[0])
-        mins = np.amin(scaled_perf, axis=1)
-        print("mins", mins)
-        sample_weights = - np.log(mins)
-        print("weights", sample_weights)
-        model1.fit_np(5, rank, inst, perf, sample_weights=sample_weights, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=250, log_losses=False, reg_param=0.1)
+        # print(sample_weights)
+        sample_weights = sample_weights / sample_weights.max()
+        model1.fit_np(5, rank, inst, perf, sample_weights=sample_weights, lambda_value=0.5, epsilon_value=1, regression_loss="Squared", maxiter=250, log_losses=False, reg_param=0.01)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances", self.test_performances.loc[index].values)

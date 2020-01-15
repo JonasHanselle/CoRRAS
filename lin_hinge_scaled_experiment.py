@@ -39,7 +39,7 @@ shard_number = int(sys.argv[2])
 # db_pw = urllib.parse.quote_plus(sys.argv[5])
 # db_db = sys.argv[6]
 
-scenarios = ["MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010"]
+scenarios = ["MIP-2016", "CPMP-2015", "CSP-2010", "SAT11-INDU", "SAT11-HAND", "SAT11-RAND"]
 # scenarios = ["MIP-2016"]
 
 lambda_values = [0.5]
