@@ -21,6 +21,9 @@ from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_uni
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# sksurv
+from sksurv.ensemble import RandomSurvivalForest
+
 sns.set_style("darkgrid")
 
 
@@ -40,9 +43,19 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["MIP-2016"]
-lambda_values = [0.0, 0.5, 1.0]
-epsilon_values = [1.0]
+scenarios = [
+    "CPMP-2015",
+    "CSP-2010",
+    "CSP-Minizinc-Time-2016",
+    "SAT12-ALL",
+    "MIP-2016",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
+    "SAT12-ALL",
+]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+epsilon_values = [0.0, 0.1, 1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -52,8 +65,18 @@ batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
-layer_sizes_vals = [[16, 16], [16, 16, 16], [16, 16, 16, 16]]
-activation_functions = ["relu", "tanh", "sigmoid"]
+layer_sizes_vals = [[16, 16]]
+activation_functions = ["sigmoid"]
+
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+learning_rates = [0.001]
+batch_sizes = [128]
+es_patiences = [64]
+es_intervals = [8]
+es_val_ratios = [0.3]
+layer_sizes_vals = [[16, 16]]
+activation_functions = ["sigmoid"]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # splits = [1]
@@ -187,14 +210,14 @@ for scenario_name in scenarios:
                 par10_with_feature_cost, run_status
             ])
             # print(corras_measures)
-    df_corras = pd.DataFrame(data=corras_measures,
-                             columns=[
-                                 "split", "seed", "problem_instance", "lambda",
-                                 "epsilon", "learning_rate", "es_interval",
-                                 "es_patience", "es_val_ratio", "batch_size", "layer_sizes", "activation_function",
-                                 "tau_corr", "tau_p", "ndcg", "mse", "mae",
-                                 "abs_distance_to_vbs", "par10",
-                                 "par10_with_feature_cost", "run_status"
-                             ])
+    df_corras = pd.DataFrame(
+        data=corras_measures,
+        columns=[
+            "split", "seed", "problem_instance", "lambda", "epsilon",
+            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
+            "batch_size", "layer_sizes", "activation_function", "tau_corr",
+            "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs", "par10",
+            "par10_with_feature_cost", "run_status"
+        ])
     df_corras.to_csv(evaluations_path + "corras-hinge-nn-" + scenario_name +
-                     "-short.csv")
+                     "-config-test.csv")
