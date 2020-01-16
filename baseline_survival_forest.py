@@ -37,7 +37,7 @@ result_path = "./results/"
 # db_db = sys.argv[4]
 
 # max_rankings_per_instance = 5
-seed = 15
+seed = 1
 num_splits = 10
 result_data_corras = []
 baselines = None
@@ -65,31 +65,32 @@ for scenario_name in scenarios:
 
             test_performances = test_scenario.performance_data
             test_features = test_scenario.feature_data
+            dataset = []
+            indices = []
+            for inst_index, row in train_performances.iterrows():
+                for alg_index, algorithm in enumerate(scenario.algorithms):
+                    cur_features = scenario.feature_data.loc[inst_index]
+                    alg_enc = len(scenario.algorithms) * [0]
+                    alg_enc[alg_index] = 1
+                    alg_one_hot = pd.Series(alg_enc, index=scenario.algorithms)
+                    cur_performance = row.loc[algorithm]
+                    new_row = cur_features.append(alg_one_hot).append(
+                        pd.Series(data=[cur_performance],
+                                  index=["performance"]))
+                    dataset.append(new_row)
+                    indices.append(inst_index)
 
-            print(train_performances)
-            melted_train_performances = pd.melt(train_performances.reset_index(
-            ), id_vars="instance_id", value_name="performance")
-            joined_train_data = train_features.join(
-                melted_train_performances.set_index("instance_id"))
-            joined_train_data["algorithm"] = joined_train_data["algorithm"].astype(
-                "category")
-            encoder = OneHotEncoder()
-            train_data = encoder.fit_transform(joined_train_data)
-
-            melted_test_performances = pd.melt(test_performances.reset_index(
-            ), id_vars="instance_id", value_name="performance")
-            joined_test_data = test_features.join(
-                melted_test_performances.set_index("instance_id"))
-            joined_test_data["algorithm"] = joined_test_data["algorithm"].astype(
-                "category")
-            test_data = encoder.transform(joined_test_data)
+            train_data = pd.DataFrame(dataset, index=indices)
+            print(train_data)
 
             # preprocessing
             imputer = SimpleImputer()
             scaler = StandardScaler()
 
-            scalable_columns = [col for (i, col) in enumerate(
-                train_data.columns) if "algorithm=" not in col and "performance" not in col]
+            scalable_columns = [
+                col for (i, col) in enumerate(train_data.columns)
+                if "algorithm=" not in col and "performance" not in col
+            ]
 
             train_data[scalable_columns] = imputer.fit_transform(
                 train_data[scalable_columns])
@@ -104,11 +105,10 @@ for scenario_name in scenarios:
             # y_test = test_data.iloc[:, -1]
 
             model = RandomSurvivalForest(n_estimators=1000,
-                                        max_depth=5,
                                          min_samples_split=10,
                                          min_samples_leaf=15,
                                          max_features="sqrt",
-                                         n_jobs=1,
+                                         n_jobs=-1,
                                          random_state=seed)
 
             mask = y_train != scenario.algorithm_cutoff_time * 10
@@ -131,32 +131,23 @@ for scenario_name in scenarios:
 
             # predictions = model.predict(X_test)
             # print("predictions", predictions)
-
+            result_data_rsf = []
             for index, row in test_scenario.feature_data.iterrows():
                 predicted_performances = []
                 # predicted_performances = [-1] * len(
                 #     test_scenario.performance_data.columns)
-                for algorithm in scenario.algorithms:
-                    print(algorithm)
-                    temp_features = row.append(
-                        pd.Series(data=[algorithm], index=["algorithm"]))
-                    features_df = pd.DataFrame([temp_features])
-                    features_df["algorithm"] = features_df["algorithm"].astype(
-                        "category")
-                    encoded_features = encoder.transform(features_df)
-                    encoded_features[scalable_columns] = imputer.transform(
-                        encoded_features[scalable_columns])
-                    encoded_features[scalable_columns] = scaler.transform(
-                        encoded_features[scalable_columns])
-                    encoded_features = encoded_features.iloc[:,:-1]
-                    print("encoded features", encoded_features)
-                    encoded_features_np = encoded_features.to_numpy()
-                    print("encoded features np", encoded_features_np)
-                    predicted_performance = [0]
-                    predicted_performance = model.predict(encoded_features_np)
+                for alg_index, algorithm in enumerate(scenario.algorithms):
+                    # print(algorithm)
+                    cur_features = row
+                    alg_enc = len(scenario.algorithms) * [0]
+                    alg_enc[alg_index] = 1
+                    alg_one_hot = pd.Series(alg_enc, index=scenario.algorithms)
+                    new_row = cur_features.append(alg_one_hot)
+                    new_row_np = new_row.to_numpy().astype(np.float64).reshape(
+                        1, -1)
+                    predicted_performance = model.predict(new_row_np)
                     predicted_performances.append(predicted_performance[0])
-                result_data_rsf.append(
-                    [i_split, index, *predicted_performances])
+                result_data_rsf.append([index, *predicted_performances])
 
         performance_cols = [
             x + "_performance" for x in scenario.performance_data.columns
