@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
@@ -51,11 +52,13 @@ def create_latex_max(df: pd.DataFrame, decimal_format="{:10.3f}"):
     for index, row in df.iterrows():
         result += row[0] + " & " + " & ".join([
             "\\textbf{" + decimal_format.format(x) +
-            "}" if x == np.nanmax(row[1:]) else decimal_format.format(x)
+            "}" if x == np.nanmax(row[2:]) else decimal_format.format(x)
             for x in row[1:]
         ]) + " \\\\ \n"
     result += "\\toprule \n"
     result += "\\end{tabular} \n"
+
+    result = result.replace("nan", "-")
     print(result)
 
 
@@ -67,11 +70,12 @@ def create_latex_min(df: pd.DataFrame, decimal_format="{:10.3f}"):
     for index, row in df.iterrows():
         result += row[0] + " & " + " & ".join([
             "\\textbf{" + decimal_format.format(x) +
-            "}" if x == np.nanmin(row[1:]) else decimal_format.format(x)
+            "}" if x == np.nanmin(row[2:]) else decimal_format.format(x)
             for x in row[1:]
         ]) + " \\\\ \n"
     result += "\\toprule \n"
     result += "\\end{tabular} \n"
+    result = result.replace("nan", "-")
     print(result)
 
 
@@ -252,25 +256,25 @@ comparison_frame_par10 = pd.DataFrame(data=comparison_data_par10,
                                       ])
 
 print("success rate")
-# create_latex_max(comparison_frame)
-print(
-    comparison_frame_succ.to_latex(na_rep="-",
-                                   index=False,
-                                   bold_rows=True,
-                                   float_format="%.3f",
-                                   formatters={"tau_corr": max_formatter},
-                                   escape=False))
+create_latex_max(comparison_frame_succ)
+# print(
+#     comparison_frame_succ.to_latex(na_rep="-",
+#                                    index=False,
+#                                    bold_rows=True,
+#                                    float_format="%.3f",
+#                                    formatters={"tau_corr": max_formatter},
+#                                    escape=False))
 
 
 print("par10")
-# create_latex_max(comparison_frame)
-print(
-    comparison_frame_par10.to_latex(na_rep="-",
-                                    index=False,
-                                    bold_rows=True,
-                                    float_format="%.3f",
-                                    formatters={"tau_corr": max_formatter},
-                                    escape=False))
+create_latex_min(comparison_frame_par10)
+# print(
+#     comparison_frame_par10.to_latex(na_rep="-",
+#                                     index=False,
+#                                     bold_rows=True,
+#                                     float_format="%.3f",
+#                                     formatters={"tau_corr": max_formatter},
+#                                     escape=False))
 
 comparison_frame_succ_over_sbs = comparison_frame_succ.copy()
 comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
@@ -279,56 +283,92 @@ comparison_frame_par10_over_sbs = comparison_frame_par10.copy()
 comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
     comparison_frame_par10.iloc[:, 2], axis=0)
 
-# gap_numerator_succ = comparison_frame_succ.iloc[:,1:].subtract(comparison_frame_succ.iloc[:,1])
-# gap_denominator_succ = comparison_frame_succ.iloc[:,2] - comparison_frame_succ.iloc[:,1]
-
-# gap_numerator_par10 = comparison_frame_par10.iloc[:,1:].subtract(comparison_frame_par10.iloc[:,1])
-# gap_denominator_par10 = comparison_frame_par10.iloc[:,2] -  comparison_frame_par10.iloc[:,1]
-
-# comparison_frame_succ_gap = comparison_frame_succ
-# comparison_frame_succ_gap.iloc[:,1:] = gap_numerator_succ.div(gap_denominator_succ, axis=0)
-
-# comparison_frame_par10_gap = comparison_frame_par10
-# comparison_frame_par10_gap.iloc[:,1:] = gap_numerator_par10.div(gap_denominator_par10, axis=0)
-
-
-comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
-    comparison_frame_succ.iloc[:, 2], axis=0)
-comparison_frame_par10_over_sbs = comparison_frame_par10
-comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
-    comparison_frame_par10.iloc[:, 2], axis=0)
-
+# comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
+#     comparison_frame_succ.iloc[:, 2], axis=0)
+# comparison_frame_par10_over_sbs = comparison_frame_par10.copy()
+# comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
+#     comparison_frame_par10.iloc[:, 2], axis=0)
 
 
 print("success rate over sbs")
-# create_latex_max(comparison_frame)
-print(
-    comparison_frame_succ_over_sbs.to_latex(na_rep="-",
-                                            index=False,
-                                            bold_rows=True,
-                                            float_format="%.3f",
-                                            formatters={
-                                                "tau_corr": max_formatter},
-                                            escape=False))
+create_latex_max(comparison_frame_succ_over_sbs)
+# print(
+#     comparison_frame_succ_over_sbs.to_latex(na_rep="-",
+#                                             index=False,
+#                                             bold_rows=True,
+#                                             float_format="%.3f",
+#                                             formatters={
+#                                                 "tau_corr": max_formatter},
+#                                             escape=False))
 
 
 print("par10 over sbs")
-# create_latex_max(comparison_frame)
-print(
-    comparison_frame_par10_over_sbs.to_latex(na_rep="-",
-                                             index=False,
-                                             bold_rows=True,
-                                             float_format="%.3f",
-                                             formatters={
-                                                 "tau_corr": max_formatter},
-                                             escape=False))
+create_latex_min(comparison_frame_par10_over_sbs)
+# print(
+#     comparison_frame_par10_over_sbs.to_latex(na_rep="-",
+#                                              index=False,
+#                                              bold_rows=True,
+#                                              float_format="%.3f",
+#                                              formatters={
+#                                                  "tau_corr": max_formatter},
+#                                              escape=False))
+
+comparison_frame_sbs_over_succ = comparison_frame_succ_over_sbs.copy()
+comparison_frame_sbs_over_par10 = comparison_frame_par10_over_sbs.copy()
+
+comparison_frame_sbs_over_succ.iloc[:, 1:] = 1 / \
+    comparison_frame_succ_over_sbs.iloc[:, 1:]
+comparison_frame_sbs_over_par10.iloc[:, 1:] = 1 / \
+    comparison_frame_par10_over_sbs.iloc[:, 1:]
+
+print("sbs over success rate")
+create_latex_min(comparison_frame_sbs_over_succ)
+# print(
+#     comparison_frame_sbs_over_succ.to_latex(na_rep="-",
+#                                             index=False,
+#                                             bold_rows=True,
+#                                             float_format="%.3f",
+#                                             formatters={
+#                                                 "tau_corr": max_formatter},
+#                                             escape=False))
 
 
-gap_numerator_succ = comparison_frame_succ.iloc[:,1:].subtract(comparison_frame_succ.iloc[:,1])
-gap_denominator_succ = comparison_frame_succ.iloc[:,2] - comparison_frame_succ.iloc[:,1]
+print("sbs over par10")
+create_latex_max(comparison_frame_sbs_over_par10)
+# print(
+#     comparison_frame_sbs_over_par10.to_latex(na_rep="-",
+#                                              index=False,
+#                                              bold_rows=True,
+#                                              float_format="%.3f",
+#                                              formatters={
+#                                                  "tau_corr": max_formatter},
+#                                              escape=False))
+
+
+gap_numerator_succ = comparison_frame_succ.iloc[:, 1:].subtract(
+    comparison_frame_succ.iloc[:, 1], axis=0)
+gap_denominator_succ = comparison_frame_succ.iloc[:,
+                                                  2] - comparison_frame_succ.iloc[:, 1]
+
+gap_numerator_par10 = comparison_frame_par10.iloc[:, 1:].subtract(
+    comparison_frame_par10.iloc[:, 1], axis=0)
+gap_denominator_par10 = comparison_frame_par10.iloc[:,
+                                                  2] - comparison_frame_par10.iloc[:, 1]
 
 print(gap_numerator_succ)
 print(gap_denominator_succ)
+
+sbs_vbs_gap_succ = comparison_frame_succ.copy()
+
+sbs_vbs_gap_par10 = comparison_frame_par10.copy()
+
+sbs_vbs_gap_succ.iloc[:,1:] = gap_numerator_succ.div(gap_denominator_succ, axis=0)
+sbs_vbs_gap_par10.iloc[:,1:] = gap_numerator_par10.div(gap_denominator_par10, axis=0)
+
+print("gap succ")
+create_latex_min(sbs_vbs_gap_succ)
+print("gap par10")
+create_latex_min(sbs_vbs_gap_par10)
 
 # gap_numerator_par10 = comparison_frame_par10.iloc[:,1:].subtract(comparison_frame_par10.iloc[:,1])
 # gap_denominator_par10 = comparison_frame_par10.iloc[:,2] -  comparison_frame_par10.iloc[:,1]
@@ -475,9 +515,10 @@ comparison_frame_tau = pd.DataFrame(data=comparison_data_tau,
                                     ])
 
 print("tau_corr")
-print(comparison_frame_tau.to_latex(na_rep="-",
-                                    index=False,
-                                    bold_rows=True,
-                                    float_format="%.3f",
-                                    formatters={"tau_corr": max_formatter},
-                                    escape=False))
+create_latex_max(comparison_frame_tau)
+# print(comparison_frame_tau.to_latex(na_rep="-",
+#                                     index=False,
+#                                     bold_rows=True,
+#                                     float_format="%.3f",
+#                                     formatters={"tau_corr": max_formatter},
+#                                     escape=False))

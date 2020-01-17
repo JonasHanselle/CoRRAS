@@ -24,7 +24,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super(TestNeuralNetworkHingeSynthetic, self).__init__(*args, **kwargs)
-        self.train_size = 250
+        self.train_size = 2500
         self.test_size = 10
         self.noise_factor = 0.0
         features_train = np.asarray(onp.random.randint(
