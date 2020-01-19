@@ -1,0 +1,331 @@
+vbs par10 9186.440565003333
+vbs succ 0.82
+SAT11-RAND
+SAT11-RAND
+vbs par10 281.5183486238532
+vbs succ 1.0
+MIP-2016
+MIP-2016
+vbs par10 6344.2512066151185
+vbs succ 0.875
+CSP-2010
+CSP-2010
+vbs par10 8187.517818206667
+vbs succ 0.8433333333333334
+[Errno 2] File b'./evaluations/corras-pl-log-linear-SAT11-INDU-new.csv' does not exist: b'./evaluations/corras-pl-log-linear-SAT11-INDU-new.csv'
+SAT11-INDU
+SAT11-INDU
+vbs par10 13360.663938570946
+vbs succ 0.7398648648648649
+SAT11-HAND
+SAT11-HAND
+vbs par10 227.60476850094875
+vbs succ 1.0
+[Errno 2] File b'./evaluations/corras-pl-log-linear-CPMP-2015-new.csv' does not exist: b'./evaluations/corras-pl-log-linear-CPMP-2015-new.csv'
+CPMP-2015
+CPMP-2015
+vbs par10 1209.3294545454546
+vbs succ 0.9333333333333333
+[Errno 2] File b'./evaluations/baseline-evaluation-linear_regressionQBF-2016.csv' does not exist: b'./evaluations/baseline-evaluation-linear_regressionQBF-2016.csv'
+QBF-2016
+QBF-2016
+vbs par10 241.317614622057
+vbs succ 0.9876084262701363
+[Errno 2] File b'./evaluations/baseline-evaluation-survival-forest-fixed-SAT12-ALL.csv' does not exist: b'./evaluations/baseline-evaluation-survival-forest-fixed-SAT12-ALL.csv'
+SAT12-ALL
+SAT12-ALL
+vbs par10 2629.888015873016
+vbs succ 0.8587301587301587
+[Errno 2] File b'./evaluations-nnh-config/corras-hinge-nn-MAXSAT-WPMS-2016-config-test.csv' does not exist: b'./evaluations-nnh-config/corras-hinge-nn-MAXSAT-WPMS-2016-config-test.csv'
+MAXSAT-WPMS-2016
+MAXSAT-WPMS-2016
+vbs par10 1383.1956572379368
+vbs succ 0.9251247920133111
+[Errno 2] File b'./evaluations/baseline-evaluation-survival-forest-fixed-MAXSAT-PMS-2016.csv' does not exist: b'./evaluations/baseline-evaluation-survival-forest-fixed-MAXSAT-PMS-2016.csv'
+MAXSAT-PMS-2016
+MAXSAT-PMS-2016
+vbs par10 2061.80244
+vbs succ 0.83
+[Errno 2] File b'./evaluations/corras-pl-log-linear-CSP-Minizinc-Time-2016-new.csv' does not exist: b'./evaluations/corras-pl-log-linear-CSP-Minizinc-Time-2016-new.csv'
+CSP-Minizinc-Time-2016
+CSP-Minizinc-Time-2016
+success rate
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &      0.820 &      0.533 &      0.533 & \textbf{     0.807} &      0.770 &      0.788 &      0.765 &      0.772 &        - &        - &      0.745 \\ 
+MIP-2016 &      1.000 &      0.952 &      0.952 &      0.950 &      0.876 &      0.784 & \textbf{     0.968} &      0.940 &        - &        - &      0.963 \\ 
+CSP-2010 &      0.875 &      0.862 &      0.862 & \textbf{     0.872} &      0.868 &      0.868 &      0.870 & \textbf{     0.872} &        - &        - &      0.871 \\ 
+SAT11-INDU &      0.843 &      0.633 &      0.633 & \textbf{     0.760} &      0.740 &      0.667 &        - &        - &        - &        - &      0.690 \\ 
+SAT11-HAND &      0.740 &      0.517 &      0.517 &      0.618 &      0.598 &      0.470 &      0.618 & \textbf{     0.622} &        - &        - &      0.608 \\ 
+CPMP-2015 &      1.000 &      0.769 &      0.769 &      0.854 &      0.850 & \textbf{     0.867} &        - &        - &        - &        - &      0.852 \\ 
+QBF-2016 &      0.933 & \textbf{     0.817} & \textbf{     0.817} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &      0.988 &      0.758 &      0.758 &        - & \textbf{     0.893} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &      0.859 &      0.778 &      0.778 & \textbf{     0.838} &      0.803 &      0.824 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &      0.925 &      0.883 &      0.883 &        - & \textbf{     0.902} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &      0.830 &      0.700 &      0.700 & \textbf{     0.780} &      0.540 &      0.750 &        - &        - &        - &        - &      0.680 \\ 
+\toprule 
+\end{tabular} 
+
+par10
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &   9186.441 &  23445.318 &  23445.318 & \textbf{  9899.423} &  11695.211 &  10718.824 &  11912.712 &  11551.719 &        - &        - &  12895.803 \\ 
+MIP-2016 &    281.518 &   3677.429 &   3677.429 &   3949.087 &   9245.995 &  15876.404 & \textbf{  2690.702} &   4613.734 &        - &        - &   2965.252 \\ 
+CSP-2010 &   6344.251 &   7022.279 &   7022.279 &   6495.904 &   6690.414 &   6677.349 &   6583.513 & \textbf{  6486.556} &        - &        - &   6537.450 \\ 
+SAT11-INDU &   8187.518 &  18502.279 &  18502.279 & \textbf{ 12491.123} &  13544.294 &  17068.294 &        - &        - &        - &        - &  15904.184 \\ 
+SAT11-HAND &  13360.664 &  24512.889 &  24512.889 &  19416.265 &  20439.578 &  26593.002 &  19433.752 & \textbf{ 19265.073} &        - &        - &  19924.845 \\ 
+CPMP-2015 &    227.605 &   8674.525 &   8674.525 &   5482.001 &   5616.964 & \textbf{  5007.036} &        - &        - &        - &        - &   5552.664 \\ 
+QBF-2016 &   1209.329 & \textbf{  3317.948} & \textbf{  3317.948} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &    241.318 &   3008.708 &   3008.708 &        - & \textbf{  1400.957} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &   2629.888 &   4113.763 &   4113.763 & \textbf{  3014.116} &   3640.118 &   3259.746 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &   1383.196 &   2190.086 &   2190.086 &        - & \textbf{  1833.983} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &   2061.802 &   3600.917 &   3600.917 & \textbf{  2666.260} &   5583.821 &   3020.341 &        - &        - &        - &        - &   3875.470 \\ 
+\toprule 
+\end{tabular} 
+
+success rate over sbs
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &      1.537 &      1.000 &      1.000 & \textbf{     1.512} &      1.444 &      1.478 &      1.434 &      1.448 &        - &        - &      1.397 \\ 
+MIP-2016 &      1.050 &      1.000 &      1.000 &      0.997 &      0.920 &      0.824 & \textbf{     1.016} &      0.987 &        - &        - &      1.011 \\ 
+CSP-2010 &      1.015 &      1.000 &      1.000 & \textbf{     1.012} &      1.007 &      1.007 &      1.009 & \textbf{     1.012} &        - &        - &      1.010 \\ 
+SAT11-INDU &      1.332 &      1.000 &      1.000 & \textbf{     1.200} &      1.168 &      1.053 &        - &        - &        - &        - &      1.089 \\ 
+SAT11-HAND &      1.430 &      1.000 &      1.000 &      1.195 &      1.156 &      0.908 &      1.195 & \textbf{     1.202} &        - &        - &      1.176 \\ 
+CPMP-2015 &      1.300 &      1.000 &      1.000 &      1.110 &      1.105 & \textbf{     1.127} &        - &        - &        - &        - &      1.108 \\ 
+QBF-2016 &      1.142 & \textbf{     1.000} & \textbf{     1.000} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &      1.303 &      1.000 &      1.000 &        - & \textbf{     1.179} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &      1.104 &      1.000 &      1.000 & \textbf{     1.078} &      1.033 &      1.059 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &      1.047 &      1.000 &      1.000 &        - & \textbf{     1.021} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &      1.186 &      1.000 &      1.000 & \textbf{     1.114} &      0.771 &      1.071 &        - &        - &        - &        - &      0.971 \\ 
+\toprule 
+\end{tabular} 
+
+par10 over sbs
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &      0.392 &      1.000 &      1.000 & \textbf{     0.422} &      0.499 &      0.457 &      0.508 &      0.493 &        - &        - &      0.550 \\ 
+MIP-2016 &      0.077 &      1.000 &      1.000 &      1.074 &      2.514 &      4.317 & \textbf{     0.732} &      1.255 &        - &        - &      0.806 \\ 
+CSP-2010 &      0.903 &      1.000 &      1.000 &      0.925 &      0.953 &      0.951 &      0.938 & \textbf{     0.924} &        - &        - &      0.931 \\ 
+SAT11-INDU &      0.443 &      1.000 &      1.000 & \textbf{     0.675} &      0.732 &      0.922 &        - &        - &        - &        - &      0.860 \\ 
+SAT11-HAND &      0.545 &      1.000 &      1.000 &      0.792 &      0.834 &      1.085 &      0.793 & \textbf{     0.786} &        - &        - &      0.813 \\ 
+CPMP-2015 &      0.026 &      1.000 &      1.000 &      0.632 &      0.648 & \textbf{     0.577} &        - &        - &        - &        - &      0.640 \\ 
+QBF-2016 &      0.364 & \textbf{     1.000} & \textbf{     1.000} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &      0.080 &      1.000 &      1.000 &        - & \textbf{     0.466} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &      0.639 &      1.000 &      1.000 & \textbf{     0.733} &      0.885 &      0.792 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &      0.632 &      1.000 &      1.000 &        - & \textbf{     0.837} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &      0.573 &      1.000 &      1.000 & \textbf{     0.740} &      1.551 &      0.839 &        - &        - &        - &        - &      1.076 \\ 
+\toprule 
+\end{tabular} 
+
+sbs over success rate
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &      0.650 &      1.000 &      1.000 & \textbf{     0.661} &      0.693 &      0.677 &      0.697 &      0.691 &        - &        - &      0.716 \\ 
+MIP-2016 &      0.952 &      1.000 &      1.000 &      1.003 &      1.087 &      1.214 & \textbf{     0.984} &      1.013 &        - &        - &      0.989 \\ 
+CSP-2010 &      0.985 &      1.000 &      1.000 & \textbf{     0.989} &      0.993 &      0.993 &      0.991 & \textbf{     0.989} &        - &        - &      0.990 \\ 
+SAT11-INDU &      0.751 &      1.000 &      1.000 & \textbf{     0.833} &      0.856 &      0.950 &        - &        - &        - &        - &      0.918 \\ 
+SAT11-HAND &      0.699 &      1.000 &      1.000 &      0.837 &      0.865 &      1.101 &      0.837 & \textbf{     0.832} &        - &        - &      0.851 \\ 
+CPMP-2015 &      0.769 &      1.000 &      1.000 &      0.901 &      0.905 & \textbf{     0.887} &        - &        - &        - &        - &      0.903 \\ 
+QBF-2016 &      0.875 & \textbf{     1.000} & \textbf{     1.000} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &      0.767 &      1.000 &      1.000 &        - & \textbf{     0.848} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &      0.906 &      1.000 &      1.000 & \textbf{     0.928} &      0.968 &      0.944 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &      0.955 &      1.000 &      1.000 &        - & \textbf{     0.979} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &      0.843 &      1.000 &      1.000 & \textbf{     0.897} &      1.296 &      0.933 &        - &        - &        - &        - &      1.029 \\ 
+\toprule 
+\end{tabular} 
+
+sbs over par10
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &      2.552 &      1.000 &      1.000 & \textbf{     2.368} &      2.005 &      2.187 &      1.968 &      2.030 &        - &        - &      1.818 \\ 
+MIP-2016 &     13.063 &      1.000 &      1.000 &      0.931 &      0.398 &      0.232 & \textbf{     1.367} &      0.797 &        - &        - &      1.240 \\ 
+CSP-2010 &      1.107 &      1.000 &      1.000 &      1.081 &      1.050 &      1.052 &      1.067 & \textbf{     1.083} &        - &        - &      1.074 \\ 
+SAT11-INDU &      2.260 &      1.000 &      1.000 & \textbf{     1.481} &      1.366 &      1.084 &        - &        - &        - &        - &      1.163 \\ 
+SAT11-HAND &      1.835 &      1.000 &      1.000 &      1.262 &      1.199 &      0.922 &      1.261 & \textbf{     1.272} &        - &        - &      1.230 \\ 
+CPMP-2015 &     38.112 &      1.000 &      1.000 &      1.582 &      1.544 & \textbf{     1.732} &        - &        - &        - &        - &      1.562 \\ 
+QBF-2016 &      2.744 & \textbf{     1.000} & \textbf{     1.000} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &     12.468 &      1.000 &      1.000 &        - & \textbf{     2.148} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &      1.564 &      1.000 &      1.000 & \textbf{     1.365} &      1.130 &      1.262 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &      1.583 &      1.000 &      1.000 &        - & \textbf{     1.194} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &      1.746 &      1.000 &      1.000 & \textbf{     1.351} &      0.645 &      1.192 &        - &        - &        - &        - &      0.929 \\ 
+\toprule 
+\end{tabular} 
+
+    VBS  SBS by PAR10  SBS by Succ  ...  Hinge-Lin  Hinge-Quad  Hinge-NN
+0   0.0     -0.286667    -0.286667  ...        NaN         NaN -0.075000
+1   0.0     -0.047619    -0.047619  ...        NaN         NaN -0.036697
+2   0.0     -0.012931    -0.012931  ...        NaN         NaN -0.003953
+3   0.0     -0.210000    -0.210000  ...        NaN         NaN -0.153333
+4   0.0     -0.222623    -0.222623  ...        NaN         NaN -0.131757
+5   0.0     -0.230769    -0.230769  ...        NaN         NaN -0.148008
+6   0.0     -0.116260    -0.116260  ...        NaN         NaN       NaN
+7   0.0     -0.229844    -0.229844  ...        NaN         NaN       NaN
+8   0.0     -0.080952    -0.080952  ...        NaN         NaN       NaN
+9   0.0     -0.041791    -0.041791  ...        NaN         NaN       NaN
+10  0.0     -0.130000    -0.130000  ...        NaN         NaN -0.150000
+
+[11 rows x 11 columns]
+0    -0.286667
+1    -0.047619
+2    -0.012931
+3    -0.210000
+4    -0.222623
+5    -0.230769
+6    -0.116260
+7    -0.229844
+8    -0.080952
+9    -0.041791
+10   -0.130000
+dtype: float64
+gap succ
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &     -0.000 &      1.000 &      1.000 & \textbf{     0.047} &      0.174 &      0.110 &      0.193 &      0.167 &        - &        - &      0.262 \\ 
+MIP-2016 &     -0.000 &      1.000 &      1.000 &      1.060 &      2.601 &      4.528 & \textbf{     0.674} &      1.252 &        - &        - &      0.771 \\ 
+CSP-2010 &     -0.000 &      1.000 &      1.000 & \textbf{     0.229} &      0.535 &      0.535 &      0.382 & \textbf{     0.229} &        - &        - &      0.306 \\ 
+SAT11-INDU &     -0.000 &      1.000 &      1.000 & \textbf{     0.397} &      0.492 &      0.841 &        - &        - &        - &        - &      0.730 \\ 
+SAT11-HAND &     -0.000 &      1.000 &      1.000 &      0.546 &      0.637 &      1.214 &      0.546 & \textbf{     0.531} &        - &        - &      0.592 \\ 
+CPMP-2015 &     -0.000 &      1.000 &      1.000 &      0.633 &      0.650 & \textbf{     0.576} &        - &        - &        - &        - &      0.641 \\ 
+QBF-2016 &     -0.000 & \textbf{     1.000} & \textbf{     1.000} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &     -0.000 &      1.000 &      1.000 &        - & \textbf{     0.410} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &     -0.000 &      1.000 &      1.000 & \textbf{     0.255} &      0.686 &      0.431 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &     -0.000 &      1.000 &      1.000 &        - & \textbf{     0.557} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &     -0.000 &      1.000 &      1.000 & \textbf{     0.385} &      2.231 &      0.615 &        - &        - &        - &        - &      1.154 \\ 
+\toprule 
+\end{tabular} 
+
+gap par10
+\begin{tabular}{lrrrrrrrrrrr} 
+\toprule 
+Scenario & VBS & SBS by PAR10 & SBS by Succ & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &      0.000 &      1.000 &      1.000 & \textbf{     0.050} &      0.176 &      0.107 &      0.191 &      0.166 &        - &        - &      0.260 \\ 
+MIP-2016 &      0.000 &      1.000 &      1.000 &      1.080 &      2.640 &      4.592 & \textbf{     0.709} &      1.276 &        - &        - &      0.790 \\ 
+CSP-2010 &      0.000 &      1.000 &      1.000 &      0.224 &      0.511 &      0.491 &      0.353 & \textbf{     0.210} &        - &        - &      0.285 \\ 
+SAT11-INDU &      0.000 &      1.000 &      1.000 & \textbf{     0.417} &      0.519 &      0.861 &        - &        - &        - &        - &      0.748 \\ 
+SAT11-HAND &      0.000 &      1.000 &      1.000 &      0.543 &      0.635 &      1.187 &      0.545 & \textbf{     0.529} &        - &        - &      0.589 \\ 
+CPMP-2015 &      0.000 &      1.000 &      1.000 &      0.622 &      0.638 & \textbf{     0.566} &        - &        - &        - &        - &      0.630 \\ 
+QBF-2016 &      0.000 & \textbf{     1.000} & \textbf{     1.000} &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &      0.000 &      1.000 &      1.000 &        - & \textbf{     0.419} &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &      0.000 &      1.000 &      1.000 & \textbf{     0.259} &      0.681 &      0.424 &        - &        - &        - &        - &        - \\ 
+MAXSAT-PMS-2016 &      0.000 &      1.000 &      1.000 &        - & \textbf{     0.559} &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &      0.000 &      1.000 &      1.000 & \textbf{     0.393} &      2.288 &      0.623 &        - &        - &        - &        - &      1.178 \\ 
+\toprule 
+\end{tabular} 
+
+hinge all        Unnamed: 0  split  seed  ...           mae  abs_distance_to_vbs         par10
+0               0      1    15  ...  13753.267759             0.000000      5.944100
+1               1      1    15  ...  13563.148273             1.327800      9.951490
+2               2      1    15  ...  22097.067106             0.000000     85.363000
+3               3      1    15  ...  17902.053872             0.000000     21.060800
+4               4      1    15  ...  13884.657959             1.860720      3.773430
+...           ...    ...   ...  ...           ...                  ...           ...
+29995       29995     10    15  ...   1091.531565             0.000000      0.029995
+29996       29996     10    15  ...   1267.151059             3.349494      3.900410
+29997       29997     10    15  ...    915.273719             0.000000      2.047690
+29998       29998     10    15  ...  38880.327552         45601.440000  50000.000000
+29999       29999     10    15  ...  48781.189169             0.000000  50000.000000
+
+[30000 rows x 16 columns]
+hinge linear Empty DataFrame
+Columns: [Unnamed: 0, split, seed, problem_instance, lambda, epsilon, quadratic_transform, max_inverse_transform, scale_to_unit_interval, tau_corr, tau_p, ndcg, mse, mae, abs_distance_to_vbs, par10]
+Index: []
+hinge all        Unnamed: 0  split  seed  ...           mae  abs_distance_to_vbs    par10
+0               0      1    15  ...  2.971020e+04              71840.0  72000.0
+1               1      1    15  ...  7.202127e+03                 43.0     47.0
+2               2      1    15  ...  7.122999e+03                382.0    383.0
+3               3      1    15  ...  6.769931e+03                710.0    838.0
+4               4      1    15  ...  1.084473e+06              71993.0  72000.0
+...           ...    ...   ...  ...           ...                  ...      ...
+10895       10895     10    15  ...  3.465728e+03                 22.0     48.0
+10896       10896     10    15  ...  2.022363e+03                 30.0    106.0
+10897       10897     10    15  ...  1.608843e+04                318.0   2720.0
+10898       10898     10    15  ...  2.724686e+04                 20.0    859.0
+10899       10899     10    15  ...  7.282256e+02                268.0    434.0
+
+[10900 rows x 16 columns]
+hinge linear Empty DataFrame
+Columns: [Unnamed: 0, split, seed, problem_instance, lambda, epsilon, quadratic_transform, max_inverse_transform, scale_to_unit_interval, tau_corr, tau_p, ndcg, mse, mae, abs_distance_to_vbs, par10]
+Index: []
+hinge all       Unnamed: 0  split  seed  ... abs_distance_to_vbs         par10  run_status
+0              0      1    15  ...                 0.0      0.171973          ok
+1              1      1    15  ...                 0.0  50000.000000     timeout
+2              2      1    15  ...                 0.0  50000.000000     timeout
+3              3      1    15  ...                 0.0      0.162975          ok
+4              4      1    15  ...                 0.0      0.099985          ok
+...          ...    ...   ...  ...                 ...           ...         ...
+4043        4043     10    15  ...                 0.0  50000.000000     timeout
+4044        4044     10    15  ...                 0.0  50000.000000     timeout
+4045        4045     10    15  ...                 0.0      0.638902          ok
+4046        4046     10    15  ...                 0.0      3.765428          ok
+4047        4047     10    15  ...                 0.0      0.276958          ok
+
+[4048 rows x 17 columns]
+hinge linear       Unnamed: 0  split  seed  ... abs_distance_to_vbs         par10  run_status
+203          203      1    15  ...                 0.0      0.171973          ok
+204          204      1    15  ...                 0.0  50000.000000     timeout
+205          205      1    15  ...                 0.0  50000.000000     timeout
+206          206      1    15  ...                 0.0      0.162975          ok
+207          207      1    15  ...                 0.0      0.099985          ok
+...          ...    ...   ...  ...                 ...           ...         ...
+4043        4043     10    15  ...                 0.0  50000.000000     timeout
+4044        4044     10    15  ...                 0.0  50000.000000     timeout
+4045        4045     10    15  ...                 0.0      0.638902          ok
+4046        4046     10    15  ...                 0.0      3.765428          ok
+4047        4047     10    15  ...                 0.0      0.276958          ok
+
+[2024 rows x 17 columns]
+[Errno 2] File b'./evaluations/corras-pl-log-linear-SAT11-INDU-new.csv' does not exist: b'./evaluations/corras-pl-log-linear-SAT11-INDU-new.csv'
+hinge all Empty DataFrame
+Columns: [Unnamed: 0, split, seed, problem_instance, lambda, epsilon, quadratic_transform, max_inverse_transform, scale_to_unit_interval, tau_corr, tau_p, ndcg, mse, mae, abs_distance_to_vbs, par10]
+Index: []
+hinge linear Empty DataFrame
+Columns: [Unnamed: 0, split, seed, problem_instance, lambda, epsilon, quadratic_transform, max_inverse_transform, scale_to_unit_interval, tau_corr, tau_p, ndcg, mse, mae, abs_distance_to_vbs, par10]
+Index: []
+[Errno 2] File b'./evaluations/corras-pl-log-linear-CPMP-2015-new.csv' does not exist: b'./evaluations/corras-pl-log-linear-CPMP-2015-new.csv'
+[Errno 2] File b'./evaluations/baseline-evaluation-survival-forest-fixed-QBF-2016.csv' does not exist: b'./evaluations/baseline-evaluation-survival-forest-fixed-QBF-2016.csv'
+[Errno 2] File b'./evaluations/baseline-evaluation-survival-forest-fixed-SAT12-ALL.csv' does not exist: b'./evaluations/baseline-evaluation-survival-forest-fixed-SAT12-ALL.csv'
+[Errno 2] File b'./evaluations/corras-pl-log-linear-MAXSAT-WPMS-2016-new.csv' does not exist: b'./evaluations/corras-pl-log-linear-MAXSAT-WPMS-2016-new.csv'
+[Errno 2] File b'./evaluations/baseline-evaluation-survival-forest-fixed-MAXSAT-PMS-2016.csv' does not exist: b'./evaluations/baseline-evaluation-survival-forest-fixed-MAXSAT-PMS-2016.csv'
+[Errno 2] File b'./evaluations/corras-pl-log-linear-CSP-Minizinc-Time-2016-new.csv' does not exist: b'./evaluations/corras-pl-log-linear-CSP-Minizinc-Time-2016-new.csv'
+     Scenario        RF        LR  ...  Hinge-Lin  Hinge-Quad  Hinge-NN
+0  SAT11-RAND  0.384683  0.327195  ...        NaN         NaN  0.415317
+1    MIP-2016  0.534299  0.261779  ...        NaN         NaN  0.424584
+2    CSP-2010  0.651730  0.534805  ...   0.762309    0.747595  0.616803
+3  SAT11-INDU  0.139453  0.095926  ...        NaN         NaN  0.754386
+4  SAT11-HAND  0.352795  0.303792  ...        NaN         NaN  0.754386
+
+[5 rows x 9 columns]
+tau_corr
+\begin{tabular}{lrrrrrrrr} 
+\toprule 
+Scenario & RF & LR & RSF & PL-Lin & PL-Quad & Hinge-Lin & Hinge-Quad & Hinge-NN \\ 
+\midrule 
+SAT11-RAND &      0.385 &      0.327 &     -0.024 &      0.429 & \textbf{     0.433} &        - &        - &      0.415 \\ 
+MIP-2016 &      0.534 &      0.262 &      0.202 & \textbf{     0.544} &      0.483 &        - &        - &      0.425 \\ 
+CSP-2010 &      0.652 &      0.535 &      0.649 &      0.746 &      0.748 & \textbf{     0.762} &      0.748 &      0.617 \\ 
+SAT11-INDU &      0.139 &      0.096 &     -0.000 &        - &        - &        - &        - & \textbf{     0.754} \\ 
+SAT11-HAND &      0.353 &      0.304 &     -0.016 &      0.367 &      0.321 &        - &        - & \textbf{     0.754} \\ 
+CPMP-2015 &      0.349 &      0.293 &      0.267 &        - &        - &        - &        - & \textbf{     0.349} \\ 
+QBF-2016 &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+SAT12-ALL &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+MAXSAT-WPMS-2016 &      0.750 & \textbf{     0.562} &      0.128 &        - &        - &        - &        - &      0.349 \\ 
+MAXSAT-PMS-2016 &        - &        - &        - &        - &        - &        - &        - &        - \\ 
+CSP-Minizinc-Time-2016 &      0.501 &      0.151 &     -0.052 &        - &        - &        - &        - & \textbf{     0.349} \\ 
+\toprule 
+\end{tabular} 
+
