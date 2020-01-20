@@ -17,7 +17,6 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 evaluations_path_nnh = "./evaluations-nnh-config/"
 
-
 figures_path = "./figures/progression-plots/"
 
 scenario_names = [
@@ -52,7 +51,7 @@ def create_latex_max(df: pd.DataFrame, decimal_format="{:10.3f}"):
     for index, row in df.iterrows():
         result += row[0] + " & " + " & ".join([
             "\\textbf{" + decimal_format.format(x) +
-            "}" if x == np.nanmax(row[2:]) else decimal_format.format(x)
+            "}" if x == np.nanmax(row[2:].to_numpy().astype("float64")) else decimal_format.format(x)
             for x in row[1:]
         ]) + " \\\\ \n"
     result += "\\toprule \n"
@@ -125,25 +124,25 @@ for scenario_name in scenario_names:
     df_corras_quadratic = None
     df_corras_hinge_linear_weighted = None
     try:
-        df_baseline_sbs = pd.read_csv(evaluations_path +
-                                      "sbs-" +
+        df_baseline_sbs = pd.read_csv(evaluations_path + "sbs-" +
                                       scenario_name + ".csv")
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
                                      scenario_name + ".csv")
+        df_baseline_sf = pd.read_csv(
+            evaluations_path + "baseline-evaluation-survival-forest-fixed-" +
+            scenario_name + ".csv")
         df_baseline_rf = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-random_forest" +
                                      scenario_name + ".csv")
-        df_corras_nnh_all = pd.read_csv(evaluations_path_nnh + "corras-hinge-nn-" +
-                                        scenario_name + "-config-test.csv")
+        df_corras_nnh_all = pd.read_csv(evaluations_path_nnh +
+                                        "corras-hinge-nn-" + scenario_name +
+                                        "-config-test.csv")
         df_corras_nnh = df_corras_nnh_all.loc[
             (df_corras_nnh_all["seed"] == seed)
             & (df_corras_nnh_all["epsilon"] == epsilon_value_hinge) &
             (df_corras_nnh_all["learning_rate"] == 0.001) &
             (df_corras_nnh_all["lambda"] == lambda_value_hinge)]
-        df_baseline_sf = pd.read_csv(evaluations_path +
-                                     "baseline-evaluation-survival-forest-fixed-" +
-                                     scenario_name + ".csv")
         df_corras_all = pd.read_csv(evaluations_path +
                                     "corras-pl-log-linear-" + scenario_name +
                                     "-new.csv")
@@ -319,7 +318,6 @@ create_latex_max(comparison_frame_succ)
 #                                    formatters={"tau_corr": max_formatter},
 #                                    escape=False))
 
-
 print("par10")
 create_latex_min(comparison_frame_par10)
 # print(
@@ -331,18 +329,21 @@ create_latex_min(comparison_frame_par10)
 #                                     escape=False))
 
 comparison_frame_succ_over_sbs = comparison_frame_succ.copy()
-comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
-    comparison_frame_succ.iloc[:, 2], axis=0)
+comparison_frame_succ_over_sbs.iloc[:,
+                                    1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
+                                        comparison_frame_succ.iloc[:, 2],
+                                        axis=0)
 comparison_frame_par10_over_sbs = comparison_frame_par10.copy()
-comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
-    comparison_frame_par10.iloc[:, 2], axis=0)
+comparison_frame_par10_over_sbs.iloc[:,
+                                     1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
+                                         comparison_frame_par10.iloc[:, 2],
+                                         axis=0)
 
 # comparison_frame_succ_over_sbs.iloc[:, 1:] = comparison_frame_succ_over_sbs.iloc[:, 1:].div(
 #     comparison_frame_succ.iloc[:, 2], axis=0)
 # comparison_frame_par10_over_sbs = comparison_frame_par10.copy()
 # comparison_frame_par10_over_sbs.iloc[:, 1:] = comparison_frame_par10_over_sbs.iloc[:, 1:].div(
 #     comparison_frame_par10.iloc[:, 2], axis=0)
-
 
 print("success rate over sbs")
 create_latex_max(comparison_frame_succ_over_sbs)
@@ -354,7 +355,6 @@ create_latex_max(comparison_frame_succ_over_sbs)
 #                                             formatters={
 #                                                 "tau_corr": max_formatter},
 #                                             escape=False))
-
 
 print("par10 over sbs")
 create_latex_min(comparison_frame_par10_over_sbs)
@@ -386,7 +386,6 @@ create_latex_min(comparison_frame_sbs_over_succ)
 #                                                 "tau_corr": max_formatter},
 #                                             escape=False))
 
-
 print("sbs over par10")
 create_latex_max(comparison_frame_sbs_over_par10)
 # print(
@@ -398,11 +397,11 @@ create_latex_max(comparison_frame_sbs_over_par10)
 #                                                  "tau_corr": max_formatter},
 #                                              escape=False))
 
-
 gap_numerator_succ = comparison_frame_succ.iloc[:, 1:].subtract(
     comparison_frame_succ.iloc[:, 1], axis=0)
 gap_denominator_succ = comparison_frame_succ.iloc[:,
-                                                  2] - comparison_frame_succ.iloc[:, 1]
+                                                  2] - comparison_frame_succ.iloc[:,
+                                                                                  1]
 
 gap_numerator_par10 = comparison_frame_par10.iloc[:, 1:].subtract(
     comparison_frame_par10.iloc[:, 1], axis=0)
@@ -434,7 +433,6 @@ create_latex_min(sbs_vbs_gap_par10)
 
 # comparison_frame_par10_gap = comparison_frame_par10.copy()
 # # comparison_frame_par10_gap.iloc[:,1:] = gap_numerator_par10
-
 
 # print("success rate gap")
 # # create_latex_max(comparison_frame)
@@ -473,17 +471,16 @@ for scenario_name in scenario_names:
     df_corras_linear = None
     df_corras_quadratic = None
     try:
-        df_baseline_sbs = pd.read_csv(evaluations_path +
-                                      "sbs-" +
+        df_baseline_sbs = pd.read_csv(evaluations_path + "sbs-" +
                                       scenario_name + ".csv")
+        df_baseline_sf = pd.read_csv(
+            evaluations_path + "baseline-evaluation-survival-forest-fixed-" +
+            scenario_name + ".csv")
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
                                      scenario_name + ".csv")
         df_baseline_rf = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-random_forest" +
-                                     scenario_name + ".csv")
-        df_baseline_sf = pd.read_csv(evaluations_path +
-                                     "baseline-evaluation-survival-forest-fixed-" +
                                      scenario_name + ".csv")
         df_corras_nnh = df_corras_nnh_all.loc[
             (df_corras_nnh_all["seed"] == seed)
@@ -505,8 +502,9 @@ for scenario_name in scenario_names:
             (df_corras_all["scale_to_unit_interval"] == True) &
             (df_corras_all["max_inverse_transform"] == "max_cutoff") &
             (df_corras_all["lambda"] == lambda_value_pl)]
-        df_corras_nnh_all = pd.read_csv(evaluations_path_nnh + "corras-hinge-nn-" +
-                                        scenario_name + "-config-test.csv")
+        df_corras_nnh_all = pd.read_csv(evaluations_path_nnh +
+                                        "corras-hinge-nn-" + scenario_name +
+                                        "-config-test.csv")
         df_corras_hinge_linear_all = pd.read_csv(evaluations_path +
                                                  "corras-hinge-linear-" +
                                                  scenario_name + "-new-unweighted" +
@@ -564,10 +562,16 @@ for scenario_name in scenario_names:
     ])
 comparison_frame_tau = pd.DataFrame(data=comparison_data_tau,
                                     columns=[
-                                        "Scenario", "RF", "LR", "RSF", "PL-Lin",
-                                        "PL-Quad", "Hinge-Lin", "Hinge-Quad",
-                                        "Hinge-NN"
+                                        "Scenario", "RF", "LR", "RSF",
+                                        "PL-Lin", "PL-Quad", "Hinge-Lin",
+                                        "Hinge-Quad", "Hinge-NN"
                                     ])
+
+comparison_frame_tau.iloc[:,
+                          1:] = comparison_frame_tau.iloc[:,
+                                                          1:].astype("float64")
+
+print(comparison_frame_tau.head())
 
 print("tau_corr")
 # create_latex_max(comparison_frame_tau)

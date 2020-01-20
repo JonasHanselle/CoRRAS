@@ -19,26 +19,59 @@ class NeuralNetwork:
 
     # def custom_optimizer(self, learning_rate=0.01):
 
-        # if self.network is None:
-        #     self.logger.error("No model build so far!")
-        # predictions = self.network.outputs()
-        # print(predictions)
-        # optimizer = Adam(lr=learning_rate)
-        # loss_val = 0
-        # updates = optimizer.get_updates(self.network.trainable_weights, [], loss_val)
-        # train = K.function([self.network.input, *predictions])
-        # return train
+    # if self.network is None:
+    #     self.logger.error("No model build so far!")
+    # predictions = self.network.outputs()
+    # print(predictions)
+    # optimizer = Adam(lr=learning_rate)
+    # loss_val = 0
+    # updates = optimizer.get_updates(self.network.trainable_weights, [], loss_val)
+    # train = K.function([self.network.input, *predictions])
+    # return train
 
-    def build_network(self, num_labels, num_features):
+    def build_network(self,
+                      num_labels,
+                      num_features,
+                      hidden_layer_sizes=None,
+                      activation_function="relu"):
         input_layer = keras.layers.Input(num_features, name="input_layer")
-        hidden_layers = keras.layers.Dense(8, activation="relu")(input_layer)
+        hidden_layers = input_layer
+        if hidden_layer_sizes is None:
+            hidden_layers = keras.layers.Dense(
+                num_features, activation=activation_function)(hidden_layers)
+            hidden_layers = keras.layers.Dense(
+                num_features, activation=activation_function)(hidden_layers)
+        else:
+            for layer_size in hidden_layer_sizes:
+                hidden_layers = keras.layers.Dense(
+                    layer_size, activation=activation_function)(hidden_layers)
+
         # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
-        # hidden_layers = keras.layers.Dense(8, activation="relu")(hidden_layers)
-        output_layer = keras.layers.Dense(
-            num_labels, activation="linear", name="output_layer")(hidden_layers)
+        output_layer = keras.layers.Dense(num_labels,
+                                          activation="linear",
+                                          name="output_layer")(hidden_layers)
         return keras.Model(inputs=input_layer, outputs=output_layer)
 
-    def fit(self, num_labels: int, rankings: np.ndarray, features: np.ndarray, performances: np.ndarray, lambda_value=0, regression_loss="Absolute", num_epochs=1000, learning_rate=0.1, batch_size=32, seed=1, patience=16, es_val_ratio=0.3, reshuffle_buffer_size=1000, early_stop_interval=5):
+    def fit(self,
+            num_labels: int,
+            rankings: np.ndarray,
+            features: np.ndarray,
+            performances: np.ndarray,
+            sample_weights=None,
+            lambda_value=0.5,
+            epsilon_value=1,
+            num_epochs=1000,
+            learning_rate=0.001,
+            batch_size=32,
+            seed=1,
+            patience=16,
+            es_val_ratio=0.3,
+            regression_loss="Squared",
+            reshuffle_buffer_size=1000,
+            early_stop_interval=5,
+            log_losses=True,
+            hidden_layer_sizes=None,
+            activation_function="relu"):
         """Fit the network to the given data.
 
         Arguments:
@@ -51,33 +84,51 @@ class NeuralNetwork:
             should be applied, "Squared" and "Absolute" are
             supported
         """
+        if sample_weights is None:
+            sample_weights = np.ones(features.shape[0])
+
         # add one column for bias
         np.random.seed(15)
-        num_features = features.shape[1]+1
-        self.network = self.build_network(num_labels, num_features)
+        num_features = features.shape[1] + 1
+        self.network = self.build_network(
+            num_labels,
+            num_features,
+            hidden_layer_sizes=hidden_layer_sizes,
+            activation_function=activation_function)
 
         self.network._make_predict_function()
         self.network.summary()
 
         # add constant 1 for bias and create tf dataset
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
-        print(feature_values.shape)
+        # print(feature_values.shape)
         # print(performances.shape)
 
         # split feature and performance data
-        feature_values, performances, rankings = shuffle(
-            feature_values, performances, rankings, random_state=seed)
-        val_data = Dataset.from_tensor_slices((feature_values[: int(
-            es_val_ratio * feature_values.shape[0])], performances[: int(es_val_ratio * performances.shape[0])], rankings[: int(es_val_ratio * rankings.shape[0])]))
-        train_data = Dataset.from_tensor_slices((feature_values[int(
-            es_val_ratio * feature_values.shape[0]):], performances[int(es_val_ratio * performances.shape[0]):], rankings[int(es_val_ratio * rankings.shape[0]):]))
-        print(val_data)
-        print(train_data)
+        feature_values, performances, rankings, sample_weights = shuffle(
+            feature_values,
+            performances,
+            rankings,
+            sample_weights,
+            random_state=seed)
+        val_data = Dataset.from_tensor_slices(
+            (feature_values[:int(es_val_ratio * feature_values.shape[0])],
+             performances[:int(es_val_ratio * performances.shape[0])],
+             rankings[:int(es_val_ratio * rankings.shape[0])],
+             sample_weights[:int(es_val_ratio * sample_weights.shape[0])]))
+        train_data = Dataset.from_tensor_slices(
+            (feature_values[int(es_val_ratio * feature_values.shape[0]):],
+             performances[int(es_val_ratio * performances.shape[0]):],
+             rankings[int(es_val_ratio * rankings.shape[0]):],
+             sample_weights[int(es_val_ratio * sample_weights.shape[0]):]))
+        # print(val_data)
+        # print(train_data)
         train_data = train_data.batch(batch_size)
         val_data = val_data.batch(1)
+
         # define custom loss function
 
-        def custom_loss(model, x, y_perf, y_rank, i):
+        def custom_loss(model, x, y_perf, y_rank, i, sample_weight):
             """Compute loss for i-th label
 
             Arguments:
@@ -91,14 +142,27 @@ class NeuralNetwork:
                 [float64] -- [Loss]
             """
             output = model(x)
-            # compute MSE
+            row_indices = tf.range(tf.shape(y_rank)[0])
+            y_ind = y_rank - 1
+            added_indices_0 = tf.stack([row_indices, y_ind[:, 0]], axis=1)
+            added_indices_1 = tf.stack([row_indices, y_ind[:, 1]], axis=1)
+            y_hat_0 = tf.gather_nd(output, added_indices_0)
+            y_hat_1 = tf.gather_nd(output, added_indices_1)
             reg_loss = tf.reduce_mean(
-                tf.square(tf.subtract(output[:, i], y_perf[:, i])))
+                tf.multiply(sample_weight,
+                            (tf.square(tf.subtract(y_hat_0, y_perf[:, 0])))))
+            reg_loss += tf.reduce_mean(
+                (tf.square(tf.subtract(y_hat_1, y_perf[:, 1]))))
+
+            # reg_loss = tf.reduce_mean(
+            #     tf.square(tf.subtract(output[:, i], y_perf[:, i])))
             exp_utils = np.exp(output)
-            print(exp_utils)
-            exp_utils_ordered = exp_utils[np.arange(exp_utils.shape[0])[
-                :, np.newaxis], y_rank-1]
+            # print(exp_utils)
+            exp_utils_ordered = exp_utils[
+                np.arange(exp_utils.shape[0])[:, np.newaxis], y_ind]
             inv_rank = np.argsort(y_rank)
+            print("y_rank",y_rank)
+            print("inv_rank",inv_rank)
             rank_loss = 0
             for k in range(num_labels):
                 indicator = inv_rank[:, i] >= k
@@ -106,14 +170,15 @@ class NeuralNetwork:
                 indicator = np.repeat(indicator[:, None], num_labels, axis=1)
                 # if inv_rank[i] >= k:
                 # if indicator.any():
-                exp_utils_indicator = np.where(
-                    indicator, exp_utils, np.zeros_like(exp_utils))
+                exp_utils_indicator = np.where(indicator, exp_utils,
+                                               np.zeros_like(exp_utils))
                 # print(indicator)
                 # print("exp utils", exp_utils)
                 # print("exp utils ind", exp_utils_indicator)
                 # print("numerator" + str(k), exp_utils_indicator[:,i])
-                rank_loss += np.divide(exp_utils_indicator[:, i], np.sum(
-                    exp_utils_ordered[:, k:], axis=1))
+                rank_loss += np.divide(
+                    exp_utils_indicator[:, i],
+                    np.sum(exp_utils_ordered[:, k:], axis=1))
                 # print("exp ut ind", exp_utils_indicator[:,i])
                 # print("rank_loss " + str(k), rank_loss)
             if i < (num_labels - 1):
@@ -122,12 +187,15 @@ class NeuralNetwork:
             # print("reg_loss", reg_loss)
             # print("rank_loss", rank_loss)
             return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
+
         # define gradient of custom loss function
 
-        def grad(model, x, y_perf, y_rank, i):
+        def grad(model, x, y_perf, y_rank, i, sample_weight):
             with tf.GradientTape() as tape:
-                loss_value = custom_loss(model, x, y_perf, y_rank, i)
-            return loss_value, tape.gradient(loss_value, model.trainable_weights)
+                loss_value = custom_loss(model, x, y_perf, y_rank, i,
+                                         sample_weight)
+            return loss_value, tape.gradient(loss_value,
+                                             model.trainable_weights)
 
         # optimizer
         optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -138,15 +206,17 @@ class NeuralNetwork:
 
         for epoch in range(num_epochs):
 
-            for x, y_perf, y_rank in train_data:
+            for x, y_perf, y_rank, sample_weight in train_data:
                 tvs = self.network.trainable_weights
-                accum_tvs = [tf.Variable(tf.zeros_like(
-                    tv.initialized_value()), trainable=False) for tv in tvs]
+                accum_tvs = [
+                    tf.Variable(tf.zeros_like(tv.initialized_value()),
+                                trainable=False) for tv in tvs
+                ]
                 zero_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_tvs]
 
-                for i in range(num_labels):
-                    loss_value, grads = grad(
-                        self.network, x, y_perf, y_rank, i)
+                for i in range(2):
+                    loss_value, grads = grad(self.network, x, y_perf, y_rank,
+                                             i, sample_weight)
                     for j in range(len(accum_tvs)):
                         accum_tvs[j].assign_add(grads[j])
 
