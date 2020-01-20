@@ -21,10 +21,12 @@ from sqlalchemy import Table, MetaData
 from sqlalchemy.sql import exists, select, and_, or_
 import urllib
 
+
 def compute_distance_to_vbs(predicted_performances, true_performances):
     result = true_performances[np.argmin(predicted_performances)] - np.min(
         true_performances)
     return result
+
 
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_corras = "./results-pl/"
@@ -68,8 +70,8 @@ splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 scenarios = [
     "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-HAND",
     "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
-    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"
-]
+    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"]
+# scenarios = ["CPMP-2015"]
 lambda_values = [0.5]
 use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
@@ -135,7 +137,6 @@ for scenario_name in scenarios:
     performance_indices = [
         x for x in corras.columns if x.endswith("_performance")
     ]
-
 
     # lambda_values = pd.unique(corras["lambda"])
     # epsilon_values = pd.unique(corras["epsilon"])

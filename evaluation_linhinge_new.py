@@ -32,7 +32,7 @@ def compute_distance_to_vbs(predicted_performances, true_performances):
 
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_corras = "./results-lh/"
-evaluations_path = "./evaluations-lh-new-params/"
+evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 
 # DB data
@@ -41,7 +41,7 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010"]
+scenarios = ["MIP-2016", "CPMP-2015", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010"]
 
 lambda_values = [0.5]
 epsilon_values = [1.0]
@@ -51,9 +51,9 @@ seeds = [15]
 use_quadratic_transform_values = [False]
 use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-skip_censored_values = [True, False]
+skip_censored_values = [False]
 regulerization_params_values = [0.0]
-use_weighted_samples_values = [False]
+use_weighted_samples_values = [False, True]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
@@ -84,7 +84,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "linear-squared-hinge-new-params-" + scenario_name
+        table_name = "linear-squared-hinge-new-weighted-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -182,4 +182,4 @@ for scenario_name in scenarios:
             "abs_distance_to_vbs", "par10", "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
-                     scenario_name + "-new-params.csv")
+                     scenario_name + "-new-unweighted.csv")

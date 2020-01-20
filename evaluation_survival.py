@@ -33,7 +33,9 @@ evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 
 # scenario_names = ["CPMP-2015"]
-scenario_names = ["SAT11-HAND"]
+scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND",
+                  "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
+                  "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # splits = [1,2,3]
@@ -51,7 +53,7 @@ for scenario_name in scenario_names:
     scenario.read_scenario(scenario_path + scenario_name)
     scenario.compute_rankings(False)
     relevance_scores = compute_relevance_scores_unit_interval(scenario)
-    table_name = "baseline_random_survival_forest-attempt-" + scenario_name
+    table_name = "baseline_random_survival_forest-seeded-" + scenario_name
     try:
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -75,9 +77,9 @@ for scenario_name in scenario_names:
         test_scenario, train_scenario = scenario.get_split(split)
         vbs = []
         for problem_instance, performances in test_scenario.performance_data.iterrows():
-            if not "ok" in test_scenario.runstatus_data.loc[problem_instance].to_numpy():
-                print("continue")
-                continue
+            # if not "ok" in test_scenario.runstatus_data.loc[problem_instance].to_numpy():
+            #     print("continue")
+            #     continue
             vbs.append(performances.min())
             feature_cost = 0
             # we use all features, so we sum up the individual costs
@@ -129,6 +131,8 @@ for scenario_name in scenario_names:
         # for split in splits:
         #     current_frame = df_baseline.loc[(df_baseline["split"] == split)]
         #     print(split, current_frame["par10"].mean())
+
+        df_baseline.to_csv(evaluations_path + "baseline-evaluation-survival-forest-fixed-" + scenario_name + ".csv")
 
         print("split", split)
         print("sbs", test_scenario.performance_data.mean())

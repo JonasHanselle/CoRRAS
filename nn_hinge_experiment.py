@@ -39,10 +39,10 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-# scenarios = ["MIP-2016", "CSP-2010", "CPMP-2015"]
-scenarios = ["CPMP-2015", "SAT11-RAND", "SAT11-HAND", "SAT11-INDU"]
-lambda_values = [0.0, 0.1, 0.5, 0.9, 1.0]
-epsilon_values = [0.0, 0.01, 0.1, 1.0]
+# scenarios = ["CPMP-2015", "SAT11-RAND", "SAT11-HAND", "SAT11-INDU"]
+scenarios = ["MIP-2016"]
+lambda_values = [0.5]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -52,12 +52,13 @@ batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
+use_weighted_samples_values = [True, False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-# splits = [1]
+splits = [1]
 
 params = [scenarios, lambda_values, epsilon_values, splits, seeds,
-          learning_rates, es_intervals, es_patiences, es_val_ratios, batch_sizes]
+          learning_rates, es_intervals, es_patiences, es_val_ratios, batch_sizes, use_weighted_samples_values]
 
 param_product = list(product(*params))
 
@@ -74,8 +75,7 @@ else:
 
 print(shard)
 
-for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size in shard:
-   
+for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, use_weighted_samples in shard:
 
     table_name = "neural-net-squared-hinge-" + scenario_name + "-short-new"
 
@@ -112,7 +112,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
     #         continue
     #     rs.close()
     #     connection.close()
-   
+
     params_string = "-".join([scenario_name,
                               str(lambda_value), str(epsilon_value), str(split), str(seed), str(learning_rate), str(es_interval), str(es_patience), str(es_val_ratio), str(batch_size)])
 
@@ -170,11 +170,24 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
         inst, perf, rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
             train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed, order=order)
 
+        inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
+            train_features,
+            train_performances,
+            max_pairs_per_instance=max_pairs_per_instance,
+            seed=seed,
+            order=order,
+            skip_value=None)
+
+        sample_weights = sample_weights / sample_weights.max()
+        if not use_weighted_samples:
+            sample_weights = np.ones(len(sample_weights))
+        print("sample weights", sample_weights)
+
         rank = rank.astype("int32")
 
         model = nn_hinge.NeuralNetworkSquaredHinge()
         model.fit(len(scenario.algorithms), rank, inst,
-                    perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", num_epochs=maxiter, learning_rate=learning_rate, batch_size=batch_size, seed=seed, patience=es_patience, es_val_ratio=es_val_ratio, reshuffle_buffer_size=1000, early_stop_interval=es_interval, log_losses=True)
+                  perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", num_epochs=maxiter, learning_rate=learning_rate, batch_size=batch_size, seed=seed, patience=es_patience, es_val_ratio=es_val_ratio, reshuffle_buffer_size=1000, early_stop_interval=es_interval, log_losses=True, sample_weights=sample_weights, hidden_layer_sizes=[16])
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)
@@ -202,13 +215,13 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(
             data=result_data_corras, columns=result_columns_corras)
-        print("info", results_corras.info())
-        # results_corras.to_csv(filepath, index_label="id",
-        #                         mode="a", header=False)
-        # connection = engine.connect()
-        # print("writing into db")
-        # results_corras.to_sql(name=table_name,con=connection,if_exists="append", dtype={})
-        # connection.close()
+        print("info", results_corras.head())
+        results_corras.to_csv(filepath, index_label="id",
+                                mode="a", header=False)
+        connection = engine.connect()
+        print("writing into db")
+        results_corras.to_sql(name=table_name,con=connection,if_exists="append", dtype={})
+        connection.close()
         model.save_loss_history(loss_filepath)
         model.save_es_val_history(es_val_filepath)
 

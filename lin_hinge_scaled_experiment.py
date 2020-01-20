@@ -231,6 +231,11 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         order=order,
         skip_value=skip_value)
 
+    sample_weights = sample_weights / sample_weights.max()
+    if not use_weighted_samples:
+        sample_weights = np.ones(len(sample_weights))
+    print("sample weights", sample_weights)
+
     model = mode1 = lh.LinearHingeModel()
     model.fit_np(len(scenario.algorithms),
                     rank,

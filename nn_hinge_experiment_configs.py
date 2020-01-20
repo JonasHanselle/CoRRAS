@@ -41,17 +41,17 @@ db_db = sys.argv[6]
 
 scenarios = [
     "CPMP-2015",
-    "CSP-2010",
-    "CSP-Minizinc-Time-2016",
-    "SAT12-ALL",
     "MIP-2016",
+    "CSP-2010",
+    "SAT12-ALL",
     "SAT11-HAND",
     "SAT11-INDU",
     "SAT11-RAND",
     "SAT12-ALL",
+    "CSP-Minizinc-Time-2016"
 ]
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-epsilon_values = [0.0, 0.1, 1.0]
+lambda_values = [0.5]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -63,12 +63,13 @@ es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = [[16, 16]]
 activation_functions = ["sigmoid"]
+use_weighted_samples_values = [True, False]
+
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-# splits = [1]
 
 params = [scenarios, lambda_values, epsilon_values, splits, seeds,
-          learning_rates, es_intervals, es_patiences, es_val_ratios, batch_sizes, layer_sizes_vals, activation_functions]
+          learning_rates, es_intervals, es_patiences, es_val_ratios, batch_sizes, layer_sizes_vals, activation_functions, use_weighted_samples_values]
 
 param_product = list(product(*params))
 
@@ -83,13 +84,12 @@ if shard_number == total_shards:
 else:
     shard = param_product[lower_bound:upper_bound]
 
-for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function in shard:
-   
+for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples in shard:
 
-    table_name = "neural-net-squared-hinge-" + scenario_name + "-config-test"
+    table_name = "neural-net-squared-hinge-" + scenario_name + "-weighted"
 
     engine = sql.create_engine("mysql://" + db_user +
-                                ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
+                               ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
         pass
@@ -107,8 +107,10 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
                                        experiments.columns["es_patience"] == es_patience,
                                        experiments.columns["es_val_ratio"] == es_val_ratio,
                                        experiments.columns["batch_size"] == batch_size,
-                                       experiments.columns["layer_sizes"] == str(layer_size),
-                                       experiments.columns["activation_function"] == activation_function
+                                       experiments.columns["layer_sizes"] == str(
+                                           layer_size),
+                                       experiments.columns["activation_function"] == activation_function,
+                                       experiments.columns["use_weighted_samples"] == use_weighted_samples
                                        )).limit(1)
         rs = connection.execute(slct)
         result = rs.first()
@@ -122,7 +124,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
             continue
         rs.close()
         connection.close()
-   
+
     params_string = "-".join([scenario_name,
                               str(lambda_value), str(epsilon_value), str(split), str(seed), str(learning_rate), str(es_interval), str(es_patience), str(es_val_ratio), str(batch_size)])
 
@@ -177,14 +179,24 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
         train_performances = pd.DataFrame(
             data=perf, index=train_performances.index, columns=train_performances.columns)
         print(order)
-        inst, perf, rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
-            train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed, order=order)
+        inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
+            train_features,
+            train_performances,
+            max_pairs_per_instance=max_pairs_per_instance,
+            seed=seed,
+            order=order,
+            skip_value=None)
+
+        sample_weights = sample_weights / sample_weights.max()
+        if not use_weighted_samples:
+            sample_weights = np.ones(len(sample_weights))
+        print("sample weights", sample_weights)
 
         rank = rank.astype("int32")
 
         model = nn_hinge.NeuralNetworkSquaredHinge()
         model.fit(len(scenario.algorithms), rank, inst,
-                    perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", num_epochs=maxiter, learning_rate=learning_rate, batch_size=batch_size, seed=seed, patience=es_patience, es_val_ratio=es_val_ratio, reshuffle_buffer_size=1000, early_stop_interval=es_interval, log_losses=True, activation_function=activation_function, hidden_layer_sizes=layer_size)
+                  perf, lambda_value=lambda_value, epsilon_value=epsilon_value, regression_loss="Squared", num_epochs=maxiter, learning_rate=learning_rate, batch_size=batch_size, seed=seed, patience=es_patience, es_val_ratio=es_val_ratio, reshuffle_buffer_size=1000, early_stop_interval=es_interval, log_losses=True, activation_function=activation_function, hidden_layer_sizes=layer_size, sample_weights=sample_weights)
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)
@@ -200,14 +212,14 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
             predicted_performances = perf_max * predicted_performances
 
             result_data_corras.append(
-                [split, index, lambda_value, epsilon_value, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, str(layer_size), activation_function, *predicted_performances])
+                [split, index, lambda_value, epsilon_value, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, str(layer_size), activation_function, use_weighted_samples, *predicted_performances])
             # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
 
         performance_cols_corras = [
             x + "_performance" for x in scenario.performance_data.columns]
         print("perf corr", len(performance_cols_corras))
         result_columns_corras = [
-            "split", "problem_instance", "lambda", "epsilon", "seed", "learning_rate", "es_interval", "es_patience", "es_val_ratio", "batch_size", "layer_sizes", "activation_function"]
+            "split", "problem_instance", "lambda", "epsilon", "seed", "learning_rate", "es_interval", "es_patience", "es_val_ratio", "batch_size", "layer_sizes", "activation_function", "use_weighted_samples"]
         print("result len", len(result_columns_corras))
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(
@@ -215,7 +227,8 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
         # results_corras.to_csv(filepath, index_label="id",
         #                         mode="a", header=False)
         connection = engine.connect()
-        results_corras.to_sql(name=table_name,con=connection,if_exists="append")
+        results_corras.to_sql(
+            name=table_name, con=connection, if_exists="append")
         connection.close()
         model.save_loss_history(loss_filepath)
         model.save_es_val_history(es_val_filepath)
