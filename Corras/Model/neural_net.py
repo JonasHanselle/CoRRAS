@@ -59,7 +59,6 @@ class NeuralNetwork:
             performances: np.ndarray,
             sample_weights=None,
             lambda_value=0.5,
-            epsilon_value=1,
             num_epochs=1000,
             learning_rate=0.001,
             batch_size=32,
@@ -156,36 +155,25 @@ class NeuralNetwork:
 
             # reg_loss = tf.reduce_mean(
             #     tf.square(tf.subtract(output[:, i], y_perf[:, i])))
-            exp_utils = np.exp(output)
-            # print(exp_utils)
-            exp_utils_ordered = exp_utils[
-                np.arange(exp_utils.shape[0])[:, np.newaxis], y_ind]
-            inv_rank = np.argsort(y_rank)
-            print("y_rank",y_rank)
-            print("inv_rank",inv_rank)
-            rank_loss = 0
-            for k in range(num_labels):
-                indicator = inv_rank[:, i] >= k
-                # exp_utils_indicator = exp_utils[indicator]
-                indicator = np.repeat(indicator[:, None], num_labels, axis=1)
-                # if inv_rank[i] >= k:
-                # if indicator.any():
-                exp_utils_indicator = np.where(indicator, exp_utils,
-                                               np.zeros_like(exp_utils))
-                # print(indicator)
-                # print("exp utils", exp_utils)
-                # print("exp utils ind", exp_utils_indicator)
-                # print("numerator" + str(k), exp_utils_indicator[:,i])
-                rank_loss += np.divide(
-                    exp_utils_indicator[:, i],
-                    np.sum(exp_utils_ordered[:, k:], axis=1))
-                # print("exp ut ind", exp_utils_indicator[:,i])
-                # print("rank_loss " + str(k), rank_loss)
-            if i < (num_labels - 1):
-                rank_loss -= 1
+            # exp_utils = tf.exp(output)
+            exp_utils_ordered =  tf.exp(tf.stack([y_hat_0, y_hat_1], axis=1))
+            exp_utils = tf.exp(output)
+            # exp_utils_ordered = exp_utils[
+            #     np.arange(exp_utils.shape[0])[:, np.newaxis], y_ind]
+            inv_rank = tf.argsort(y_rank)
+            rank_loss = 0.0
+            for k in range(0, 2):
+                # print("i", i, "k", k)
+                # indicator = (1 - y_ind[:, i]) >= k
+                indicator = inv_rank[:,i] >= k
+                indicator = tf.keras.backend.repeat_elements(indicator[:,None], num_labels, axis=1)
+                exp_utils_indicator = tf.where(indicator, exp_utils,
+                                               tf.zeros_like(exp_utils))
+                denominator = tf.reduce_sum(exp_utils_ordered[:, k:], axis=1)
+                rank_loss = tf.add(rank_loss, tf.divide(exp_utils_ordered[:, i], denominator)) 
+            if i < 2:
+                rank_loss = tf.subtract(rank_loss, 1)
             rank_loss = tf.reduce_sum(rank_loss)
-            # print("reg_loss", reg_loss)
-            # print("rank_loss", rank_loss)
             return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
 
         # define gradient of custom loss function
@@ -268,6 +256,7 @@ class NeuralNetwork:
             pd.DataFrame -- Ranking of algorithms
         """
         # compute utility scores
-        features = np.hstack((features, [1]))
-        utility_scores = np.exp(self.network(features[:, None].T))
-        return np.argsort(np.argsort(utility_scores)[::-1]) + 1
+        # features = tf.concat((features, [1]), axis=0)
+        # utility_scores = tf.exp(self.network(features[:, None]))
+        # return tf.argsort(tf.argsort(utility_scores)) + 1
+        return np.argsort(np.argsort(self.predict_performances(features)[0]))+1
