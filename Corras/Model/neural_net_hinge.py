@@ -193,6 +193,7 @@ class NeuralNetworkSquaredHinge:
                                     sample_weight))
                 loss_tensor = np.average(losses)
                 current_val_loss = tf.reduce_mean(loss_tensor)
+                print("cur val loss", current_val_loss)
                 self.es_val_history.append(current_val_loss)
                 if current_val_loss < best_val_loss:
                     best_val_loss = current_val_loss

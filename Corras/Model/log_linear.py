@@ -15,13 +15,15 @@ class LogLinearModel:
         self.use_reciprocal_for_regression = use_reciprocal_for_regression
 
     def squared_error(self, performances: np.ndarray, features: np.ndarray,
-                      weights: np.ndarray, sample_weights: np.ndarray):
+                      labels: np.ndarray, weights: np.ndarray,
+                      sample_weights: np.ndarray):
         """Compute squared error for regression
 
         Arguments:
             performances {np.ndarray} -- [description]
             features {np.ndarray} -- [description]
             weights {np.ndarray} -- [description]
+            sample_weights {np.ndarray} -- weights of the individual samples
 
         Returns:
             [type] -- [description]
@@ -36,8 +38,11 @@ class LogLinearModel:
         inverse_utilities = utilities
         if self.use_reciprocal_for_regression:
             inverse_utilities = np.reciprocal(utilities)
-        loss += np.mean(
-            np.square(np.subtract(performances.T, inverse_utilities)))
+        indices = labels.T - 1
+        loss += np.mean(sample_weights[:, np.newaxis] * np.square(
+            np.subtract(performances,
+                        inverse_utilities.T[np.arange(len(labels)),
+                                            indices].T)))
         return loss
 
     def negative_log_likelihood(self, rankings: pd.DataFrame,
@@ -67,7 +72,7 @@ class LogLinearModel:
             outer_sum += inner_sum
         return outer_sum
 
-    def vectorized_nll(self, rankings, features, weights):
+    def vectorized_nll(self, rankings, features, weights, sample_weights):
         """Compute NLL w.r.t. the data in the given batch and the given weights
 
         Arguments:
@@ -86,12 +91,16 @@ class LogLinearModel:
             result = np.dot(ordered_weights[i], features[i])
             rows.append(result)
         weighted_features = np.vstack(rows)
+        # sum1 = np.sum(
+        #     np.sum(sample_weights[:, np.newaxis] * weighted_features, 0))
         sum1 = np.sum(np.sum(weighted_features, 0))
         utilities = np.exp(weighted_features)
         new_logs = []
         for m in range(0, rankings.shape[1]):
             new_logs.append(np.log(np.sum(utilities[:, m:], axis=1)))
         new_logs = np.asarray(new_logs)
+        # outer_nll = np.sum(np.sum(
+        #     sample_weights[:, np.newaxis] * new_logs.T)) - sum1
         outer_nll = np.sum(np.sum(new_logs)) - sum1
         outer_nll = outer_nll / rankings.shape[0]
         # print(sum1/rankings.shape[0])
@@ -159,7 +168,6 @@ class LogLinearModel:
         if sample_weights is None:
             sample_weights = np.ones(rankings.shape[0])
         num_features = features.shape[1] + 1
-        # self.weights = np.random.rand(num_labels, num_features)
         self.weights = np.ones(
             (num_labels, num_features)) / (num_features * num_labels)
         nll = self.vectorized_nll
@@ -170,24 +178,28 @@ class LogLinearModel:
 
         def callback(x):
             x = np.reshape(x, (num_labels, num_features))
-            se_value = reg_loss(performances, features, x)
-            nll_value = nll(rankings, features, x)
+            se_value = reg_loss(performances, features, rankings, x,
+                                sample_weights)
+            nll_value = nll(rankings, features, x, sample_weights)
             self.loss_history.append([se_value, nll_value])
 
         def g(x):
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
                 reg_loss_value = (1 - lambda_value) * reg_loss(
-                    performances, features, x) + reg_param * x**2
+                    performances, features, rankings, x,
+                    sample_weights) + reg_param * np.sum(x**2)
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
-                nll_value = lambda_value * nll(rankings, features,
-                                               x) + reg_param * x**2
-                return nll(rankings, features, x)
-            nll_value = lambda_value * nll(rankings, features, x)
+                nll_value = lambda_value * nll(
+                    rankings, features, x,
+                    sample_weights) + reg_param * np.sum(x**2)
+                return nll(rankings, features, x, sample_weights)
+            nll_value = lambda_value * nll(rankings, features, x,
+                                           sample_weights)
             reg_loss_value = (1 - lambda_value) * reg_loss(
-                performances, features, x)
-            return nll_value + reg_loss_value + reg_param * x**2
+                performances, features, rankings, x, sample_weights)
+            return nll_value + reg_loss_value + reg_param * np.sum(x**2)
 
         jac = grad(g)
 
@@ -312,7 +324,7 @@ class LogLinearModel:
         # compute utility scores
         features = np.hstack((features, [1]))
         utility_scores = np.exp(np.dot(self.weights, features))
-        return np.argsort(np.argsort(utility_scores)[::-1]) + 1
+        return np.argsort(np.argsort(utility_scores)) + 1
 
     def save_loss_history(self, filepath: str):
         """Saves the history of losses after the model has been fit

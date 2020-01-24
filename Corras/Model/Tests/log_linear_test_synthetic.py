@@ -89,19 +89,21 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
     #     self.assertAlmostEqual(gradient_step[0], local_finite_approx)
 
     def test_regression(self):
-        model1 = ll.LogLinearModel(use_exp_for_regression=False)
+        model1 = ll.LogLinearModel(use_exp_for_regression=False, use_reciprocal_for_regression=False)
         perf = self.train_performances.to_numpy()
         maximum = np.max(perf)
         perf_max_inv = maximum - perf
         max_inv = np.max(perf_max_inv)
         perf_max_inv = perf_max_inv / max_inv
         train_performances_max_inv = pd.DataFrame(data=perf_max_inv,index=self.train_performances.index,columns=self.train_performances.columns)
-        inst,perf,rank = util.construct_numpy_representation_with_pairs_of_rankings(self.train_inst,train_performances_max_inv,max_pairs_per_instance=15,seed=15, order="desc")
+        inst,perf,rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(self.train_inst,train_performances_max_inv,max_pairs_per_instance=15,seed=15, order="desc")
+        sample_weights = sample_weights / sample_weights.max()
         print(inst)
         print(perf)
         print(rank)
-        lambda_value = 0.99
-        model1.fit_np(5, rank, inst, perf,lambda_value=lambda_value,regression_loss="Squared", maxiter=1000, log_losses=True)
+        lambda_value = 1.0
+        print(sample_weights)
+        model1.fit_np(5, rank, inst, perf,lambda_value=lambda_value,regression_loss="Squared", maxiter=1000, log_losses=True, sample_weights=sample_weights)
         model1.save_loss_history("loss_history1.csv")
 
         for index, row in self.test_inst.iterrows():
@@ -110,7 +112,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
             # print("Predicted Performances Model 1", model1.predict_performances(row.values))
             print("\n")
             print("True Ranking", self.test_ranking.loc[index].values)
-            print("Predicted Ranking Model 1", model1.predict_ranking(row.values))
+            print("Predicted Ranking Model 1", model1.predict_ranking(row.to_numpy()))
             print("\n")
         sns.set_style("darkgrid")
         df = model1.get_loss_history_frame()

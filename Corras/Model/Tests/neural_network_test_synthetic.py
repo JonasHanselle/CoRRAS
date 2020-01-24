@@ -109,9 +109,10 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
                   lambda_value=1.0,
                   regression_loss="Squared",
                   num_epochs=100,
-                  learning_rate=0.001,
+                  learning_rate=0.01,
                   hidden_layer_sizes=[20],
                   activation_function="relu",
+                  early_stop_interval=1,
                   batch_size=64)
         for index, row in self.test_inst.iterrows():
             print("True Performances",
