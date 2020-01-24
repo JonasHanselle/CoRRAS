@@ -109,7 +109,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
                    epsilon_value=1.0,
                    regression_loss="Squared",
                    num_epochs=150,
-                   learning_rate=0.01,
+                   learning_rate=0.001,
                    batch_size=32,
                    early_stop_interval=10,
                    patience=32,

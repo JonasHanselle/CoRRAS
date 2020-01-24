@@ -232,10 +232,9 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
             # Standardize
             scaled_row = scaler.transform(imputed_row).flatten()
             # predicted_ranking = model.predict_ranking(scaled_row)
-            predicted_performances = model.predict_performances(scaled_row)[0]
+            predicted_performances = model.predict_performances(scaled_row)
             # rescale
             predicted_performances = perf_max * predicted_performances
-            print("pred perf", predicted_performances)
 
             result_data_corras.append([
                 split, index, lambda_value, seed, learning_rate,

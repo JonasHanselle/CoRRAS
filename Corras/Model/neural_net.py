@@ -283,7 +283,9 @@ class NeuralNetwork:
         # compute utility scores
         # utility_scores = np.exp(self.network(features[:,None].T))
         # return np.reciprocal(utility_scores)
-        return self.network(features[:, None].T)
+        predictions = self.network(features[:, None].T)
+
+        return predictions.numpy()[0]
 
     def predict_ranking(self, features: np.ndarray):
         """Predict a label ranking.
