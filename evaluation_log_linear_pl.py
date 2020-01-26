@@ -129,7 +129,6 @@ for scenario_name in scenarios:
     except Exception as exc:
         print("File for " + scenario_name +
               " not found in corras result data! Exception " + str(exc))
-        break
         continue
     # for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in param_product:
     # print(corras.head())

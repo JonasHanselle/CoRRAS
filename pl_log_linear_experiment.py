@@ -39,27 +39,35 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["CPMP-2015", "MAXSAT-PMS-2016", "MAXSAT-WPMS-2016", "SAT11-INDU" "SAT12-ALL", "TTP-2016"]
+scenarios = [
+    "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND",
+    "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
+    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"
+]
 # scenarios = ["MIP-2016"]
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-                 0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
+# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+#                  0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
 # lambda_values = [0.0, 0.2, 0.4, 0.6,
 #                  0.8, 1.0]
-# lambda_values = [0.5]
+lambda_values = [0.5]
 max_pairs_per_instance = 5
-maxiter = 100
+maxiter = 10 
 seeds = [15]
 use_quadratic_transform_values = [True, False]
 # use_quadratic_transform_values = [True]
 use_max_inverse_transform_values = ["max_cutoff"]
 # use_max_inverse_transform_values = ["max_cutoff"]
-scale_target_to_unit_interval_values = [False]
+scale_target_to_unit_interval_values = [True]
 # scale_target_to_unit_interval_values = [True]
+use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-params = [scenarios, lambda_values, splits, seeds, use_quadratic_transform_values,
-          use_max_inverse_transform_values, scale_target_to_unit_interval_values]
+params = [
+    scenarios, lambda_values, splits, seeds, use_quadratic_transform_values,
+    use_max_inverse_transform_values, scale_target_to_unit_interval_values,
+    use_weighted_samples_values
+]
 
 param_product = list(product(*params))
 
@@ -74,32 +82,45 @@ if shard_number == total_shards:
 else:
     shard = param_product[lower_bound:upper_bound]
 
-for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in shard:
-    params_string = "-".join([scenario_name,
-                              str(lambda_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
-
+for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples in shard:
+    params_string = "-".join([
+        scenario_name,
+        str(lambda_value),
+        str(split),
+        str(seed),
+        str(use_quadratic_transform),
+        str(use_max_inverse_transform),
+        str(scale_target_to_unit_interval)
+    ])
 
     # check if table for scenario_name exists
 
-    table_name = "linear-plackett-luce-" + scenario_name
+    table_name = "linear-plackett-luce-new" + scenario_name
 
-    engine = sql.create_engine("mysql://" + db_user +
-                                ":" + db_pw + "@" + db_url + "/" + db_db, echo=False)
+    engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
+                               db_url + "/" + db_db,
+                               echo=False)
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
         pass
     else:
         meta = MetaData(engine)
-        experiments = Table(table_name, meta, autoload=True,
+        experiments = Table(table_name,
+                            meta,
+                            autoload=True,
                             autoload_with=engine)
 
-        slct = experiments.select(and_(experiments.columns["split"] == split,
-                                       experiments.columns["lambda"] == lambda_value,
-                                       experiments.columns["seed"] == seed,
-                                       experiments.columns["use_quadratic_transform"] == use_quadratic_transform,
-                                       experiments.columns["use_max_inverse_transform"] == use_max_inverse_transform,
-                                       experiments.columns["scale_target_to_unit_interval"] == scale_target_to_unit_interval
-                                       )).limit(1)
+        slct = experiments.select(
+            and_(
+                experiments.columns["split"] == split,
+                experiments.columns["lambda"] == lambda_value,
+                experiments.columns["seed"] == seed,
+                experiments.columns["use_quadratic_transform"] ==
+                use_quadratic_transform,
+                experiments.columns["use_max_inverse_transform"] ==
+                use_max_inverse_transform,
+                experiments.columns["scale_target_to_unit_interval"] ==
+                scale_target_to_unit_interval)).limit(1)
         rs = connection.execute(slct)
         result = rs.first()
         if result == None:
@@ -119,19 +140,23 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
     exists = os.path.exists(filepath)
     result_data_corras = []
     try:
-        scenario_path = "./aslib_data-aslib-v4.0/"+scenario_name
+        scenario_path = "./aslib_data-aslib-v4.0/" + scenario_name
         scenario = aslib_ranking_scenario.ASRankingScenario()
         scenario.read_scenario(scenario_path)
         if not exists:
             performance_cols_corras = [
-                x + "_performance" for x in scenario.performance_data.columns]
+                x + "_performance" for x in scenario.performance_data.columns
+            ]
 
             result_columns_corras = [
-                "split", "problem_instance", "lambda", "seed", "use_quadratic_transform", "use_max_inverse_transform", "scale_target_to_unit_interval"]
+                "split", "problem_instance", "lambda", "seed",
+                "use_quadratic_transform", "use_max_inverse_transform",
+                "scale_target_to_unit_interval"
+            ]
             result_columns_corras += performance_cols_corras
 
-            results_corras = pd.DataFrame(
-                data=[], columns=result_columns_corras)
+            results_corras = pd.DataFrame(data=[],
+                                          columns=result_columns_corras)
             results_corras.to_csv(filepath, index_label="id")
 
         test_scenario, train_scenario = scenario.get_split(split)
@@ -151,8 +176,9 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
         if use_quadratic_transform:
             quad_data = polytransform.fit_transform(train_features.to_numpy())
             new_cols = polytransform.get_feature_names(train_features.columns)
-            train_features = pd.DataFrame(
-                data=quad_data, index=train_features.index, columns=new_cols)
+            train_features = pd.DataFrame(data=quad_data,
+                                          index=train_features.index,
+                                          columns=new_cols)
 
         # Standardize
         train_features[train_features.columns] = scaler.fit_transform(
@@ -162,7 +188,7 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
         #     train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed)
 
         cutoff = scenario.algorithm_cutoff_time
-        par10 = cutoff*10
+        par10 = cutoff * 10
 
         perf = train_performances.to_numpy()
 
@@ -180,19 +206,40 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
 
         if scale_target_to_unit_interval:
             perf_max = np.max(perf)
-            perf = perf/perf_max
+            perf = perf / perf_max
 
-        train_performances = pd.DataFrame(
-            data=perf, index=train_performances.index, columns=train_performances.columns)
+        train_performances = pd.DataFrame(data=perf,
+                                          index=train_performances.index,
+                                          columns=train_performances.columns)
         print(order)
-        inst, perf, rank = util.construct_numpy_representation_with_pairs_of_rankings(
-            train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed, order=order)
+        # inst, perf, rank = util.construct_numpy_representation_with_pairs_of_rankings(
+        #     train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed, order=order)
 
-        model = log_linear.LogLinearModel(
-            use_exp_for_regression=False, use_reciprocal_for_regression=False)
+        model = log_linear.LogLinearModel(use_exp_for_regression=False,
+                                          use_reciprocal_for_regression=False)
 
-        model.fit_np(len(scenario.algorithms), rank, inst,
-                     perf, lambda_value=lambda_value, regression_loss="Squared", maxiter=maxiter, print_output=False, log_losses=True)
+        inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
+            train_features,
+            train_performances,
+            max_pairs_per_instance=max_pairs_per_instance,
+            seed=seed,
+            order=order,
+            skip_value=None)
+
+        sample_weights = sample_weights / sample_weights.max()
+        if not use_weighted_samples:
+            sample_weights = np.ones(len(sample_weights))
+
+        model.fit_np(len(scenario.algorithms),
+                     rank,
+                     inst,
+                     perf,
+                     lambda_value=lambda_value,
+                     regression_loss="Squared",
+                     maxiter=maxiter,
+                     print_output=False,
+                     log_losses=True,
+                     sample_weights=sample_weights)
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)
@@ -216,20 +263,29 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
             elif use_max_inverse_transform == "max_par10":
                 predicted_performances = par10 - predicted_performances
 
-            result_data_corras.append(
-                [split, index, lambda_value, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, *predicted_performances])
+            result_data_corras.append([
+                split, index, lambda_value, seed, use_quadratic_transform,
+                use_max_inverse_transform, scale_target_to_unit_interval,
+                *predicted_performances
+            ])
             # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
 
         performance_cols_corras = [
-            x + "_performance" for x in scenario.performance_data.columns]
+            x + "_performance" for x in scenario.performance_data.columns
+        ]
 
         result_columns_corras = [
-            "split", "problem_instance", "lambda", "seed", "use_quadratic_transform", "use_max_inverse_transform", "scale_target_to_unit_interval"]
+            "split", "problem_instance", "lambda", "seed",
+            "use_quadratic_transform", "use_max_inverse_transform",
+            "scale_target_to_unit_interval"
+        ]
         result_columns_corras += performance_cols_corras
-        results_corras = pd.DataFrame(
-            data=result_data_corras, columns=result_columns_corras)
+        results_corras = pd.DataFrame(data=result_data_corras,
+                                      columns=result_columns_corras)
         connection = engine.connect()
-        results_corras.to_sql(name=table_name,con=connection,if_exists="append")
+        results_corras.to_sql(name=table_name,
+                              con=connection,
+                              if_exists="append")
         connection.close()
         model.save_loss_history(loss_filepath)
 
