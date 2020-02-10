@@ -113,7 +113,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
                    batch_size=32,
                    early_stop_interval=10,
                    patience=32,
-                   hidden_layer_sizes=[16,16],
+                   hidden_layer_sizes=[16, 16],
                    activation_function="sigmoid")
 
         for index, row in self.test_inst.iterrows():
