@@ -17,9 +17,11 @@ import seaborn as sns
 sns.set_style("whitegrid")
 
 scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU"]
+scenario_names = ["SAT11-RAND"]
 scenario_path = "./aslib_data-aslib-v4.0/"
 result_path = "./losses-pl/"
 figures_path = "./figures_loss_hist_pl/"
+figures_path = "../Masters_Thesis/Thesis/latex-thesis-template/gfx/plots/pl/losses"
 lambda_values = [0.4]
 # epsilon_values = [0.2,0.4,0.6,0.8,1]
 split = 4

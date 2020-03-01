@@ -17,7 +17,7 @@ sns.set_style("darkgrid")
 scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND"]
 scenario_path = "./aslib_data-aslib-v4.0/"
 loss_hists_path = "./loss-hists/"
-figures_path = "./figures_loss_hist/"
+figures_path = "../Masters_Thesis/Thesis/latex-thesis-template/gfx/plots/pl/losses"
 lambda_values = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 epsilon_values = [0.2,0.4,0.6,0.8,1]
 split = 4

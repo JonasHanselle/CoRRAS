@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 scenario_path = "./aslib_data-aslib-v4.0/"
-evaluations_path = "./evaluations/"
-evaluations_path_nnh = "./evaluations-nnh-config/"
+evaluations_path = "./evaluation-results/evaluations/"
+evaluations_path_nnh = "./evaluation-results/evaluations-nnh-config/"
 
 figures_path = "./figures/progression-plots/"
 
