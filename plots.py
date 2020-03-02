@@ -19,7 +19,8 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/masters-thesis/gfx/plots/pl/"
-scenario_names = ["CSP-Minizinc-Time-2016", "MIP-2016", "CSP-2010"]
+# scenario_names = ["SAT11-RAND", "SAT11-INDU", "SAT11-HAND"]
+scenario_names = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
 use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
 # scale_target_to_unit_interval_values = [True, False]
@@ -34,13 +35,14 @@ name_map = {"ndcg": "NDCG",
             "tau_p": "Kendall $\\tau_b$ p-value",
             "mae": "MAE",
             "mse": "MSE",
+            "rmse": "RMSE",
             "par10": "PAR 10",
             "absolute_distance_to_vbs": "mp",
             "success_rate": "sr"}
 
 param_product = list(product(*params))
 
-measures = ["tau_corr", "ndcg", "mae", "mse"]
+measures = ["tau_corr", "ndcg", "mae", "mse", "rmse"]
 
 
 for measure in measures:
@@ -73,9 +75,13 @@ for measure in measures:
             continue
         current_frame = corras.loc[(corras["seed"] == seed) & (corras["scale_to_unit_interval"]
                                                                == scale_target_to_unit_interval) & (corras["max_inverse_transform"] == "max_cutoff")]
-        if measure in ["mae","mse"]:
-            current_frame = current_frame.loc[(current_frame["lambda"] <= 0.99) ]
+        current_frame["rmse"] = current_frame["mse"].pow(1./2)
+        print(current_frame.head())
+        df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1./2)
+        df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1./2)
 
+        if measure in ["mae","mse", "rmse"]:
+            current_frame = current_frame.loc[(current_frame["lambda"] <= 0.99) ]
     #     print(current_frame[:])
     #     print(current_frame.iloc[:10,8:12].to_latex(na_rep="-", index=False, bold_rows=True, float_format="%.2f", formatters={"tau_corr" : max_formatter}, escape=False))
     #     for measure in current_frame.columns[8:]:
@@ -110,7 +116,7 @@ for measure in measures:
     fig.set_size_inches(10.5, 3.0)
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
-    labels = ["PL-LM", "PL-QM", "Random Forest", "Linear Regression"]
+    labels = ["PL-GLM", "PL-QM", "Random Forest", "Linear Regression"]
     legend = fig.legend(list(axes), labels=labels, loc="lower center", ncol=len(
         labels), bbox_to_anchor=(0.5, -0.02))
     plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" + params_string.replace(
