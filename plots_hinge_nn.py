@@ -18,15 +18,16 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/Thesis/latex-thesis-template/gfx/plots/hinge_nn/"
-scenarios = ["MIP-2016", "CSP-2010", "CPMP-2015"]
+figures_path = "../Masters_Thesis/masters-thesis/gfx/plots/hinge_nn/"
+scenarios = ["MIP-2016", "SAT11-HAND", "CSP-2010"]
 # scenarios = ["CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
 lambda_values = [0.0, 0.1, 0.5, 0.9, 1.0]
-epsilon_values = [1]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
-learning_rates = [0.001]
+learning_rates = [0.01]
 batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
@@ -44,9 +45,9 @@ name_map = {
     "tau_p": "Kendall $\\tau_b$ p-value",
     "mae": "MAE",
     "mse": "MSE",
-    "par10": "PAR 10",
-    "absolute_distance_to_vbs": "mp",
-    "success_rate": "sr"
+    "par10": "PAR10",
+    "absolute_distance_to_vbs": "MP",
+    "success_rate": "SR"
 }
 
 measures = ["tau_corr", "ndcg", "mae", "mse"]
@@ -78,7 +79,7 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(
-                evaluations_path + "corras-hinge-nn-" + scenario_name + "-short.csv")
+                evaluations_path + "corras-hinge-nn-" + scenario_name + ".csv")
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
@@ -86,7 +87,8 @@ for measure in measures:
         current_frame = corras.loc[(corras["seed"] == seed) & (
             corras["learning_rate"] == learning_rate) & (
             corras["batch_size"] == batch_size) & (corras["es_patience"] == es_patience) & (corras["es_interval"] == es_interval) & (corras["es_val_ratio"] == es_val_ratio)]
-
+        print(len(current_frame))
+        print(current_frame.head())
 
         if measure in ["mae", "mse"]:
             current_frame = current_frame.loc[(current_frame["lambda"] <=
