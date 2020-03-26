@@ -17,17 +17,28 @@ sns.set_style("whitegrid")
 scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
-figures_path = "../Masters_Thesis/Thesis/latex-thesis-template/gfx/plots/hinge/"
-scenario_names = ["SAT11-RAND", "SAT11-INDU", "SAT11-HAND"]
-use_quadratic_transform_values = [False]
-use_max_inverse_transform_values = ["max_cutoff"]
-# scale_target_to_unit_interval_values = [True, False]
+figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge/"
+scenario_names = ["SAT11-HAND", "MIP-2016", "CSP-2010"]
+
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+# lambda_values = [0.5]
+epsilon_values = [1.0]
+max_pairs_per_instance = 5
+maxiter = 1000
+seeds = [15]
+use_quadratic_transform_values = [False, True]
+use_max_inverse_transform_values = ["None"]
 scale_target_to_unit_interval_values = [True]
+skip_censored_values = [False]
+regulerization_params_values = [0.1]
+use_weighted_samples_values = [False]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 seed = 15
 
 params = [
-    scenario_names, use_quadratic_transform_values,
-    use_max_inverse_transform_values, scale_target_to_unit_interval_values
+    scenario_names, use_max_inverse_transform_values,
+    scale_target_to_unit_interval_values, skip_censored_values,
+    regulerization_params_values, use_weighted_samples_values
 ]
 
 name_map = {
@@ -48,9 +59,10 @@ measures = ["tau_corr", "ndcg", "mae", "mse"]
 for measure in measures:
     plt.clf()
     fig, axes = plt.subplots(1, 3)
-    for index, (scenario_name, use_quadratic_transform,
-                use_max_inverse_transform,
-                scale_target_to_unit_interval) in enumerate(param_product):
+    for index, (scenario_name, use_max_inverse_transform,
+                scale_target_to_unit_interval, skip_censored,
+                regulerization_param,
+                use_weighted_samples) in enumerate(param_product):
 
         ax = axes[index]
         df_baseline_lr = None
@@ -77,15 +89,37 @@ for measure in measures:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(evaluations_path + "corras-hinge-linear-" +
                                  scenario_name + "-new.csv")
+            # print(corras.head())
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
             continue
+        # print(corras.columns)
         current_frame = corras.loc[
             (corras["seed"] == seed)
             & (corras["max_inverse_transform"] == use_max_inverse_transform) &
-            (corras["scale_to_unit_interval"] == scale_target_to_unit_interval
-             )]
+            (corras["scale_to_unit_interval"] == scale_target_to_unit_interval)
+            & (corras["skip_censored"] == skip_censored) &
+            (corras["regularization_param"] == regulerization_param) &
+            (corras["use_weighted_samples"] == use_weighted_samples)]
+
+        # print("current Frame", current_frame.head())
+        # if len(current_frame) != len(df_baseline_lr):
+        # print("lengths not equal", len(current_frame) , len(df_baseline_lr))
+
+        for lambda_value in lambda_values:
+            for use_quadratic_transform in use_quadratic_transform_values:
+                sub_frame = current_frame.loc[
+                    (current_frame["quadratic_transform"] ==
+                     use_quadratic_transform)
+                    & (current_frame["lambda"] == lambda_value)]
+                print(scenario_name, use_max_inverse_transform, scale_target_to_unit_interval,
+                      skip_censored, regulerization_param,
+                      use_weighted_samples, use_quadratic_transform,
+                      lambda_value, len(sub_frame), len(current_frame),
+                      len(df_baseline_lr), len(df_baseline_rf))
+        # print("sub frame")
+        # print(sub_frame.head())
 
         if measure in ["mae", "mse"]:
             current_frame = current_frame.loc[(current_frame["lambda"] <=

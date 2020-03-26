@@ -17,11 +17,16 @@ sns.set_style("whitegrid")
 scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
-figures_path = "../Masters_Thesis/Thesis/latex-thesis-template/gfx/plots/hinge_nn/"
-scenarios = ["MIP-2016", "CSP-2010", "CPMP-2015"]
-# scenarios = ["CSP-2010", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-lambda_values = [0.0, 0.1, 0.5, 0.9, 1.0]
-epsilon_values = [1]
+figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge_nn/"
+
+scenarios = [
+    "MIP-2016",
+    "CSP-2010",
+    "SAT11-HAND",
+    # "SAT11-INDU",
+]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -31,11 +36,14 @@ batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
-
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-params = [scenarios, learning_rates, seeds,
-          batch_sizes, es_patiences, es_intervals, es_val_ratios]
+layer_sizes_vals = ["[32]"]
+activation_functions = ["sigmoid"]
+use_weighted_samples_values = [False]
+params = [
+    scenarios, learning_rates, seeds, batch_sizes, es_patiences, es_intervals,
+    es_val_ratios, layer_sizes_vals, activation_functions,
+     epsilon_values
+]
 
 param_product = list(product(*params))
 name_map = {
@@ -54,7 +62,10 @@ measures = ["tau_corr", "ndcg", "mae", "mse"]
 for measure in measures:
     plt.clf()
     fig, axes = plt.subplots(1, 3)
-    for index, (scenario_name, learning_rate, seed, batch_size, es_patience, es_interval, es_val_ratio) in enumerate(param_product):
+    print(len(param_product))
+    for index, (scenario_name, learning_rate, seed, batch_size, es_patience,
+                es_interval, es_val_ratio, layer_sizes, activation_function,
+                 epsilon) in enumerate(param_product):
 
         ax = axes[index]
         df_baseline_lr = None
@@ -70,29 +81,41 @@ for measure in measures:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
 
-        params_string = "-".join([scenario_name,
-            str(learning_rate), str(batch_size), str(es_patience), str(es_interval), str(es_val_ratio)])
-    
+        params_string = "-".join([
+            scenario_name,
+            str(learning_rate),
+            str(batch_size),
+            str(es_patience),
+            str(es_interval),
+            str(es_val_ratio)
+        ])
 
         # continue
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
-            corras = pd.read_csv(
-                evaluations_path + "corras-hinge-nn-" + scenario_name + "-short.csv")
+            corras = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
+                                 scenario_name + ".csv")
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
             continue
-        current_frame = corras.loc[(corras["seed"] == seed) & (
-            corras["learning_rate"] == learning_rate) & (
-            corras["batch_size"] == batch_size) & (corras["es_patience"] == es_patience) & (corras["es_interval"] == es_interval) & (corras["es_val_ratio"] == es_val_ratio)]
+        current_frame = corras.loc[(corras["seed"] == seed)
+                                   & (corras["learning_rate"] == learning_rate)
+                                   & (corras["batch_size"] == batch_size) &
+                                   (corras["es_patience"] == es_patience) &
+                                   (corras["es_interval"] == es_interval) &
+                                   (corras["epsilon"] == epsilon) &
+                                   (corras["layer_sizes"] == layer_sizes) &
+                                   (corras["activation_function"] == activation_function)]
 
+        print(len(current_frame), len(df_baseline_lr), len(df_baseline_rf))
 
         if measure in ["mae", "mse"]:
             current_frame = current_frame.loc[(current_frame["lambda"] <=
                                                0.99)]
         lp = sns.lineplot(x="lambda",
                           y=measure,
+                          hue="use_weighted_samples",
                           marker="o",
                           markersize=8,
                           data=current_frame,
