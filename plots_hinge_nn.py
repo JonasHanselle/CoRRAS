@@ -31,7 +31,7 @@ max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
-learning_rates = [0.001]
+learning_rates = [0.01]
 batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
@@ -52,9 +52,9 @@ name_map = {
     "tau_p": "Kendall $\\tau_b$ p-value",
     "mae": "MAE",
     "mse": "MSE",
-    "par10": "PAR 10",
-    "absolute_distance_to_vbs": "mp",
-    "success_rate": "sr"
+    "par10": "PAR10",
+    "absolute_distance_to_vbs": "MP",
+    "success_rate": "SR"
 }
 
 measures = ["tau_corr", "ndcg", "mae", "mse"]
