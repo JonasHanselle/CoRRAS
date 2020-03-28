@@ -189,7 +189,8 @@ class LogLinearModel:
                 reg_loss_value = (1 - lambda_value) * reg_loss(
                     performances, features, rankings, x,
                     sample_weights) + reg_param * np.sum(x**2)
-                return reg_loss(performances, features, x)
+                return reg_loss(performances, features, rankings, x,
+                                sample_weights)
             elif lambda_value == 1:
                 nll_value = lambda_value * nll(
                     rankings, features, x,
@@ -263,16 +264,16 @@ class LogLinearModel:
             x = np.reshape(x, (num_labels, num_features))
             if lambda_value == 0:
                 reg_loss_value = (1 - lambda_value) * reg_loss(
-                    performances, features, x) + reg_param * x**2
+                    performances, features, x) + reg_param * np.sum(x**2)
                 return reg_loss(performances, features, x)
             elif lambda_value == 1:
                 nll_value = lambda_value * nll(rankings, features,
-                                               x) + reg_param * x**2
+                                               x) + reg_param * np.sum(x**2)
                 return nll(rankings, features, x)
             nll_value = lambda_value * nll(rankings, features, x)
             reg_loss_value = (1 - lambda_value) * reg_loss(
                 performances, features, x)
-            return nll_value + reg_loss_value + reg_param * x**2
+            return nll_value + reg_loss_value + reg_param * np.sum(x**2)
 
         jac = grad(g)
 

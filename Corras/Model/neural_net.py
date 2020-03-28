@@ -129,7 +129,6 @@ class NeuralNetwork:
         train_data = train_data.batch(batch_size)
         val_data = val_data.batch(1)
 
-
         # define custom loss function, i.e. convex combination of the of i-th partial derivative of the negative log-likelihood and squared regression error
         def custom_loss(model, x, y_perf, y_rank, i, sample_weights):
             """Compute loss for i-th label
@@ -151,12 +150,14 @@ class NeuralNetwork:
             added_indices_1 = tf.stack([row_indices, y_ind[:, 1]], axis=1)
             y_hat_0 = tf.gather_nd(output, added_indices_0)
             y_hat_1 = tf.gather_nd(output, added_indices_1)
-            y_hat =  tf.gather_nd(output, tf.stack([row_indices, y_ind[:, i]], axis=1))
+            y_hat = tf.gather_nd(output,
+                                 tf.stack([row_indices, y_ind[:, i]], axis=1))
 
             reg_loss = tf.reduce_mean(
-                tf.square(tf.subtract(y_hat, y_perf[:, i])))
+                tf.multiply(sample_weight,
+                            tf.square(tf.subtract(y_hat, y_perf[:, i]))))
             # exp_utils = tf.exp(output)
-            exp_utils_ordered =  tf.exp(tf.stack([y_hat_0, y_hat_1], axis=1))
+            exp_utils_ordered = tf.exp(tf.stack([y_hat_0, y_hat_1], axis=1))
             exp_utils = tf.exp(output)
             # exp_utils_ordered = exp_utils[
             #     np.arange(exp_utils.shape[0])[:, np.newaxis], y_ind]
@@ -165,13 +166,17 @@ class NeuralNetwork:
             for k in range(0, 2):
                 # print("i", i, "k", k)
                 # indicator = (1 - y_ind[:, i]) >= k
-                indicator = inv_rank[:,i] >= k
-                indicator = tf.keras.backend.repeat_elements(indicator[:,None], num_labels, axis=1)
+                indicator = inv_rank[:, i] >= k
+                indicator = tf.keras.backend.repeat_elements(indicator[:,
+                                                                       None],
+                                                             num_labels,
+                                                             axis=1)
                 denominator = tf.reduce_sum(exp_utils_ordered[:, k:], axis=1)
-                rank_loss = tf.add(rank_loss, tf.divide(exp_utils_ordered[:, i], denominator)) 
+                rank_loss = tf.add(
+                    rank_loss, tf.divide(exp_utils_ordered[:, i], denominator))
             if i < 2:
                 rank_loss = tf.subtract(rank_loss, 1)
-            rank_loss = tf.reduce_sum(rank_loss)
+            rank_loss = tf.reduce_sum(tf.multiply(sample_weight, rank_loss))
             return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
 
         # define gradient of custom loss function
@@ -182,44 +187,53 @@ class NeuralNetwork:
             return loss_value, tape.gradient(loss_value,
                                              model.trainable_weights)
 
+        # # define objective, i.e. convex combination of nll and mse
+        # def custom_objective(model, x, y_perf, y_rank, sample_weights):
+        #     """Compute loss for i-th label
 
-        # # define objective, i.e. convex combination of nll 
+        #     Arguments:
+        #         model {[type]} -- [Neural network]
+        #         x {[type]} -- [Feature vector]
+        #         y_perf {[type]} -- [Performances]
+        #         y_rank {[type]} -- [Rankings]
+        #         i {[type]} -- [Label]
+
+        #     Returns:
+        #         [float64] -- [Loss]
+        #     """
+        #     output = model(x)
+        #     row_indices = tf.range(tf.shape(y_rank)[0])
+        #     y_ind = y_rank - 1
+        #     added_indices_0 = tf.stack([row_indices, y_ind[:, 0]], axis=1)
+        #     added_indices_1 = tf.stack([row_indices, y_ind[:, 1]], axis=1)
+        #     y_hat_0 = tf.gather_nd(output, added_indices_0)
+        #     y_hat_1 = tf.gather_nd(output, added_indices_1)
+        #     reg_loss = tf.reduce_mean(
+        #         tf.multiply(sample_weight,
+        #                     (tf.square(tf.subtract(y_hat_0, y_perf[:, 0])))))
+        #     reg_loss += tf.reduce_mean(
+        #         tf.multiply(sample_weight,
+        #                     (tf.square(tf.subtract(y_hat_1, y_perf[:, 1])))))
+        #     utils_ordered = tf.stack([y_hat_0, y_hat_1], axis=1)
+        #     exp_utils_ordered = tf.exp(utils_ordered)
+        #     exp_utils = tf.exp(output)
+        #     rank_loss = 0.0
+        #     for k in range(0, 2):
+        #         logsum = tf.reduce_sum(exp_utils_ordered[:, k:], axis=1)
+        #         rank_loss += tf.math.log(logsum)
+        #     #     print("rank loss", rank_loss)
+        #     # print("rank loss after", tf.reduce_sum(rank_loss))
+        #     rank_loss = tf.reduce_sum(tf.multiply(
+        #         sample_weight, rank_loss)) - tf.reduce_sum(
+        #             tf.multiply(sample_weight, utils_ordered))
+        #     return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
+
+        # define objective, i.e. convex combination of nll and mse
         def custom_objective(model, x, y_perf, y_rank, sample_weights):
-            """Compute loss for i-th label
-
-            Arguments:
-                model {[type]} -- [Neural network]
-                x {[type]} -- [Feature vector]
-                y_perf {[type]} -- [Performances]
-                y_rank {[type]} -- [Rankings]
-                i {[type]} -- [Label]
-
-            Returns:
-                [float64] -- [Loss]
-            """
-            output = model(x)
-            row_indices = tf.range(tf.shape(y_rank)[0])
-            y_ind = y_rank - 1
-            added_indices_0 = tf.stack([row_indices, y_ind[:, 0]], axis=1)
-            added_indices_1 = tf.stack([row_indices, y_ind[:, 1]], axis=1)
-            y_hat_0 = tf.gather_nd(output, added_indices_0)
-            y_hat_1 = tf.gather_nd(output, added_indices_1)
-            reg_loss = tf.reduce_mean(
-                tf.multiply(sample_weight,
-                            (tf.square(tf.subtract(y_hat_0, y_perf[:, 0])))))
-            reg_loss += tf.reduce_mean(
-                (tf.square(tf.subtract(y_hat_1, y_perf[:, 1]))))
-            utils_ordered = tf.stack([y_hat_0, y_hat_1], axis=1)
-            exp_utils_ordered =  tf.exp(utils_ordered)
-            exp_utils = tf.exp(output)
-            rank_loss = 0.0
-            for k in range(0, 2):
-                logsum = tf.reduce_sum(exp_utils_ordered[:, k:], axis=1)
-                rank_loss += tf.math.log(logsum)
-            #     print("rank loss", rank_loss)
-            # print("rank loss after", tf.reduce_sum(rank_loss))
-            rank_loss = tf.reduce_sum(rank_loss) - tf.reduce_sum(utils_ordered)
-            return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
+            obj_val = 0
+            for i in range(2):
+                obj_val = obj_val + custom_loss(model,x,y_perf,y_rank,i,sample_weights)
+            return obj_val
 
         # optimizer
         optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -247,25 +261,27 @@ class NeuralNetwork:
                 # print(loss_value)
                 optimizer.apply_gradients(
                     zip(accum_tvs, self.network.trainable_weights))
-        #     if epoch % early_stop_interval == 0:
-        #         print("early stopping check")
-        #         losses = []
-        #         for x, y_perf, y_rank, sample_weight in val_data:
-        #             losses.append(custom_objective(self.network, x, y_perf, y_rank, sample_weight))
-        #         loss_tensor = np.average(losses)
-        #         print("es loss", loss_tensor)
-        #         current_val_loss = tf.reduce_mean(loss_tensor)
-        #         if current_val_loss < best_val_loss:
-        #             best_val_loss = current_val_loss
-        #             current_best_weights = self.network.get_weights()
-        #             print("new best validation loss", best_val_loss)
-        #             patience_cnt = 0
-        #         else:
-        #             patience_cnt += 1
-        #         if patience_cnt >= patience:
-        #             print("early stopping")
-        # self.network.set_weights(current_best_weights)
-
+            if epoch % early_stop_interval == 0:
+                print("early stopping check")
+                losses = []
+                for x, y_perf, y_rank, sample_weight in val_data:
+                    losses.append(
+                        custom_objective(self.network, x, y_perf, y_rank,
+                                         sample_weight))
+                loss_tensor = np.average(losses)
+                print("es loss", loss_tensor)
+                current_val_loss = tf.reduce_mean(loss_tensor)
+                if current_val_loss < best_val_loss:
+                    best_val_loss = current_val_loss
+                    current_best_weights = self.network.get_weights()
+                    print("new best validation loss", best_val_loss)
+                    patience_cnt = 0
+                else:
+                    patience_cnt += 1
+                if patience_cnt >= patience:
+                    print("early stopping")
+                    break
+        self.network.set_weights(current_best_weights)
 
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.
@@ -300,4 +316,5 @@ class NeuralNetwork:
         # features = tf.concat((features, [1]), axis=0)
         # utility_scores = tf.exp(self.network(features[:, None]))
         # return tf.argsort(tf.argsort(utility_scores)) + 1
-        return np.argsort(np.argsort(self.predict_performances(features)[0]))+1
+        return np.argsort(np.argsort(
+            self.predict_performances(features)[0])) + 1

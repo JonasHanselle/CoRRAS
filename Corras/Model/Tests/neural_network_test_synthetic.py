@@ -95,12 +95,13 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
     def test_regression(self):
         model = nn.NeuralNetwork()
         # rankings = util.ordering_to_ranking_list(self.train_ranking.values)
-        inst, perf, rank = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
+        inst, perf, rank, weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
             self.train_inst,
             self.train_performances,
             max_pairs_per_instance=15,
             seed=15)
         rank = rank.astype("int32")
+        weights = weights / weights.max()
 
         model.fit(5,
                   rank,
@@ -113,7 +114,8 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
                   hidden_layer_sizes=[20],
                   activation_function="relu",
                   early_stop_interval=1,
-                  batch_size=64)
+                  batch_size=64,
+                  sample_weights=None)
         for index, row in self.test_inst.iterrows():
             print("True Performances",
                   self.test_performances.loc[index].values)
@@ -130,9 +132,8 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
                   np.argsort((model.predict_performances(row.values)[0])) + 1)
             print(
                 "Predicted Ranking c",
-                np.argsort(
-                    np.argsort(
-                        model.predict_performances(row.values)[0][::-1])) + 1)
+                np.argsort(np.argsort(model.predict_performances(row.values)))
+                + 1)
             print("\n")
 
 
