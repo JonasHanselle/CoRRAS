@@ -28,7 +28,7 @@ from sqlalchemy.sql import exists, select, and_, or_
 import urllib
 
 result_path = "./results/"
-loss_path = "./losses/"
+loss_path = "./losses-plnet/"
 
 total_shards = int(sys.argv[1])
 shard_number = int(sys.argv[2])
@@ -39,22 +39,29 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["MIP-2016", "SAT12-ALL", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-lambda_values = [1, 0.5]
+scenarios = [
+    "MIP-2016",
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "CPMP-2015"
+]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+lambda_values = [0.5]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [10000]
-es_intervals = [25]
-es_val_ratios = [0.0]
-layer_sizes_vals = [[16, 16], [32]]
-activation_functions = ["sigmoid", "relu"]
-use_weighted_samples_values = [False]
+es_patiences = [16]
+es_intervals = [5]
+es_val_ratios = [0.3]
+layer_sizes_vals = [[32]]
+activation_functions = ["sigmoid"]
+use_weighted_samples_values = [True, False]
 
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1]
 
 params = [
     scenarios, lambda_values, splits, seeds, learning_rates, es_intervals,
@@ -75,13 +82,14 @@ if shard_number == total_shards:
 else:
     shard = param_product[lower_bound:upper_bound]
 
+engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
+                            db_url + "/" + db_db,
+                            echo=False)
+
 for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples in shard:
 
-    table_name = "neural-net-plackett-luce-" + scenario_name
+    table_name = "neural-net-plackett-luce-" + scenario_name + "-new"
 
-    engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-                               db_url + "/" + db_db,
-                               echo=False)
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
         pass
@@ -265,8 +273,8 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
                               con=connection,
                               if_exists="append")
         connection.close()
-        # model.save_loss_history(loss_filepath)
-        # model.save_es_val_history(es_val_filepath)
+        model.save_loss_history(loss_filepath)
+        model.save_es_val_history(es_val_filepath)
 
     except Exception as exc:
         print("Something went wrong during computation with parameters " +

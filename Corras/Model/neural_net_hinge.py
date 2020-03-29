@@ -201,6 +201,7 @@ class NeuralNetworkSquaredHinge:
                     patience_cnt = 0
                 else:
                     patience_cnt += 1
+                    print("patience counter", patience_cnt)
                 if patience_cnt >= patience:
                     print("early stopping")
                     break

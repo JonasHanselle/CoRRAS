@@ -5,7 +5,8 @@ import Corras.Model.neural_net as nn
 import Corras.Util.ranking_util as util
 import Corras.Scenario.aslib_ranking_scenario as scen
 from sklearn.preprocessing import StandardScaler
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 class TestNeuralNetworkSynthetic(unittest.TestCase):
     def __init__(self, *args, **kwargs):
@@ -107,15 +108,15 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
                   rank,
                   inst,
                   perf,
-                  lambda_value=1.0,
+                  lambda_value=0.5,
                   regression_loss="Squared",
-                  num_epochs=100,
+                  num_epochs=5,
                   learning_rate=0.01,
                   hidden_layer_sizes=[20],
                   activation_function="relu",
                   early_stop_interval=1,
                   batch_size=64,
-                  sample_weights=None)
+                  sample_weights=None, log_losses=True)
         for index, row in self.test_inst.iterrows():
             print("True Performances",
                   self.test_performances.loc[index].values)
@@ -135,7 +136,31 @@ class TestNeuralNetworkSynthetic(unittest.TestCase):
                 np.argsort(np.argsort(model.predict_performances(row.values)))
                 + 1)
             print("\n")
+        sns.set_style("darkgrid")
+        df = model.get_loss_history_frame()
+        df2 = model.get_es_val_history_frame()
+        print(df)
+        # df = df.rename(columns={"NLL":"PL-NLL"})
+        # df["$\lambda$ PL-NLL"] = lambda_value * df["PL-NLL"]
+        # df["$(1 - \lambda)$ MSE"] = (1 - lambda_value) * df["MSE"]
+        # df["TOTAL_LOSS"] = df["$\lambda$ PL-NLL"] + df["$(1 - \lambda)$ MSE"]
+        df = df.melt(id_vars=["epoch"])
+        plt.clf()
+        # plt.tight_layout()
+        # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+        print(df.head())
+        lp = sns.lineplot(x="epoch", y="value", hue="variable", data=df)
+        plt.title("Synthetic data")
+        plt.show()
 
+        df2 = df2.melt(id_vars=["es_call"])
+        plt.clf()
+        # plt.tight_layout()
+        # plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
+        print(df2.head())
+        lp = sns.lineplot(x="es_call", y="value", hue="variable", data=df2)
+        plt.title("Synthetic data")
+        plt.show()
 
 if __name__ == "__main__":
     unittest.main()

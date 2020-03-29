@@ -33,7 +33,7 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         self.test_ranking = self.test_scen.performance_rankings
 
     def test_fit(self):
-        model1 = lh.LinearHingeModel()
+        model1 = nnh.NeuralNetworkSquaredHinge()
         features, performances, rankings, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
             self.train_inst, self.train_performances, order="asc", skip_value=None)
         rankings = rankings.astype("int32")
@@ -51,18 +51,32 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         max_entry = performances.max()
         scaled_perf = performances / performances.max()
         lambda_value = 0.5
-        model1.fit_np(5, rankings, features, performances, sample_weights=sample_weights, lambda_value=lambda_value)
-        for i, (index, row) in enumerate(self.train_performances.iterrows()):
-            instance_values = self.train_inst.loc[index].values
-            imputed_row = self.imputer.transform([instance_values])
-            scaled_row = self.scaler.transform(imputed_row).flatten()
-            print("predicted", model1.predict_performances(scaled_row))
-            print("truth performance", row.values)
-            print("\n")
-            print("Predicted Ranking", model1.predict_ranking(scaled_row))
-            print("True Ranking", np.argsort(np.argsort(row.values))+1)
-            print("\n")
-        sns.set_style("darkgrid")
+        model1.fit(5,
+                   rankings,
+                   features,
+                   performances,
+                   sample_weights=None,
+                   lambda_value=0.0,
+                   epsilon_value=1.0,
+                   regression_loss="Squared",
+                   num_epochs=150,
+                   learning_rate=0.001,
+                   batch_size=32,
+                   early_stop_interval=5,
+                   patience=16,
+                   hidden_layer_sizes=[32],
+                   activation_function="sigmoid")
+        # for i, (index, row) in enumerate(self.train_performances.iterrows()):
+        #     instance_values = self.train_inst.loc[index].values
+        #     imputed_row = self.imputer.transform([instance_values])
+        #     scaled_row = self.scaler.transform(imputed_row).flatten()
+        #     print("predicted", model1.predict_performances(scaled_row))
+        #     print("truth performance", row.values)
+        #     print("\n")
+        #     print("Predicted Ranking", model1.predict_ranking(scaled_row))
+        #     print("True Ranking", np.argsort(np.argsort(row.values))+1)
+        #     print("\n")
+        # sns.set_style("darkgrid")
         # df = model1.get_loss_history_frame()
         # print(df)
         # df = df.rename(columns={"NLL":"PL-NLL"})

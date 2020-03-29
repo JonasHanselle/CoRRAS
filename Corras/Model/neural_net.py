@@ -177,15 +177,15 @@ class NeuralNetwork:
             if i < 2:
                 rank_loss = tf.subtract(rank_loss, 1)
             rank_loss = tf.reduce_sum(tf.multiply(sample_weight, rank_loss))
-            return lambda_value * rank_loss + (1 - lambda_value) * reg_loss
+            return lambda_value * rank_loss + (1 - lambda_value) * reg_loss, reg_loss, rank_loss
 
         # define gradient of custom loss function
         def grad(model, x, y_perf, y_rank, i, sample_weights):
             with tf.GradientTape() as tape:
-                loss_value = custom_loss(model, x, y_perf, y_rank, i,
-                                         sample_weights)
+                loss_value, reg_loss, rank_loss = custom_loss(model, x, y_perf, y_rank, i,
+                                                              sample_weights)
             return loss_value, tape.gradient(loss_value,
-                                             model.trainable_weights)
+                                             model.trainable_weights), reg_loss, rank_loss
 
         # # define objective, i.e. convex combination of nll and mse
         # def custom_objective(model, x, y_perf, y_rank, sample_weights):
@@ -232,7 +232,8 @@ class NeuralNetwork:
         def custom_objective(model, x, y_perf, y_rank, sample_weights):
             obj_val = 0
             for i in range(2):
-                obj_val = obj_val + custom_loss(model,x,y_perf,y_rank,i,sample_weights)
+                obj_val = obj_val + \
+                    custom_loss(model, x, y_perf, y_rank, i, sample_weights)[0]
             return obj_val
 
         # optimizer
@@ -243,6 +244,8 @@ class NeuralNetwork:
         patience_cnt = 0
 
         for epoch in range(num_epochs):
+            epoch_reg_loss_avg = tf.keras.metrics.Mean()
+            epoch_rank_loss_avg = tf.keras.metrics.Mean()
 
             for x, y_perf, y_rank, sample_weight in train_data:
                 tvs = self.network.trainable_weights
@@ -252,15 +255,30 @@ class NeuralNetwork:
                 ]
                 zero_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_tvs]
 
+                reg_loss_sum = 0
+                rank_loss_sum = 0
+
                 for i in range(2):
-                    loss_value, grads = grad(self.network, x, y_perf, y_rank,
-                                             i, sample_weight)
+                    loss_value, grads, reg_loss, rank_loss = grad(self.network, x, y_perf, y_rank,
+                                                                  i, sample_weight)
+
+                    reg_loss_sum += reg_loss
+                    rank_loss_sum += rank_loss
+
                     for j in range(len(accum_tvs)):
                         accum_tvs[j].assign_add(grads[j])
 
                 # print(loss_value)
                 optimizer.apply_gradients(
                     zip(accum_tvs, self.network.trainable_weights))
+
+                epoch_reg_loss_avg(reg_loss_sum)
+                epoch_rank_loss_avg(rank_loss_sum)
+
+            if log_losses:
+                self.loss_history.append(
+                    [float(epoch_reg_loss_avg.result()), float(epoch_rank_loss_avg.result())])
+
             if epoch % early_stop_interval == 0:
                 print("early stopping check")
                 losses = []
@@ -269,8 +287,9 @@ class NeuralNetwork:
                         custom_objective(self.network, x, y_perf, y_rank,
                                          sample_weight))
                 loss_tensor = np.average(losses)
-                print("es loss", loss_tensor)
                 current_val_loss = tf.reduce_mean(loss_tensor)
+                print("cur val loss", current_val_loss)
+                self.es_val_history.append(current_val_loss)
                 if current_val_loss < best_val_loss:
                     best_val_loss = current_val_loss
                     current_best_weights = self.network.get_weights()
@@ -278,6 +297,7 @@ class NeuralNetwork:
                     patience_cnt = 0
                 else:
                     patience_cnt += 1
+                    print("patience counter", patience_cnt)
                 if patience_cnt >= patience:
                     print("early stopping")
                     break
@@ -318,3 +338,49 @@ class NeuralNetwork:
         # return tf.argsort(tf.argsort(utility_scores)) + 1
         return np.argsort(np.argsort(
             self.predict_performances(features)[0])) + 1
+
+    def save_loss_history(self, filepath: str):
+        """Saves the history of losses after the model has been fit
+
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.loss_history,
+                             index=None,
+                             columns=["REG", "RANK"])
+        frame.to_csv(path_or_buf=filepath, index_label="iter")
+
+    def get_loss_history_frame(self):
+        """Saves the history of losses after the model has been fit
+
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.loss_history,
+                             index=None,
+                             columns=["REG", "RANK"])
+        frame.insert(0, "epoch", range(0, len(frame)))
+        return frame
+
+    def save_es_val_history(self, filepath: str):
+        """Saves the history of losses after the model has been fit
+
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.es_val_history,
+                             index=None,
+                             columns=["ES_VAL_LOSS"])
+        frame.to_csv(path_or_buf=filepath, index_label="es_call")
+
+    def get_es_val_history_frame(self):
+        """Saves the history of losses after the model has been fit
+
+        Arguments:
+            filepath {str} -- Path of the csv file
+        """
+        frame = pd.DataFrame(data=self.es_val_history,
+                             index=None,
+                             columns=["ES_VAL_LOSS"])
+        frame.insert(0, "es_call", range(0, len(frame)))
+        return frame
