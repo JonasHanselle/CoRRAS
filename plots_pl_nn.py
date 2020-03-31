@@ -20,9 +20,9 @@ evaluations_path = "./evaluations/"
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl_nn/"
 
 scenarios = [
-    "MIP-2016",
     "SAT11-INDU",
-    "CSP-2010",
+    "MIP-2016",
+    "CSP-2010"
     # "SAT11-HAND",
 ]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]

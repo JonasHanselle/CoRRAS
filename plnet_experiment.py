@@ -40,28 +40,24 @@ db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
 scenarios = [
-    "MIP-2016",
-    "CSP-2010",
-    "SAT11-HAND",
-    "SAT11-INDU",
-    "CPMP-2015"
+    "SAT11-INDU"
 ]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.5]
+# lambda_values = [0.6]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [16]
-es_intervals = [5]
+es_patiences = [64]
+es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = [[32]]
 activation_functions = ["sigmoid"]
 use_weighted_samples_values = [True, False]
 
-splits = [1]
+splits = [4]
 
 params = [
     scenarios, lambda_values, splits, seeds, learning_rates, es_intervals,
@@ -83,12 +79,12 @@ else:
     shard = param_product[lower_bound:upper_bound]
 
 engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-                            db_url + "/" + db_db,
-                            echo=False)
+                           db_url + "/" + db_db,
+                           echo=False)
 
 for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples in shard:
 
-    table_name = "neural-net-plackett-luce-" + scenario_name + "-new"
+    table_name = "neural-net-plackett-luce-" + scenario_name + "-fixed"
 
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
@@ -137,7 +133,8 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
         str(es_interval),
         str(es_patience),
         str(es_val_ratio),
-        str(batch_size)
+        str(batch_size),
+        str(use_weighted_samples)
     ])
 
     # filename = "pl_log_linear" + "-" + params_string + ".csv"

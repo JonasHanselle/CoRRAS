@@ -41,9 +41,9 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["MIP-2016", "CPMP-2015", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "CSP-2010"]
+scenarios = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
 
-lambda_values = [0.5]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -52,7 +52,7 @@ use_quadratic_transform_values = [False]
 use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [False]
-regulerization_params_values = [0.0]
+regulerization_params_values = [0.1]
 use_weighted_samples_values = [False, True]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -84,7 +84,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "linear-squared-hinge-new-weighted-" + scenario_name
+        table_name = "linear-squared-hinge-new-weighted-" + scenario_name 
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -112,6 +112,8 @@ for scenario_name in scenarios:
     # print(relevance_scores)
 
     for lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, skip_censored, regulerization_param, use_weighted_samples in param_product:
+        test_scenario, train_scenario = scenario.get_split(split)
+
         current_frame = corras.loc[
             (corras["lambda"] == lambda_value)
             & (corras["epsilon"] == epsilon_value) & (corras["split"] == split)
@@ -125,8 +127,10 @@ for scenario_name in scenarios:
             & (corras["use_weighted_samples"] == use_weighted_samples)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
-        if current_frame.empty:
+        if len(current_frame) != len(test_scenario.performance_data):
+            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in splir {split}!")
             continue
+
         for problem_instance, performances in scenario.performance_data.iterrows(
         ):
             if not problem_instance in current_frame.index:
@@ -182,4 +186,4 @@ for scenario_name in scenarios:
             "abs_distance_to_vbs", "par10", "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
-                     scenario_name + "-new-unweighted.csv")
+                     scenario_name + "-new-weights.csv")

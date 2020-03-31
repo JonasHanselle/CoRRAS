@@ -42,8 +42,7 @@ db_db = sys.argv[4]
 seeds = [15]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-scenarios = [
-    "MIP-2016", "CSP-2010"]
+scenarios = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
 # scenarios = ["CPMP-2015"]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -54,11 +53,11 @@ use_max_inverse_transform_values = ["max_cutoff"]
 # use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 # scale_target_to_unit_interval_values = [True]
-regularization_params_values = [0.1]
+regularization_params_values = [0.0]
 use_weighted_samples_values = [False, True]
 
 params = [
-    lambda_values, splits, seeds, use_quadratic_transform_values,
+    splits, lambda_values, seeds, use_quadratic_transform_values,
     use_max_inverse_transform_values, scale_target_to_unit_interval_values, use_weighted_samples_values, regularization_params_values
 ]
 
@@ -72,28 +71,6 @@ for scenario_name in scenarios:
     scenario.read_scenario(scenario_path + scenario_name)
     scenario.compute_rankings(False)
     relevance_scores = compute_relevance_scores_unit_interval(scenario)
-
-    # params_string = "-".join([scenario_name,
-    #     str(lambda_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
-
-    # filename = "pl_log_linear" + "-" + scenario_name + ".csv"
-    # # loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
-    # filepath = results_path_corras + filename
-    # # print(filepath)
-    # # loss_filepath = results_path_corras + loss_filename
-    # corras = None
-    # try:
-    #     corras = pd.read_csv(filepath)
-    # except Exception as exc:
-    #     print("File for " + scenario_name +
-    #           " not found in corras result data! Exception " + str(exc))
-    #     continue
-    # # for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in param_product:
-    # # print(corras.head())
-    # corras.set_index("problem_instance", inplace=True)
-    # performance_indices = [
-    #     x for x in corras.columns if x.endswith("_performance")
-    # ]
 
     corras = None
     try:
@@ -124,7 +101,10 @@ for scenario_name in scenarios:
     # print(scenario.performance_data)
     # print(relevance_scores)
 
-    for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples, regularization_param in param_product:
+    for split, lambda_value, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples, regularization_param in param_product:
+        
+        test_scenario, train_scenario = scenario.get_split(split)
+        
         current_frame = corras.loc[
             (corras["lambda"] == lambda_value) & (corras["split"] == split) &
             (corras["seed"] == seed) &
@@ -138,7 +118,11 @@ for scenario_name in scenarios:
                 regularization_param)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
-        if current_frame.empty:
+        # if current_frame.empty:
+        #     print("Current frame is empty")
+        #     continue
+        if len(current_frame) != len(test_scenario.performance_data):
+            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!")
             continue
         for problem_instance, performances in scenario.performance_data.iterrows(
         ):
@@ -198,7 +182,7 @@ for scenario_name in scenarios:
             "split", "seed", "problem_instance", "lambda",
             "quadratic_transform", "max_inverse_transform",
             "scale_to_unit_interval", "use_weighted_samples", "regularization_param", "tau_corr", "tau_p", "ndcg", "mse",
-            "mae", "abs_distance_to_vbs", "par10", "par10_with_feature_cost",
+            "mae", "abs_distance_to_vbs", "par10", "par10_with_feature_cost", 
             "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" +

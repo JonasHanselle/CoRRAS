@@ -61,7 +61,7 @@ es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = [[32]]
 activation_functions = ["sigmoid"]
-use_weighted_samples_values = [True, False]
+use_weighted_samples_values = [True]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -93,7 +93,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "neural-net-plackett-luce-" + scenario_name + "-new"
+        table_name = "neural-net-plackett-luce-" + scenario_name + "-new-fix"
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -121,6 +121,9 @@ for scenario_name in scenarios:
     # print(relevance_scores)
 
     for lambda_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio, layer_sizes, activation_function, use_weighted_samples in param_product:
+    
+        test_scenario, train_scenario = scenario.get_split(split)
+
         current_frame = corras.loc[
             (corras["lambda"] == lambda_value)
             & (corras["split"] == split)
@@ -135,9 +138,6 @@ for scenario_name in scenarios:
             (corras["use_weighted_samples"] == use_weighted_samples)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
-        if current_frame.empty:
-            # print("Current frame is empty!")
-            continue
         # print(len(current_frame), len(scenario.instances))
         for problem_instance, performances in scenario.performance_data.iterrows(
         ):
@@ -166,9 +166,9 @@ for scenario_name in scenarios:
             # print(corras)
             corras_performances = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").to_numpy()
-            if (len(true_performances) != len(corras_performances)):
-                print("Alaaarm")
-                print(true_performances, corras_performances)
+            if len(current_frame) != len(test_scenario.performance_data):
+                print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!")
+                print(current_frame)
                 continue
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(

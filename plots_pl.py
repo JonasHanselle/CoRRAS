@@ -24,7 +24,7 @@ use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
 # scale_target_to_unit_interval_values = [True, False]
 scale_target_to_unit_interval_values = [True]
-regularization_params_values = [0.1]
+regularization_params_values = [0.0]
 use_weighted_samples_values = [False]
 seed = 15
 
@@ -119,6 +119,6 @@ for measure in measures:
     labels = ["PL-LM", "PL-QM", "Random Forest", "Linear Regression"]
     legend = fig.legend(list(axes), labels=labels, loc="lower center", ncol=len(
         labels), bbox_to_anchor=(0.5, -0.02))
-    # plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" + params_string.replace(
+    # plt.(fname=figures_path + "-".join(scenario_names) + "-" + params_string.replace(
     #     ".", "_") + "-" + measure + ".pdf", bbox_extra_artists=(legend,), bbox_inches="tight")
     plt.show()
