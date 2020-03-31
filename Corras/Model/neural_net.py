@@ -176,7 +176,7 @@ class NeuralNetwork:
                     rank_loss, tf.divide(exp_utils_ordered[:, i], denominator))
             if i < 2:
                 rank_loss = tf.subtract(rank_loss, 1)
-            rank_loss = tf.reduce_sum(tf.multiply(sample_weight, rank_loss))
+            rank_loss = tf.reduce_mean(tf.multiply(sample_weight, rank_loss))
             return lambda_value * rank_loss + (1 - lambda_value) * reg_loss, reg_loss, rank_loss
 
         # define gradient of custom loss function

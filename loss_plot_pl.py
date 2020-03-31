@@ -22,7 +22,7 @@ scenario_names = ["SAT11-INDU"]
 scenario_path = "./aslib_data-aslib-v4.0/"
 result_path = "./losses-pl/"
 figures_path = "./figures_loss_hist_pl/"
-figures_path = "../Masters_Thesis/masters-thesis/gfx/plots/pl/losses"
+figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl/losses"
 lambda_values = [0.6]
 # epsilon_values = [0.2,0.4,0.6,0.8,1]
 split = 4
@@ -88,7 +88,10 @@ for index, (scenario_name, lambda_value, split, seed, use_quadratic_transform, u
                       hue="variable", data=df, ax=axes[index], legend=None)
     axes[index].set_xlabel("Iteration")
     axes[index].set_ylabel("Value")
-    axes[index].set_title(scenario_name)
+    if index == 0:
+        axes[index].set_title(scenario_name + " GLM")
+    else:
+        axes[index].set_title(scenario_name + " QM")
     # if index == 1:
 labels=["MSE", "NLL", "$\\lambda$NLL", "$(1-\\lambda)$MSE", "Total Loss"]
 plt.annotate("",(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
@@ -96,4 +99,5 @@ fig.set_size_inches(8, 3.3)
 legend = fig.legend(list(axes), labels=labels, loc="lower center", ncol=len(
     labels), bbox_to_anchor=(0.45, -0.00))
 plt.subplots_adjust(bottom=0.25)
+# plt.show()
 plt.savefig(figures_path+figure_file, bbox_inches="tight")

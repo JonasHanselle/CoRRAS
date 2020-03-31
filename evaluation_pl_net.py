@@ -35,7 +35,7 @@ def compute_distance_to_vbs(predicted_performances, true_performances):
 
 scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_corras = "./results-nnh-new/"
-evaluations_path = "./evaluations-nnh-config/"
+evaluations_path = "./evaluations/"
 figures_path = "./figures/"
 # DB data
 db_url = sys.argv[1]
@@ -43,27 +43,32 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["MIP-2016", "SAT12-ALL", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND"]
-lambda_values = [1, 0.5]
+scenarios = [
+    "MIP-2016",
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [10000]
-es_intervals = [25]
-es_val_ratios = [0.0]
-layer_sizes_vals = [[16, 16], [32]]
-activation_functions = ["sigmoid", "relu"]
-use_weighted_samples_values = [False]
+es_patiences = [64]
+es_intervals = [8]
+es_val_ratios = [0.3]
+layer_sizes_vals = [[32]]
+activation_functions = ["sigmoid"]
+use_weighted_samples_values = [True, False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
     lambda_values, splits, seeds, learning_rates, batch_sizes,
     es_patiences, es_intervals, es_val_ratios, layer_sizes_vals,
-    activation_functions
+    activation_functions, use_weighted_samples_values
 ]
 
 param_product = list(product(*params))
@@ -88,7 +93,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "neural-net-plackett-luce-" + scenario_name
+        table_name = "neural-net-plackett-luce-" + scenario_name + "-new"
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -115,9 +120,9 @@ for scenario_name in scenarios:
     # print(scenario.performance_data)
     # print(relevance_scores)
 
-    for lambda_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio, layer_sizes, activation_function in param_product:
+    for lambda_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio, layer_sizes, activation_function, use_weighted_samples in param_product:
         current_frame = corras.loc[
-            (corras["lambda"] == lambda_value) 
+            (corras["lambda"] == lambda_value)
             & (corras["split"] == split)
             & (corras["seed"] == seed) &
             (corras["learning_rate"] == learning_rate) &
@@ -126,7 +131,8 @@ for scenario_name in scenarios:
             (corras["es_val_ratio"] == es_val_ratio) &
             (corras["batch_size"] == batch_size) &
             (corras["layer_sizes"] == str(layer_sizes)) &
-            (corras["activation_function"] == activation_function)]
+            (corras["activation_function"] == activation_function)&
+            (corras["use_weighted_samples"] == use_weighted_samples)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if current_frame.empty:
@@ -161,7 +167,8 @@ for scenario_name in scenarios:
             corras_performances = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").to_numpy()
             if (len(true_performances) != len(corras_performances)):
-                print("Not of equal length")
+                print("Alaaarm")
+                print(true_performances, corras_performances)
                 continue
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
@@ -170,11 +177,11 @@ for scenario_name in scenarios:
                 print("Warning, NaN in performance prediction for " +
                       problem_instance + "!")
                 continue
-               
+            
             tau_corr, tau_p = kendalltau(true_ranking, corras_ranking)
-            print(corras_performances)
-            # mse = mean_squared_error(true_performances, corras_performances)
-            # mae = mean_absolute_error(true_performances, corras_performances)
+            # print(corras_performances)
+            mse = mean_squared_error(true_performances, corras_performances)
+            mae = mean_absolute_error(true_performances, corras_performances)
             abs_vbs_distance = compute_distance_to_vbs(corras_performances,
                                                        true_performances)
             ndcg = ndcg_at_k(corras_ranking,
@@ -186,7 +193,7 @@ for scenario_name in scenarios:
             corras_measures.append([
                 split, seed, problem_instance, lambda_value,
                 learning_rate, es_interval, es_patience, es_val_ratio,
-                batch_size, layer_sizes, activation_function, tau_corr, tau_p,
+                batch_size, layer_sizes, activation_function, use_weighted_samples, tau_corr, tau_p,
                 ndcg, mse, mae, abs_vbs_distance, par10,
                 par10_with_feature_cost, run_status
             ])
@@ -196,7 +203,7 @@ for scenario_name in scenarios:
         columns=[
             "split", "seed", "problem_instance", "lambda",
             "learning_rate", "es_interval", "es_patience", "es_val_ratio",
-            "batch_size", "layer_sizes", "activation_function", "tau_corr",
+            "batch_size", "layer_sizes", "activation_function", "use_weighted_samples", "tau_corr",
             "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs", "par10",
             "par10_with_feature_cost", "run_status"
         ])

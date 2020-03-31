@@ -19,15 +19,17 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/Thesis/latex-thesis-template/gfx/plots/hinge/"
-scenario_names = ["CSP-Minizinc-Time-2016", "MIP-2016", "CSP-2010"]
+scenario_names = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
 use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
 # scale_target_to_unit_interval_values = [True, False]
 scale_target_to_unit_interval_values = [True]
+regularization_params_values = [0.1]
+use_weighted_samples_values = [False]
 seed = 15
 
 params = [scenario_names, use_max_inverse_transform_values,
-          scale_target_to_unit_interval_values]
+          scale_target_to_unit_interval_values, regularization_params_values, use_weighted_samples_values]
 
 name_map = {"ndcg": "NDCG",
             "tau_corr": "Kendall $\\tau_b$",
@@ -46,7 +48,7 @@ measures = ["tau_corr", "ndcg", "mae", "mse"]
 for measure in measures:
     plt.clf()
     fig, axes = plt.subplots(1, 3)
-    for index, (scenario_name, use_max_inverse_transform, scale_target_to_unit_interval) in enumerate(param_product):
+    for index, (scenario_name, use_max_inverse_transform, scale_target_to_unit_interval, regularization_param, use_weighted_samples) in enumerate(param_product):
         ax = axes[index]
         df_baseline_lr = None
         df_baseline_rf = None
@@ -66,15 +68,19 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(
-                evaluations_path + "corras-pl-log-linear-" + scenario_name + ".csv")
+                evaluations_path + "corras-pl-log-linear-" + scenario_name + "-new-one.csv")
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
             continue
         current_frame = corras.loc[(corras["seed"] == seed) & (corras["scale_to_unit_interval"]
-                                                               == scale_target_to_unit_interval) & (corras["max_inverse_transform"] == "max_cutoff")]
-        if measure in ["mae","mse"]:
-            current_frame = current_frame.loc[(current_frame["lambda"] <= 0.99) ]
+                                                               == scale_target_to_unit_interval)
+                                   & (corras["max_inverse_transform"] == "max_cutoff")
+                                   & (corras["regularization_param"] == regularization_param)
+                                   & (corras["use_weighted_samples"] == use_weighted_samples)]
+        if measure in ["mae", "mse"]:
+            current_frame = current_frame.loc[(
+                current_frame["lambda"] <= 0.99)]
 
     #     print(current_frame[:])
     #     print(current_frame.iloc[:10,8:12].to_latex(na_rep="-", index=False, bold_rows=True, float_format="%.2f", formatters={"tau_corr" : max_formatter}, escape=False))
@@ -113,6 +119,6 @@ for measure in measures:
     labels = ["PL-LM", "PL-QM", "Random Forest", "Linear Regression"]
     legend = fig.legend(list(axes), labels=labels, loc="lower center", ncol=len(
         labels), bbox_to_anchor=(0.5, -0.02))
-    plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" + params_string.replace(
-        ".", "_") + "-" + measure + ".pdf", bbox_extra_artists=(legend,), bbox_inches="tight")
-    # plt.show()
+    # plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" + params_string.replace(
+    #     ".", "_") + "-" + measure + ".pdf", bbox_extra_artists=(legend,), bbox_inches="tight")
+    plt.show()

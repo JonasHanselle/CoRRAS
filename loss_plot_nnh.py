@@ -102,10 +102,11 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, batc
         str(es_interval) + ", "
     text += "es val raio = " + str(es_val_ratio) + ",\n"
     text += "batch size = " + str(batch_size)
+    plt.show()
     plt.clf()
     # plt.tight_layout()
     plt.annotate(text, (0, 0), (0, -40), xycoords="axes fraction",
                  textcoords="offset points", va="top")
     lp = sns.lineplot(x="es_call", y="value", hue="variable", data=df)
     plt.title(scenario_name)
-    plt.savefig(figures_path+figure_file, bbox_inches="tight")
+    # plt.savefig(figures_path+figure_file, bbox_inches="tight")

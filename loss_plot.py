@@ -17,7 +17,7 @@ sns.set_style("darkgrid")
 scenario_names = ["SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND"]
 scenario_path = "./aslib_data-aslib-v4.0/"
 loss_hists_path = "./loss-hists/"
-figures_path = "../Masters_Thesis/Thesis/latex-thesis-template/gfx/plots/pl/losses"
+figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl/losses"
 lambda_values = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 epsilon_values = [0.2,0.4,0.6,0.8,1]
 split = 4
@@ -41,9 +41,11 @@ for lambda_value, epsilon_value, scenario_name in product(lambda_values,epsilon_
     text += "$\epsilon$ = " + str(epsilon_value) + ", "
     text += "split = " + str(split) + ", "
     text += "seed = " + str(seed) + " "
+    plt.show()
     plt.clf()
     # plt.tight_layout()
     plt.annotate(text,(0,0), (0,-40), xycoords="axes fraction", textcoords="offset points", va="top")
     lp = sns.lineplot(x="iteration", y="value", hue="variable", data=df)
     plt.title(scenario_name)
-    plt.savefig(figures_path+figure_file, bbox_inches="tight")
+    # plt.savefig(figures_path+figure_file, bbox_inches="tight")
+    plt.show()

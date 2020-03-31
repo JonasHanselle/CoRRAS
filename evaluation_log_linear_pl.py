@@ -39,48 +39,27 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-# scenarios = ["CPMP-2015", "MAXSAT-PMS-2016", "MAXSAT-WPMS-2016", "SAT11-INDU" "SAT12-ALL", "TTP-2016"]
-# # scenarios = ["MIP-2016"]
-# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-#                  0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
-# # lambda_values = [0.0, 0.2, 0.4, 0.6,
-# #                  0.8, 1.0]
-# # lambda_values = [0.5]
-# max_pairs_per_instance = 5
-# maxiter = 100
-# seeds = [15]
-# use_quadratic_transform_values = [True, False]
-# # use_quadratic_transform_values = [True]
-# use_max_inverse_transform_values = ["max_cutoff"]
-# # use_max_inverse_transform_values = ["max_cutoff"]
-# scale_target_to_unit_interval_values = [False]
-# # scale_target_to_unit_interval_values = [True]
-
-# splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
 seeds = [15]
-# use_quadratic_transform_values = [True, False]
-# use_max_inverse_transform_values = ["max_cutoff"]
-# scale_target_to_unit_interval_values = [True]
-# skip_censored_values = [True, False]
-# regulerization_params_values = [0.1, 0.01, 0.001, 0.0]
-# use_weighted_samples_values = [False]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
 scenarios = [
-    "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-HAND",
-    "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
-    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"]
+    "MIP-2016", "CSP-2010"]
 # scenarios = ["CPMP-2015"]
-lambda_values = [0.5]
-use_quadratic_transform_values = [True, False]
+max_pairs_per_instance = 5
+maxiter = 1000
+seeds = [15]
+use_quadratic_transform_values = [False, True]
+# use_quadratic_transform_values = [True]
 use_max_inverse_transform_values = ["max_cutoff"]
-# scale_target_to_unit_interval_values = [True, False]
+# use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
+# scale_target_to_unit_interval_values = [True]
+regularization_params_values = [0.1]
+use_weighted_samples_values = [False, True]
 
 params = [
     lambda_values, splits, seeds, use_quadratic_transform_values,
-    use_max_inverse_transform_values, scale_target_to_unit_interval_values
+    use_max_inverse_transform_values, scale_target_to_unit_interval_values, use_weighted_samples_values, regularization_params_values
 ]
 
 param_product = list(product(*params))
@@ -118,7 +97,7 @@ for scenario_name in scenarios:
 
     corras = None
     try:
-        table_name = "linear-plackett-luce-" + scenario_name
+        table_name = "linear-plackett-luce-new" + scenario_name + "-weighted"
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -145,14 +124,18 @@ for scenario_name in scenarios:
     # print(scenario.performance_data)
     # print(relevance_scores)
 
-    for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in param_product:
+    for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples, regularization_param in param_product:
         current_frame = corras.loc[
             (corras["lambda"] == lambda_value) & (corras["split"] == split) &
             (corras["seed"] == seed) &
             (corras["use_quadratic_transform"] == use_quadratic_transform) &
             (corras["use_max_inverse_transform"] == use_max_inverse_transform)
             & (corras["scale_target_to_unit_interval"] ==
-               scale_target_to_unit_interval)]
+               scale_target_to_unit_interval)
+            & (corras["use_weighted_samples"] ==
+                use_weighted_samples) &
+            (corras["regularization_param"] ==
+                regularization_param)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if current_frame.empty:
@@ -205,7 +188,7 @@ for scenario_name in scenarios:
             corras_measures.append([
                 split, seed, problem_instance, lambda_value,
                 use_quadratic_transform, use_max_inverse_transform,
-                scale_target_to_unit_interval, tau_corr, tau_p, ndcg, mse, mae,
+                scale_target_to_unit_interval, use_weighted_samples, regularization_param, tau_corr, tau_p, ndcg, mse, mae,
                 abs_vbs_distance, par10, par10_with_feature_cost, run_status
             ])
             # print(corras_measures)
@@ -214,9 +197,9 @@ for scenario_name in scenarios:
         columns=[
             "split", "seed", "problem_instance", "lambda",
             "quadratic_transform", "max_inverse_transform",
-            "scale_to_unit_interval", "tau_corr", "tau_p", "ndcg", "mse",
+            "scale_to_unit_interval", "use_weighted_samples", "regularization_param", "tau_corr", "tau_p", "ndcg", "mse",
             "mae", "abs_distance_to_vbs", "par10", "par10_with_feature_cost",
             "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" +
-                     scenario_name + "-new.csv")
+                     scenario_name + "-new-one.csv")
