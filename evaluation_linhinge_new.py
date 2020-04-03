@@ -41,19 +41,20 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
+scenarios = ["SAT11-INDU"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+# lambda_values = [0.5]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
-maxiter = 1000
+maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [False]
-use_max_inverse_transform_values = ["max_cutoff"]
+use_quadratic_transform_values = [False, True]
+use_max_inverse_transform_values = ["None"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [False]
-regulerization_params_values = [0.1]
-use_weighted_samples_values = [False, True]
+regulerization_params_values = [0.001]
+use_weighted_samples_values = [False,True]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
@@ -84,7 +85,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "linear-squared-hinge-new-weighted-" + scenario_name 
+        table_name = "linear-squared-hinge-new-weighted" + scenario_name +"-iter100"
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -128,7 +129,7 @@ for scenario_name in scenarios:
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if len(current_frame) != len(test_scenario.performance_data):
-            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in splir {split}!")
+            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split}!")
             continue
 
         for problem_instance, performances in scenario.performance_data.iterrows(

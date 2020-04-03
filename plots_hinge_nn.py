@@ -21,9 +21,9 @@ figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge_nn/"
 
 scenarios = [
     "MIP-2016",
-    "CSP-2010",
-    "SAT11-HAND",
-    # "SAT11-INDU",
+    "SAT11-INDU",
+    "CSP-2010"
+    # "SAT11-HAND",
 ]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 epsilon_values = [1.0]
@@ -31,14 +31,16 @@ max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
-learning_rates = [0.01]
+learning_rates = [0.001]
 batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = ["[32]"]
 activation_functions = ["sigmoid"]
-use_weighted_samples_values = [False]
+use_weighted_samples_values = [True, False]
+
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 params = [
     scenarios, learning_rates, seeds, batch_sizes, es_patiences, es_intervals,
     es_val_ratios, layer_sizes_vals, activation_functions,
@@ -94,7 +96,9 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
-                                 scenario_name + ".csv")
+                                 scenario_name + "-new.csv")
+            corras["lambda"] = 1.0 - corras["lambda"]
+
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")

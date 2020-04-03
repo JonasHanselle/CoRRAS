@@ -45,7 +45,7 @@ splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 scenarios = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
 # scenarios = ["CPMP-2015"]
 max_pairs_per_instance = 5
-maxiter = 1000
+maxiter = 100
 seeds = [15]
 use_quadratic_transform_values = [False, True]
 # use_quadratic_transform_values = [True]
@@ -53,12 +53,13 @@ use_max_inverse_transform_values = ["max_cutoff"]
 # use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 # scale_target_to_unit_interval_values = [True]
-regularization_params_values = [0.0]
+regularization_params_values = [0.001]
 use_weighted_samples_values = [False, True]
 
 params = [
     splits, lambda_values, seeds, use_quadratic_transform_values,
-    use_max_inverse_transform_values, scale_target_to_unit_interval_values, use_weighted_samples_values, regularization_params_values
+    use_max_inverse_transform_values, scale_target_to_unit_interval_values,
+    use_weighted_samples_values, regularization_params_values
 ]
 
 param_product = list(product(*params))
@@ -74,7 +75,7 @@ for scenario_name in scenarios:
 
     corras = None
     try:
-        table_name = "linear-plackett-luce-new" + scenario_name + "-weighted"
+        table_name = "linear-plackett-luce-new" + scenario_name + "-weighted-iter100"
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -102,9 +103,9 @@ for scenario_name in scenarios:
     # print(relevance_scores)
 
     for split, lambda_value, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples, regularization_param in param_product:
-        
+
         test_scenario, train_scenario = scenario.get_split(split)
-        
+
         current_frame = corras.loc[
             (corras["lambda"] == lambda_value) & (corras["split"] == split) &
             (corras["seed"] == seed) &
@@ -112,18 +113,15 @@ for scenario_name in scenarios:
             (corras["use_max_inverse_transform"] == use_max_inverse_transform)
             & (corras["scale_target_to_unit_interval"] ==
                scale_target_to_unit_interval)
-            & (corras["use_weighted_samples"] ==
-                use_weighted_samples) &
-            (corras["regularization_param"] ==
-                regularization_param)]
-        # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
-        # print(current_frame)
-        # if current_frame.empty:
-        #     print("Current frame is empty")
-        #     continue
+            & (corras["use_weighted_samples"] == use_weighted_samples) &
+            (corras["regularization_param"] == regularization_param)]
+
         if len(current_frame) != len(test_scenario.performance_data):
-            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!")
+            print(
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
+            )
             continue
+
         for problem_instance, performances in scenario.performance_data.iterrows(
         ):
             if not problem_instance in current_frame.index:
@@ -172,7 +170,8 @@ for scenario_name in scenarios:
             corras_measures.append([
                 split, seed, problem_instance, lambda_value,
                 use_quadratic_transform, use_max_inverse_transform,
-                scale_target_to_unit_interval, use_weighted_samples, regularization_param, tau_corr, tau_p, ndcg, mse, mae,
+                scale_target_to_unit_interval, use_weighted_samples,
+                regularization_param, tau_corr, tau_p, ndcg, mse, mae,
                 abs_vbs_distance, par10, par10_with_feature_cost, run_status
             ])
             # print(corras_measures)
@@ -181,9 +180,10 @@ for scenario_name in scenarios:
         columns=[
             "split", "seed", "problem_instance", "lambda",
             "quadratic_transform", "max_inverse_transform",
-            "scale_to_unit_interval", "use_weighted_samples", "regularization_param", "tau_corr", "tau_p", "ndcg", "mse",
-            "mae", "abs_distance_to_vbs", "par10", "par10_with_feature_cost", 
+            "scale_to_unit_interval", "use_weighted_samples",
+            "regularization_param", "tau_corr", "tau_p", "ndcg", "mse", "mae",
+            "abs_distance_to_vbs", "par10", "par10_with_feature_cost",
             "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" +
-                     scenario_name + "-new-one.csv")
+                     scenario_name + "-new-short.csv")

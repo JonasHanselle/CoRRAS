@@ -39,23 +39,21 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["MIP-2016", "CPMP-2015", "CSP-2010", "SAT11-INDU", "SAT11-HAND", "SAT11-RAND"]
-scenarios = ["MIP-2016"]
+scenarios = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.5]
+# lambda_values = [0.5]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
-maxiter = 1000
+maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [False]
-use_max_inverse_transform_values = ["max_cutoff"]
+use_quadratic_transform_values = [False, True]
+use_max_inverse_transform_values = ["None"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [False]
-regulerization_params_values = [0.0]
-use_weighted_samples_values = [False, True]
+regulerization_params_values = [0.001]
+use_weighted_samples_values = [False,True]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [1]
 
 params = [
     scenarios, lambda_values, epsilon_values, splits, seeds,
@@ -79,15 +77,15 @@ else:
 
 print("shard length", len(shard))
 
+engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
+                            db_url + "/" + db_db,
+                            echo=False)
+
 for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, skip_censored, regulerization_param, use_weighted_samples in shard:
 
     # check if table for scenario_name exists
 
-    table_name = "linear-squared-hinge-new-parameters-" + scenario_name
-
-    engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-                               db_url + "/" + db_db,
-                               echo=False)
+    table_name = "linear-squared-hinge-new-weighted" + scenario_name + "-iter100"
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
         pass
@@ -116,8 +114,10 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         rs = connection.execute(slct)
         result = rs.first()
         if result == None:
+            print("Not in DB!")
             pass
         else:
+            print("Already in DB!")
             rs.close()
             connection.close()
             continue
@@ -232,7 +232,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
             seed=seed,
             order=order,
             skip_value=skip_value)
-        
+
         sample_weights = sample_weights / sample_weights.max()
         if not use_weighted_samples:
             sample_weights = np.ones(len(sample_weights))
@@ -248,7 +248,8 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                      maxiter=maxiter,
                      print_output=False,
                      log_losses=True,
-                     reg_param=regulerization_param, sample_weights=sample_weights)
+                     reg_param=regulerization_param,
+                     sample_weights=sample_weights)
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)

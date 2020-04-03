@@ -21,7 +21,6 @@ from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_uni
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 sns.set_style("darkgrid")
 
 
@@ -41,9 +40,15 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["CPMP-2015", "SAT11-RAND", "SAT11-HAND", "SAT11-INDU", "MIP-2016", "CSP-2010"]
-lambda_values = [0.0, 0.1, 0.5, 0.9, 1.0]
-epsilon_values = [0.0, 0.01, 0.1, 1.0]
+scenarios = [
+    "MIP-2016",
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+]
+
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -53,13 +58,17 @@ batch_sizes = [128]
 es_patiences = [64]
 es_intervals = [8]
 es_val_ratios = [0.3]
+layer_sizes_vals = ["[32]"]
+activation_functions = ["sigmoid"]
+use_weighted_samples_values = [True, False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # splits = [1]
 
 params = [
     lambda_values, epsilon_values, splits, seeds, learning_rates, batch_sizes,
-    es_patiences, es_intervals, es_val_ratios
+    es_patiences, es_intervals, es_val_ratios, layer_sizes_vals,
+    activation_functions, use_weighted_samples_values
 ]
 
 param_product = list(product(*params))
@@ -84,7 +93,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "neural-net-squared-hinge-" + scenario_name + "-short-new"
+        table_name = "neural-net-squared-hinge-" + scenario_name + "-weighted"
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -111,18 +120,33 @@ for scenario_name in scenarios:
     # print(scenario.performance_data)
     # print(relevance_scores)
 
-    for lambda_value, epsilon_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio in param_product:
-        current_frame = corras.loc[(corras["lambda"] == lambda_value)
-                                   & (corras["epsilon"] == epsilon_value) &
-                                   (corras["split"] == split) &
-                                   (corras["seed"] == seed) &
-                                   (corras["learning_rate"] == learning_rate) &
-                                   (corras["es_interval"] == es_interval) &
-                                   (corras["es_patience"] == es_patience) &
-                                   (corras["es_val_ratio"] == es_val_ratio) &
-                                   (corras["batch_size"] == batch_size)]
+    for lambda_value, epsilon_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio, layer_sizes, activation_function, use_weighted_samples in param_product:
+
+        test_scenario, train_scenario = scenario.get_split(split)
+
+        current_frame = corras.loc[
+            (corras["lambda"] == lambda_value)
+            & (corras["epsilon"] == epsilon_value) & (corras["split"] == split)
+            & (corras["seed"] == seed) &
+            (corras["learning_rate"] == learning_rate) &
+            (corras["es_interval"] == es_interval) &
+            (corras["es_patience"] == es_patience) &
+            (corras["es_val_ratio"] == es_val_ratio) &
+            (corras["batch_size"] == batch_size) &
+            (corras["layer_sizes"] == layer_sizes) &
+            (corras["activation_function"] == activation_function) &
+            (corras["use_weighted_samples"] == use_weighted_samples)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
+
+
+        if len(current_frame) != len(test_scenario.performance_data):
+            print(
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
+            )
+            continue
+
+
         if current_frame.empty:
             # print("Current frame is empty!")
             continue
@@ -178,18 +202,20 @@ for scenario_name in scenarios:
             corras_measures.append([
                 split, seed, problem_instance, lambda_value, epsilon_value,
                 learning_rate, es_interval, es_patience, es_val_ratio,
-                batch_size, tau_corr, tau_p, ndcg, mse, mae, abs_vbs_distance,
-                par10, par10_with_feature_cost, run_status
+                batch_size, layer_sizes, activation_function,
+                use_weighted_samples, tau_corr, tau_p, ndcg, mse, mae,
+                abs_vbs_distance, par10, par10_with_feature_cost, run_status
             ])
             # print(corras_measures)
-    df_corras = pd.DataFrame(data=corras_measures,
-                             columns=[
-                                 "split", "seed", "problem_instance", "lambda",
-                                 "epsilon", "learning_rate", "es_interval",
-                                 "es_patience", "es_val_ratio", "batch_size",
-                                 "tau_corr", "tau_p", "ndcg", "mse", "mae",
-                                 "abs_distance_to_vbs", "par10",
-                                 "par10_with_feature_cost", "run_status"
-                             ])
+    df_corras = pd.DataFrame(
+        data=corras_measures,
+        columns=[
+            "split", "seed", "problem_instance", "lambda", "epsilon",
+            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
+            "batch_size", "layer_sizes", "activation_function",
+            "use_weighted_samples", "tau_corr", "tau_p", "ndcg", "mse", "mae",
+            "abs_distance_to_vbs", "par10", "par10_with_feature_cost",
+            "run_status"
+        ])
     df_corras.to_csv(evaluations_path + "corras-hinge-nn-" + scenario_name +
-                     "-short.csv")
+                     "-new.csv")

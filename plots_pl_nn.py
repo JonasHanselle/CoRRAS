@@ -20,9 +20,7 @@ evaluations_path = "./evaluations/"
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl_nn/"
 
 scenarios = [
-    "SAT11-INDU",
-    "MIP-2016",
-    "CSP-2010"
+    "SAT11-INDU", "MIP-2016", "CSP-2010"
     # "SAT11-HAND",
 ]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
@@ -55,14 +53,18 @@ name_map = {
     "success_rate": "SR"
 }
 
-measures = ["tau_corr", "ndcg", "mae", "mse", "par10", "abs_distance_to_vbs", "success_rate"]
+measures = [
+    "tau_corr", "ndcg", "mae", "mse", "par10", "abs_distance_to_vbs",
+    "success_rate"
+]
 
 for measure in measures:
     plt.clf()
     fig, axes = plt.subplots(1, 3)
     print(len(param_product))
     for index, (scenario_name, learning_rate, seed, batch_size, es_patience,
-                es_interval, es_val_ratio, layer_sizes, activation_function) in enumerate(param_product):
+                es_interval, es_val_ratio, layer_sizes,
+                activation_function) in enumerate(param_product):
 
         ax = axes[index]
         df_baseline_lr = None
@@ -97,15 +99,65 @@ for measure in measures:
                   " not found in corras evaluation data!")
             continue
         print(corras.head())
-        current_frame = corras.loc[(corras["seed"] == seed)
-                                   & (corras["learning_rate"] == learning_rate)
-                                   & (corras["batch_size"] == batch_size) &
-                                   (corras["es_patience"] == es_patience) &
-                                   (corras["es_interval"] == es_interval) &
-                                   (corras["layer_sizes"] == layer_sizes) &
-                                   (corras["activation_function"] == activation_function)]
-        
-        print(len(current_frame), len(df_baseline_lr), len(df_baseline_rf))
+        current_frame = corras.loc[
+            (corras["seed"] == seed)
+            & (corras["learning_rate"] == learning_rate)
+            & (corras["batch_size"] == batch_size) &
+            (corras["es_patience"] == es_patience) &
+            (corras["es_interval"] == es_interval) &
+            (corras["layer_sizes"] == layer_sizes) &
+            (corras["activation_function"] == activation_function)]
+
+        if measure == "success_rate":
+            val_rf = df_baseline_rf["run_status"].value_counts(
+                normalize=True)["ok"]
+            val_lr = df_baseline_lr["run_status"].value_counts(
+                normalize=True)["ok"]
+            lambdas = list(current_frame["lambda"].unique())
+            results = []
+            for lambd in lambdas:
+                for use_weighted_samples in [True, False]:
+                    lambd_frame = current_frame.loc[
+                        (corras["lambda"] == lambd) &
+                        (corras["use_weighted_samples"] == use_weighted_samples)]
+                    try:
+                        print(lambd_frame["run_status"].value_counts(
+                            normalize=False))
+                        results.append([
+                            lambd, use_weighted_samples,
+                            lambd_frame["run_status"].value_counts(
+                                normalize=True)["ok"]
+                        ])
+                    except:
+                        results.append([lambd, use_weighted_samples, 0.0])
+
+            results_frame = pd.DataFrame(
+                data=results,
+                columns=["lambda", "use_weighted_samples", "success_rate"])
+
+            print(results_frame)
+            lp = sns.lineplot(x="lambda",
+                              y=measure,
+                              marker="o",
+                              markersize=8,
+                              hue="use_weighted_samples",
+                              data=results_frame,
+                              ax=ax,
+                              legend=None,
+                              ci=None)
+            lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
+            lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
+            ax.set_title(scenario_name)
+            ax.set_ylabel(name_map[measure])
+            ax.set_xlabel("$\\lambda$")
+            # fig.set_size_inches(10.5, 3.0)
+            # fig.tight_layout()
+            # labels = ["PL-GLM", "PL-QM", "Random Forest", "Linear Regression"]
+            # legend = fig.legend(list(axes), labels=labels, loc="lower center", ncol=len(
+            #     labels), bbox_to_anchor=(0.5, -0.02))
+            # plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" + params_string.replace(
+            #     ".", "_") + "-" + measure + ".pdf", bbox_extra_artists=(legend,), bbox_inches="tight")
+            continue
 
         if measure in ["mae", "mse"]:
             current_frame = current_frame.loc[(current_frame["lambda"] <=
@@ -137,7 +189,7 @@ for measure in measures:
     fig.set_size_inches(10.5, 3.0)
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
-    labels = ["PL-NN", "Random Forest", "Linear Regression"]
+    labels = ["PL-NN unweighted", "PL-NN weighted", "Random Forest", "Linear Regression"]
     legend = fig.legend(list(axes),
                         labels=labels,
                         loc="lower center",

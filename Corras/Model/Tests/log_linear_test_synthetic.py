@@ -136,7 +136,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         print(inst)
         print(perf)
         print(rank)
-        lambda_value = 0.0
+        lambda_value = 1.0
         # print(sample_weights)
         model1.fit_np(5,
                       rank,
@@ -146,26 +146,31 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
                       regression_loss="Squared",
                       maxiter=1000,
                       log_losses=True,
-                      sample_weights=sample_weights, reg_param=-0.001)
+                      sample_weights=None,
+                      reg_param=-0.001)
         # model1.save_loss_history("loss_history1.csv")
-        baselines = [LinearRegression() for i in range(0,5)]
+        baselines = [LinearRegression() for i in range(0, 5)]
         for label in range(0, 5):
             baselines[label].fit(inst_bar, perf_bar[:, label])
         for index, row in self.test_inst.iterrows():
             print("True Performances",
                   self.test_performances.loc[index].values)
-            print("Predicted Performances Model 1",
-                  maximum - model1.predict_performances(row.values) * max_inv)
             print("row values", row.values)
-            print(
-                "Predicted Performances Model LR", ",".join(
-                    [str(baseline.predict(row.values.reshape(1,-1))) for baseline in baselines]))
+            # print(
+            #     "Predicted Performances Model LR", ",".join([
+            #         str(baseline.predict(row.values.reshape(1, -1)))
+            #         for baseline in baselines
+            #     ]))
             # print("Predicted Performances Model 1", model1.predict_performances(row.values))
-            print("\n")
+            # print("\n")
             print("True Ranking", self.test_ranking.loc[index].values)
-            print("Predicted Ranking Model 1",
-                  model1.predict_ranking(row.to_numpy()))
+            corras_ranking = pd.Series(data= maximum - model1.predict_performances(row.values) * max_inv).rank(
+                    method="min").fillna(-1).astype("int16").to_numpy()
+            print("Model1 predicted ranking", corras_ranking)
+            # print("Predicted Ranking Model 1",
+            #       model1.predict_ranking(row.to_numpy()))
             print("\n")
+
         print("lr params", baselines[1].coef_)
         print("corras params", model1.weights)
         # sns.set_style("darkgrid")

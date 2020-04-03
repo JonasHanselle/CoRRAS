@@ -21,8 +21,8 @@ from Corras.Evaluation.evaluation import ndcg_at_k, compute_relevance_scores_uni
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# sksurv
-from sksurv.ensemble import RandomSurvivalForest
+# # sksurv
+# from sksurv.ensemble import RandomSurvivalForest
 
 sns.set_style("darkgrid")
 
@@ -61,7 +61,7 @@ es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = [[32]]
 activation_functions = ["sigmoid"]
-use_weighted_samples_values = [True]
+use_weighted_samples_values = [True, False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
