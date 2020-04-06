@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
@@ -23,7 +25,6 @@ scenarios = [
     "MIP-2016",
     "SAT11-INDU",
     "CSP-2010"
-    # "SAT11-HAND",
 ]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 epsilon_values = [1.0]
@@ -48,18 +49,20 @@ params = [
 ]
 
 param_product = list(product(*params))
-name_map = {
-    "ndcg": "NDCG",
-    "tau_corr": "Kendall $\\tau_b$",
-    "tau_p": "Kendall $\\tau_b$ p-value",
-    "mae": "MAE",
-    "mse": "MSE",
-    "par10": "PAR10",
-    "absolute_distance_to_vbs": "MP",
-    "success_rate": "SR"
-}
+name_map = {"ndcg": "NDCG",
+            "tau_corr": "Kendall $\\tau_b$",
+            "tau_p": "Kendall $\\tau_b$ p-value",
+            "mae": "MAE",
+            "mse": "MSE",
+            "rmse": "RMSE",
+            "par10": "PAR10",
+            "abs_distance_to_vbs": "MP",
+            "success_rate": "SR"}
 
-measures = ["tau_corr", "ndcg", "mae", "mse"]
+measures = [
+    "tau_corr", "ndcg", "mae", "mse", "par10", "abs_distance_to_vbs",
+    "success_rate", "rmse"
+]
 
 for measure in measures:
     plt.clf()
@@ -112,19 +115,89 @@ for measure in measures:
                                    (corras["layer_sizes"] == layer_sizes) &
                                    (corras["activation_function"] == activation_function)]
 
-        print(len(current_frame), len(df_baseline_lr), len(df_baseline_rf))
+        if measure == "success_rate":
+            val_rf = df_baseline_rf["run_status"].value_counts(
+                normalize=True)["ok"]
+            val_lr = df_baseline_lr["run_status"].value_counts(
+                normalize=True)["ok"]
+            lambdas = list(current_frame["lambda"].unique())
+            results = []
+            for lambd in lambdas:
+                for use_weighted_samples in [True, False]:
+                    lambd_frame = current_frame.loc[
+                        (corras["lambda"] == lambd)
+                        & (corras["use_weighted_samples"] ==
+                           use_weighted_samples)]
+                    try:
+                        print(lambd_frame["run_status"].value_counts(
+                            normalize=False))
+                        results.append([
+                            lambd, use_weighted_samples,
+                            lambd_frame["run_status"].value_counts(
+                                normalize=True)["ok"]
+                        ])
+                    except:
+                        results.append([lambd, use_weighted_samples, 0.0])
 
-        if measure in ["mae", "mse"]:
+            results_frame = pd.DataFrame(
+                data=results,
+                columns=["lambda", "use_weighted_samples", "success_rate"])
+
+            print(results_frame)
+            lp = sns.lineplot(x="lambda",
+                              y=measure,
+                              marker="o",
+                              markersize=8,
+                              hue="use_weighted_samples",
+                              data=results_frame,
+                              ax=ax,
+                              legend=None,
+                              ci=None)
+            lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
+            lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
+            ax.set_title(scenario_name)
+            ax.set_ylabel(name_map[measure])
+            ax.set_xlabel("$\\lambda$")
+            # fig.set_size_inches(10.5, 3.0)
+            # fig.tight_layout()
+            # labels = ["PL-GLM", "PL-QM", "Random Forest", "Linear Regression"]
+            # legend = fig.legend(list(axes), labels=labels, loc="lower center", ncol=len(
+            #     labels), bbox_to_anchor=(0.5, -0.02))
+            # plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" + params_string.replace(
+            #     ".", "_") + "-" + measure + ".pdf", bbox_extra_artists=(legend,), bbox_inches="tight")
+            continue
+
+        current_frame["rmse"] = current_frame["mse"].pow(1./2)
+        print(current_frame.head())
+        print(current_frame.columns)
+        # print(current_frame["use_weighted_samples"].value_counts())
+        print(current_frame["lambda"].value_counts())
+        df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1./2)
+        df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1./2)
+
+        if measure in ["mae", "mse", "rmse"]:
             current_frame = current_frame.loc[(current_frame["lambda"] <=
                                                0.99)]
-        lp = sns.lineplot(x="lambda",
-                          y=measure,
-                          hue="use_weighted_samples",
-                          marker="o",
-                          markersize=8,
-                          data=current_frame,
-                          ax=ax,
-                          legend=None)
+        if measure in ["par10", "abs_distance_to_vbs"]:
+            lp = sns.lineplot(x="lambda",
+                              y=measure,
+                              marker="o",
+                              markersize=8,
+                              hue="use_weighted_samples",
+                              data=current_frame,
+                              ax=ax,
+                              legend=None,
+                              ci=None)
+        else:
+            lp = sns.lineplot(x="lambda",
+                              y=measure,
+                              marker="o",
+                              markersize=8,
+                              hue="use_weighted_samples",
+                              data=current_frame,
+                              ax=ax,
+                              legend=None,
+                              ci=95)
         if df_baseline_rf is not None:
             lp.axes.axhline(df_baseline_rf[measure].mean(),
                             c="g",
@@ -144,7 +217,7 @@ for measure in measures:
     fig.set_size_inches(10.5, 3.0)
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
-    labels = ["Hinge-NN", "Random Forest", "Linear Regression"]
+    labels = ["Hinge-NN unweighted", "Hinge-NN weighted", "Random Forest", "Linear Regression"]
     legend = fig.legend(list(axes),
                         labels=labels,
                         loc="lower center",
@@ -154,4 +227,10 @@ for measure in measures:
                 params_string.replace(".", "_") + "-" + measure + ".pdf",
                 bbox_extra_artists=(legend, ),
                 bbox_inches="tight")
+                
+    os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
+              params_string.replace(".", "_") + "-" + measure + ".pdf " +
+              figures_path + "-".join(scenarios) + "-" +
+              params_string.replace(".", "_") + "-" + measure + ".pdf")
+
     # plt.show()

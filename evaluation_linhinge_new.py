@@ -41,10 +41,14 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["SAT11-INDU"]
+scenarios = [
+    "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "MIP-2016", "CPMP-2015",
+    "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016", "QBF-2016",
+    "MAXSAT-PMS-2016", "SAT12-ALL", "TTP-2016"
+]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-# lambda_values = [0.5]
+lambda_values = [0.5]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 100
@@ -187,4 +191,4 @@ for scenario_name in scenarios:
             "abs_distance_to_vbs", "par10", "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
-                     scenario_name + "-new-weights.csv")
+                     scenario_name + "-new-weights-scen.csv")
