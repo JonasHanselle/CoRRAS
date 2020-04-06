@@ -114,18 +114,27 @@ for scenario_name in scenario_names:
     print("vbs par10", val_vbs_par10)
     print("vbs succ", val_vbs_succ)
 
+    # baselines
     df_baseline_rf = None
     df_baseline_lr = None
     df_baseline_sbs = None
     df_baseline_sf = None
     df_corras_nnh = None
-    df_corras_hinge_linear = None
-    df_corras_hinge_quadratic = None
-    df_corras_linear = None
-    df_corras_quadratic = None
+    df_corras_nnh_weighted = None
+    df_corras_nnh_unweighted = None
+    df_corras_hinge = None
+    df_corras_hinge_quadratic_unweighted = None
+    df_corras_hinge_quadratic_weighted = None
+    df_corras_hinge_linear_unweighted = None
     df_corras_hinge_linear_weighted = None
+    df_corras_pl = None
+    df_corras_pl_quadratic_unweighted = None
+    df_corras_pl_quadratic_weighted = None
+    df_corras_pl_linear_unweighted = None
+    df_corras_pl_linear_weighted = None
     df_corras_plnet = None
-    df_corras_plnet_1616 = None
+    df_corras_plnet_weighted = None
+    df_corras_plnet_unweighted = None
     try:
         df_baseline_sbs = pd.read_csv(evaluations_path + "sbs-" +
                                       scenario_name + ".csv")
