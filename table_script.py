@@ -45,8 +45,13 @@ lambda_value_hinge = 0.5
 epsilon_value_hinge = 1.0
 
 
-def create_latex_max(df: pd.DataFrame, decimal_format="{:10.3f}", skip_max=2):
-    result = "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
+def create_latex_max(df: pd.DataFrame,
+                     decimal_format="{:10.3f}",
+                     skip_max=2,
+                     caption="\\TODO{caption}"):
+    result = "\\begin{table}[H] \n"
+    result += "\\begin{adjustbox}{max width=\\textwidth} \n"
+    result += "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
     result += "\\toprule \n"
     result += " & ".join(df.columns) + " \\\\ \n"
     result += "\\midrule \n"
@@ -58,24 +63,38 @@ def create_latex_max(df: pd.DataFrame, decimal_format="{:10.3f}", skip_max=2):
         ]) + " \\\\ \n"
     result += "\\toprule \n"
     result += "\\end{tabular} \n"
+    result += "\\end{adjustbox} \n"
+    result += f"\\caption{{{caption}}} \n"
+    result += "\\label{tab:table_label} \n"
+    result += "\\end{table} \n"
 
     result = result.replace("nan", "-")
     print(result)
 
 
-def create_latex_min(df: pd.DataFrame, decimal_format="{:10.3f}"):
-    result = "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
+def create_latex_min(df: pd.DataFrame,
+                     decimal_format="{:10.3f}",
+                     skip_min=2,
+                     caption="\\TODO{caption}"):
+    result = "\\begin{table}[H] \n"
+    result += "\\begin{adjustbox}{max width=\\textwidth} \n"
+    result += "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
     result += "\\toprule \n"
     result += " & ".join(df.columns) + " \\\\ \n"
     result += "\\midrule \n"
     for index, row in df.iterrows():
         result += row[0] + " & " + " & ".join([
             "\\textbf{" + decimal_format.format(x) +
-            "}" if x == np.nanmin(row[2:]) else decimal_format.format(x)
-            for x in row[1:]
+            "}" if x == np.nanmin(row[skip_min:].to_numpy().astype("float64"))
+            else decimal_format.format(x) for x in row[1:]
         ]) + " \\\\ \n"
     result += "\\toprule \n"
     result += "\\end{tabular} \n"
+    result += "\\end{adjustbox} \n"
+    result += f"\\caption{{{caption}}} \n"
+    result += "\\label{tab:table_label} \n"
+    result += "\\end{table} \n"
+
     result = result.replace("nan", "-")
     print(result)
 
@@ -91,6 +110,9 @@ def max_formatter(x):
 
 comparison_data_par10 = []
 comparison_data_succ = []
+comparison_data_rmses = []
+comparison_data_ndcgs = []
+comparison_data_taus = []
 
 weighted_vs_unweighted_par10 = []
 weighted_vs_unweighted_succ = []
@@ -150,15 +172,20 @@ for scenario_name in scenario_names:
                                       scenario_name + ".csv")
     except Exception as ex:
         print(ex)
+
+    try:
         df_baseline_lr = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-linear_regression" +
                                      scenario_name + ".csv")
+    except Exception as ex:
+        print(ex)
     try:
         df_baseline_sf = pd.read_csv(
             evaluations_path + "baseline-evaluation-survival-forest-fixed-" +
             scenario_name + ".csv")
     except Exception as ex:
         print(ex)
+
     try:
         df_baseline_rf = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-random_forest" +
@@ -302,14 +329,13 @@ for scenario_name in scenario_names:
     except Exception as ex:
         print(ex)
 
-
     approaches_dfs = [
+        # df_baseline_sbs,
         df_baseline_rf,
         df_baseline_lr,
-        df_baseline_sbs,
         df_baseline_sf,
-        df_corras_nnh_weighted,
         df_corras_nnh_unweighted,
+        df_corras_nnh_weighted,
         df_corras_hinge_linear_unweighted,
         df_corras_hinge_linear_weighted,
         df_corras_hinge_quadratic_unweighted,
@@ -318,42 +344,190 @@ for scenario_name in scenario_names:
         df_corras_pl_linear_weighted,
         df_corras_pl_quadratic_unweighted,
         df_corras_pl_quadratic_weighted,
-        df_corras_plnet_weighted,
-        df_corras_plnet_unweighted
+        df_corras_plnet_unweighted,
+        df_corras_plnet_weighted
     ]
-    
+
     approaches_names = [
-        "df_baseline_rf",
-        "df_baseline_lr",
-        "df_baseline_sbs",
-        "df_baseline_sf",
-        "df_corras_nnh_weighted",
-        "df_corras_nnh_unweighted",
-        "df_corras_hinge_linear_unweighted",
-        "df_corras_hinge_linear_weighted",
-        "df_corras_hinge_quadratic_unweighted",
-        "df_corras_hinge_quadratic_weighted",
-        "df_corras_pl_linear_unweighted",
-        "df_corras_pl_linear_weighted",
-        "df_corras_pl_quadratic_unweighted",
-        "df_corras_pl_quadratic_weighted",
-        "df_corras_plnet_weighted",
-        "df_corras_plnet_unweighted"
+        "VBS",
+        "SBS",
+        "RF",
+        "LR",
+        "RSF",
+        "Neural Net Hinge Unweighted",
+        "Neural Net Hinge Weighted",
+        "Linear Hinge Unweighted",
+        "Linear Hinge Weighted",
+        "Quadratic Hinge Unweighted",
+        "Quadratic Hinge Weighted",
+        "PL-GLM",
+        "W PL-GLM",
+        "PL-QM",
+        "W PL-QM",
+        "PL-NN",
+        "W PL-NN"
     ]
 
-    print(scenario.scenario, len(scenario.performance_data))
-    print(len(df_corras_hinge))
-    for i, x in enumerate(approaches_dfs):
-        if x is None:
-            print(approaches_names[i], 0)
-        else:
-            print(approaches_names[i], len(x))
+    # print(scenario.scenario, len(scenario.performance_data))
+    # print(len(df_corras_hinge))
+    # for i, x in enumerate(approaches_dfs):
+    #     if x is None:
+    #         print(approaches_names[i], 0)
+    #     else:
+    #         print(approaches_names[i], len(x))
+    par10_scores = [
+        scenario_name, val_vbs_par10,
+        df_baseline_sbs["par10_sbs_par10"].mean()
+    ]
+    succ_rates = [
+        scenario_name, val_vbs_succ,
+        df_baseline_sbs["success_rate_sbs_succ"].iloc[0]
+    ]
 
-    # except Exception as ex:
-    #     print("exception", ex)
+    for approach_name, approach_df in zip(approaches_names, approaches_dfs):
+        try:
+            if len(approach_df) == len(scenario.performance_data):
+                par10_scores.append(approach_df["par10"].mean())
+                succ_rates.append(approach_df["run_status"].value_counts(
+                    normalize=True)["ok"])
+            else:
+                print(len(approach_df), len(scenario.performance_data))
+                par10_scores.append(float("nan"))
+                succ_rates.append(float("nan"))
+        except Exception as ex:
+            print(ex)
+            par10_scores.append(float("nan"))
+            succ_rates.append(float("nan"))
 
-    # sys.exit()
-    continue
+    comparison_data_par10.append(par10_scores)
+    comparison_data_succ.append(succ_rates)
+
+    for approach_df in approaches_dfs:
+        if approach_df is not None:
+            approach_df["rmse"] = approach_df["mse"].pow(1. / 2)
+
+    taus = [scenario_name]
+    rmses = [scenario_name]
+    ndcgs = [scenario_name]
+
+    for approach_name, approach_df in zip(approaches_names, approaches_dfs):
+        try:
+            if len(approach_df) == len(scenario.performance_data):
+                taus.append(approach_df["tau_corr"].mean())
+                rmses.append(approach_df["rmse"].mean())
+                ndcgs.append(approach_df["ndcg"].mean())
+            else:
+                print(len(approach_df), len(scenario.performance_data))
+                taus.append(float("nan"))
+                rmses.append(float("nan"))
+                ndcgs.append(float("nan"))
+        except Exception as ex:
+            print(ex)
+            taus.append(float("nan"))
+            rmses.append(float("nan"))
+            ndcgs.append(float("nan"))
+    print("taus", taus)
+
+    comparison_data_taus.append(taus)
+    comparison_data_rmses.append(rmses)
+    comparison_data_ndcgs.append(ndcgs)
+
+comparison_frame_taus = pd.DataFrame(data=comparison_data_taus,
+                                     columns=["Scenario"] +
+                                     approaches_names[2:])
+comparison_frame_ndcgs = pd.DataFrame(data=comparison_data_ndcgs,
+                                      columns=["Scenario"] +
+                                      approaches_names[2:])
+comparison_frame_rmses = pd.DataFrame(data=comparison_data_rmses,
+                                      columns=["Scenario"] +
+                                      approaches_names[2:])
+
+comparison_frame_par10 = pd.DataFrame(data=comparison_data_par10,
+                                      columns=["Scenario"] + approaches_names)
+comparison_frame_succ = pd.DataFrame(data=comparison_data_succ,
+                                     columns=["Scenario"] + approaches_names)
+
+# comparison_frame_par10 = pd.DataFrame(data=comparison_data_par10,
+#                                       columns=["Scenario"]+approaches_names)
+# comparison_frame_succ = pd.DataFrame(data=comparison_data_succ,
+#                                      columns=["Scenario"]+approaches_names)
+# print(create_latex_min(comparison_frame_par10))
+# comparison_frame_par10.to_csv("output_frame.csv")
+
+gap_numerator_succ = comparison_frame_succ.iloc[:, 1:].subtract(
+    comparison_frame_succ.iloc[:, 1], axis=0)
+gap_denominator_succ = comparison_frame_succ.iloc[:,
+                                                  2] - comparison_frame_succ.iloc[:,
+                                                                                  1]
+
+gap_numerator_par10 = comparison_frame_par10.iloc[:, 1:].subtract(
+    comparison_frame_par10.iloc[:, 1], axis=0)
+gap_denominator_par10 = comparison_frame_par10.iloc[:,
+                                                    2] - comparison_frame_par10.iloc[:,
+                                                                                     1]
+
+print(gap_numerator_succ)
+print(gap_denominator_succ)
+
+sbs_vbs_gap_succ = comparison_frame_succ.copy()
+
+sbs_vbs_gap_par10 = comparison_frame_par10.copy()
+
+sbs_vbs_gap_succ.iloc[:, 1:] = gap_numerator_succ.div(gap_denominator_succ,
+                                                      axis=0)
+sbs_vbs_gap_par10.iloc[:, 1:] = gap_numerator_par10.div(gap_denominator_par10,
+                                                        axis=0)
+
+# print("taus")
+print(create_latex_max(comparison_frame_taus, skip_max=1, caption="taus"))
+# print("ndcgs")
+print(create_latex_max(comparison_frame_ndcgs, skip_max=1, caption="ndcgs"))
+# print("rmses")
+print(create_latex_min(comparison_frame_rmses, skip_min=1, caption="rmses"))
+
+# print("gap succ")
+create_latex_min(sbs_vbs_gap_succ, caption="gap succ")
+# print("gap par10")
+create_latex_min(sbs_vbs_gap_par10, caption="gap par10")
+
+gap_numerator_par10 = comparison_frame_par10.iloc[:, 1:].subtract(
+    comparison_frame_par10.iloc[:, 1])
+gap_denominator_par10 = comparison_frame_par10.iloc[:,
+                                                    2] - comparison_frame_par10.iloc[:,
+                                                                                     1]
+
+# comparison_frame_succ_gap = comparison_frame_succ.copy()
+# comparison_frame_succ_gap.iloc[:,1:] = gap_numerator_succ[:,:]
+
+comparison_frame_par10_gap = comparison_frame_par10.copy()
+# comparison_frame_par10_gap.iloc[:,1:] = gap_numerator_par10
+
+# print("success rate gap")
+# create_latex_max(comparison_frame)
+# print(
+#     comparison_frame_succ_gap.to_latex(na_rep="-",
+#                                             index=False,
+#                                             bold_rows=True,
+#                                             float_format="%.3f",
+#                                             formatters={
+#                                                 "tau_corr": max_formatter},
+#                                             escape=False))
+
+print("par10 gap")
+# create_latex_max(comparison_frame)
+print(
+    comparison_frame_par10_gap.to_latex(na_rep="-",
+                                        index=False,
+                                        bold_rows=True,
+                                        float_format="%.3f",
+                                        formatters={"tau_corr": max_formatter},
+                                        escape=False))
+
+# except Exception as ex:
+#     print("exception", ex)
+
+# sys.exit()
+# continue
 
 #     val_rf = float("nan")
 #     val_lr = float("nan")
