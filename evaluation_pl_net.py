@@ -43,13 +43,9 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = [
-    "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "MIP-2016", "CPMP-2015",
-    "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016", "QBF-2016",
-    "MAXSAT-PMS-2016", "SAT12-ALL", "TTP-2016"
-]
+scenarios = ["CSP-Minizinc-Time-2016"]
 
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 lambda_values = [0.5]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -67,9 +63,9 @@ use_weighted_samples_values = [True, False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
-    lambda_values, splits, seeds, learning_rates, batch_sizes,
-    es_patiences, es_intervals, es_val_ratios, layer_sizes_vals,
-    activation_functions, use_weighted_samples_values
+    lambda_values, splits, seeds, learning_rates, batch_sizes, es_patiences,
+    es_intervals, es_val_ratios, layer_sizes_vals, activation_functions,
+    use_weighted_samples_values
 ]
 
 param_product = list(product(*params))
@@ -122,7 +118,7 @@ for scenario_name in scenarios:
     # print(relevance_scores)
 
     for lambda_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio, layer_sizes, activation_function, use_weighted_samples in param_product:
-    
+
         test_scenario, train_scenario = scenario.get_split(split)
 
         current_frame = corras.loc[
@@ -135,7 +131,7 @@ for scenario_name in scenarios:
             (corras["es_val_ratio"] == es_val_ratio) &
             (corras["batch_size"] == batch_size) &
             (corras["layer_sizes"] == str(layer_sizes)) &
-            (corras["activation_function"] == activation_function)&
+            (corras["activation_function"] == activation_function) &
             (corras["use_weighted_samples"] == use_weighted_samples)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
@@ -168,9 +164,16 @@ for scenario_name in scenarios:
             corras_performances = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").to_numpy()
             if len(current_frame) != len(test_scenario.performance_data):
-                print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!")
-                print(current_frame)
-                continue
+                print(
+                    f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
+                )
+                # print(current_frame)
+                # if scenario_name not in ["SAT11-INDU", "CSP-2010"]:
+                #     continue
+            # print(
+            #     f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
+            # )
+
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
                     method="min").fillna(-1).astype("int16").to_numpy()
@@ -178,7 +181,7 @@ for scenario_name in scenarios:
                 print("Warning, NaN in performance prediction for " +
                       problem_instance + "!")
                 continue
-            
+
             tau_corr, tau_p = kendalltau(true_ranking, corras_ranking)
             # print(corras_performances)
             mse = mean_squared_error(true_performances, corras_performances)
@@ -192,21 +195,21 @@ for scenario_name in scenarios:
             par10_with_feature_cost = par10 + feature_cost
             run_status = run_stati.iloc[np.argmin(corras_performances)]
             corras_measures.append([
-                split, seed, problem_instance, lambda_value,
-                learning_rate, es_interval, es_patience, es_val_ratio,
-                batch_size, layer_sizes, activation_function, use_weighted_samples, tau_corr, tau_p,
-                ndcg, mse, mae, abs_vbs_distance, par10,
+                split, seed, problem_instance, lambda_value, learning_rate,
+                es_interval, es_patience, es_val_ratio, batch_size,
+                layer_sizes, activation_function, use_weighted_samples,
+                tau_corr, tau_p, ndcg, mse, mae, abs_vbs_distance, par10,
                 par10_with_feature_cost, run_status
             ])
             # print(corras_measures)
     df_corras = pd.DataFrame(
         data=corras_measures,
         columns=[
-            "split", "seed", "problem_instance", "lambda",
-            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
-            "batch_size", "layer_sizes", "activation_function", "use_weighted_samples", "tau_corr",
-            "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs", "par10",
-            "par10_with_feature_cost", "run_status"
+            "split", "seed", "problem_instance", "lambda", "learning_rate",
+            "es_interval", "es_patience", "es_val_ratio", "batch_size",
+            "layer_sizes", "activation_function", "use_weighted_samples",
+            "tau_corr", "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs",
+            "par10", "par10_with_feature_cost", "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-pl-nn-" + scenario_name +
                      "-scen.csv")

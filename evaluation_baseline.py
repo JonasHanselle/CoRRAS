@@ -32,9 +32,7 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 results_path_baseline = "./results/results-rf/"
 evaluations_path = "./evaluations/"
 figures_path = "./figures/"
-scenario_names = ["CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
-                  "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND", "SAT11-INDU", "SAT11-RAND",
-                  "SAT12-ALL"]
+scenario_names = ["QBF-2016"]
 baselines = ["linear_regression", "random_forest"]
 
 
