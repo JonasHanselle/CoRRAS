@@ -39,34 +39,28 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = [
-    "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND",
-    "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
-    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"
-]
-# scenarios = ["MIP-2016"]
-# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-#                  0.7, 0.8, 0.9, 0.99, 0.999, 1.0]
-# lambda_values = [0.0, 0.2, 0.4, 0.6,
-#                  0.8, 1.0]
+scenarios = ["QBF-2016"]
+
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 lambda_values = [0.5]
 max_pairs_per_instance = 5
-maxiter = 10 
+maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [True, False]
+use_quadratic_transform_values = [False, True]
 # use_quadratic_transform_values = [True]
 use_max_inverse_transform_values = ["max_cutoff"]
 # use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 # scale_target_to_unit_interval_values = [True]
-use_weighted_samples_values = [False]
+regularization_params_values = [0.001]
+use_weighted_samples_values = [False, True]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
-    scenarios, lambda_values, splits, seeds, use_quadratic_transform_values,
+    scenarios, lambda_values,  seeds, use_quadratic_transform_values,
     use_max_inverse_transform_values, scale_target_to_unit_interval_values,
-    use_weighted_samples_values
+    use_weighted_samples_values, regularization_params_values, splits
 ]
 
 param_product = list(product(*params))
@@ -82,7 +76,12 @@ if shard_number == total_shards:
 else:
     shard = param_product[lower_bound:upper_bound]
 
-for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples in shard:
+engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" + db_url +
+                           "/" + db_db,
+                           echo=False,
+                           pool_recycle=300)
+
+for scenario_name, lambda_value, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples, regularization_param, split in shard:
     params_string = "-".join([
         scenario_name,
         str(lambda_value),
@@ -90,16 +89,18 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
         str(seed),
         str(use_quadratic_transform),
         str(use_max_inverse_transform),
-        str(scale_target_to_unit_interval)
+        str(scale_target_to_unit_interval),
+        str(use_weighted_samples),
+        str(regularization_param)
     ])
 
     # check if table for scenario_name exists
 
-    table_name = "linear-plackett-luce-new" + scenario_name
+    if scenario_name == "CSP-Minizinc-Time-2016":
+        table_name = "linear-plackett-luce-new" + "CSP-MT-2016" + "-weighted-iter100-fix"
+    else:
+        table_name = "linear-plackett-luce-new" + scenario_name + "-weighted-iter100-fix"
 
-    engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-                               db_url + "/" + db_db,
-                               echo=False)
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
         pass
@@ -120,12 +121,18 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
                 experiments.columns["use_max_inverse_transform"] ==
                 use_max_inverse_transform,
                 experiments.columns["scale_target_to_unit_interval"] ==
-                scale_target_to_unit_interval)).limit(1)
+                scale_target_to_unit_interval,
+                experiments.columns["use_weighted_samples"] ==
+                use_weighted_samples,
+                experiments.columns["regularization_param"] ==
+                regularization_param,
+            )).limit(1)
         rs = connection.execute(slct)
         result = rs.first()
         if result == None:
             pass
         else:
+            print(params_string, "Already in DB!")
             rs.close()
             connection.close()
             continue
@@ -239,7 +246,8 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
                      maxiter=maxiter,
                      print_output=False,
                      log_losses=True,
-                     sample_weights=sample_weights)
+                     sample_weights=sample_weights,
+                     reg_param=regularization_param)
 
         for index, row in test_scenario.feature_data.iterrows():
             row_values = row.to_numpy().reshape(1, -1)
@@ -266,6 +274,7 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
             result_data_corras.append([
                 split, index, lambda_value, seed, use_quadratic_transform,
                 use_max_inverse_transform, scale_target_to_unit_interval,
+                use_weighted_samples, regularization_param,
                 *predicted_performances
             ])
             # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
@@ -277,11 +286,13 @@ for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_i
         result_columns_corras = [
             "split", "problem_instance", "lambda", "seed",
             "use_quadratic_transform", "use_max_inverse_transform",
-            "scale_target_to_unit_interval"
+            "scale_target_to_unit_interval", "use_weighted_samples",
+            "regularization_param"
         ]
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(data=result_data_corras,
                                       columns=result_columns_corras)
+        print(results_corras.head())
         connection = engine.connect()
         results_corras.to_sql(name=table_name,
                               con=connection,

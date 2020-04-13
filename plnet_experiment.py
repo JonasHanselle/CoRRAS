@@ -39,11 +39,9 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = [
-    "SAT11-INDU"
-]
+scenarios = ["QBF-2016"]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-# lambda_values = [0.6]
+lambda_values = [0.5]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -57,12 +55,12 @@ layer_sizes_vals = [[32]]
 activation_functions = ["sigmoid"]
 use_weighted_samples_values = [True, False]
 
-splits = [4]
+splits = [1,2,3,4,5,6,7,8,9,10]
 
 params = [
-    scenarios, lambda_values, splits, seeds, learning_rates, es_intervals,
+    scenarios, lambda_values, seeds, learning_rates, es_intervals,
     es_patiences, es_val_ratios, batch_sizes, layer_sizes_vals,
-    activation_functions, use_weighted_samples_values
+    activation_functions, use_weighted_samples_values, splits
 ]
 
 param_product = list(product(*params))
@@ -78,13 +76,15 @@ if shard_number == total_shards:
 else:
     shard = param_product[lower_bound:upper_bound]
 
-engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-                           db_url + "/" + db_db,
-                           echo=False)
+engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" + db_url +
+                           "/" + db_db,
+                           echo=False,
+                           pool_recycle=300,
+                           pool_size=1)
 
-for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples in shard:
+for scenario_name, lambda_value, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples, split in shard:
 
-    table_name = "neural-net-plackett-luce-" + scenario_name + "-fixed"
+    table_name = "neural-net-plackett-luce-" + scenario_name + "-new-fix"
 
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
@@ -156,9 +156,9 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
             ]
 
             result_columns_corras = [
-                "split", "problem_instance", "lambda", "seed",
-                "learning_rate", "es_interval", "es_patience", "es_val_ratio",
-                "batch_size", "layer_sizes", "activation_function"
+                "split", "problem_instance", "lambda", "seed", "learning_rate",
+                "es_interval", "es_patience", "es_val_ratio", "batch_size",
+                "layer_sizes", "activation_function"
             ]
             result_columns_corras += performance_cols_corras
 
@@ -242,8 +242,8 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
             predicted_performances = perf_max * predicted_performances
 
             result_data_corras.append([
-                split, index, lambda_value, seed, learning_rate,
-                es_interval, es_patience, es_val_ratio, batch_size,
+                split, index, lambda_value, seed, learning_rate, es_interval,
+                es_patience, es_val_ratio, batch_size,
                 str(layer_size), activation_function, use_weighted_samples,
                 *predicted_performances
             ])
@@ -254,17 +254,18 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
         ]
         print("perf corr", len(performance_cols_corras))
         result_columns_corras = [
-            "split", "problem_instance", "lambda", "seed",
-            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
-            "batch_size", "layer_sizes", "activation_function",
-            "use_weighted_samples"
+            "split", "problem_instance", "lambda", "seed", "learning_rate",
+            "es_interval", "es_patience", "es_val_ratio", "batch_size",
+            "layer_sizes", "activation_function", "use_weighted_samples"
         ]
         print("result len", len(result_columns_corras))
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(data=result_data_corras,
                                       columns=result_columns_corras)
-        # results_corras.to_csv(filepath, index_label="id",
-        #                         mode="a", header=False)
+        results_corras.to_csv(filepath,
+                              index_label="id",
+                              mode="a",
+                              header=False)
         connection = engine.connect()
         results_corras.to_sql(name=table_name,
                               con=connection,

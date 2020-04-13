@@ -22,9 +22,9 @@ evaluations_path = "./evaluations/"
 figures_path = "./figures/progression-plots/"
 
 scenario_names = [
-    "SAT11-RAND", "MIP-2016", "CSP-2010", "SAT11-INDU", "SAT11-HAND",
-    "CPMP-2015", "QBF-2016", "SAT12-ALL", "MAXSAT-WPMS-2016",
-    "MAXSAT-PMS-2016", "CSP-Minizinc-Time-2016"
+    "MIP-2016", "CSP-2010", "CPMP-2015", "SAT11-INDU", "SAT11-HAND",
+    "SAT11-RAND", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016",
+    "CSP-Minizinc-Time-2016"
 ]
 
 use_quadratic_transform_values = [True, False]
@@ -50,6 +50,7 @@ def create_latex_max(df: pd.DataFrame,
                      skip_max=2,
                      caption="\\TODO{caption}"):
     result = "\\begin{table}[H] \n"
+    result += "\\centering \n"
     result += "\\begin{adjustbox}{max width=\\textwidth} \n"
     result += "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
     result += "\\toprule \n"
@@ -77,6 +78,7 @@ def create_latex_min(df: pd.DataFrame,
                      skip_min=2,
                      caption="\\TODO{caption}"):
     result = "\\begin{table}[H] \n"
+    result += "\\centering \n"
     result += "\\begin{adjustbox}{max width=\\textwidth} \n"
     result += "\\begin{tabular}{" + "l" + "r" * (len(df.columns) - 1) + "} \n"
     result += "\\toprule \n"
@@ -195,13 +197,6 @@ for scenario_name in scenario_names:
     try:
         df_corras_plnet = pd.read_csv(evaluations_path + "corras-pl-nn-" +
                                       scenario_name + "-scen.csv")
-    except Exception as ex:
-        print(ex)
-
-        # print("plnet head", df_corras_plnet.head())
-
-        # load plnet data
-    try:
         df_corras_plnet_weighted = df_corras_plnet.loc[
             (df_corras_plnet["seed"] == seed)
             & (df_corras_plnet["activation_function"] == "sigmoid") &
@@ -217,6 +212,8 @@ for scenario_name in scenario_names:
             (df_corras_plnet["use_weighted_samples"] == False)]
     except Exception as ex:
         print(ex)
+
+        # print("plnet head", df_corras_plnet.head())
 
         # load hinge neural network data
     try:
@@ -349,23 +346,11 @@ for scenario_name in scenario_names:
     ]
 
     approaches_names = [
-        "VBS",
-        "SBS",
-        "RF",
-        "LR",
-        "RSF",
-        "Neural Net Hinge Unweighted",
-        "Neural Net Hinge Weighted",
-        "Linear Hinge Unweighted",
-        "Linear Hinge Weighted",
-        "Quadratic Hinge Unweighted",
-        "Quadratic Hinge Weighted",
-        "PL-GLM",
-        "W PL-GLM",
-        "PL-QM",
-        "W PL-QM",
-        "PL-NN",
-        "W PL-NN"
+        "VBS", "SBS", "RF", "LR", "RSF", "Hinge-NN",
+        "W Hinge-NN", "Hinge-LM",
+        "W Hinge-LM", "Hinge-QM",
+        "W Hinge-QM", "PL-GLM", "W PL-GLM", "PL-QM", "W PL-QM",
+        "PL-NN", "W PL-NN"
     ]
 
     # print(scenario.scenario, len(scenario.performance_data))
@@ -384,6 +369,11 @@ for scenario_name in scenario_names:
         df_baseline_sbs["success_rate_sbs_succ"].iloc[0]
     ]
 
+    if df_corras_plnet_unweighted is not None:
+        print("CORRAS PL NET", scenario_name,
+              df_corras_plnet_unweighted["tau_corr"].mean(),
+              len(scenario.performance_data), len(df_corras_plnet_unweighted))
+
     for approach_name, approach_df in zip(approaches_names, approaches_dfs):
         try:
             if len(approach_df) == len(scenario.performance_data):
@@ -391,11 +381,17 @@ for scenario_name in scenario_names:
                 succ_rates.append(approach_df["run_status"].value_counts(
                     normalize=True)["ok"])
             else:
-                print(len(approach_df), len(scenario.performance_data))
+
+                print(
+                    f"Approach {approach_name} has {len(approach_df)} entries but {scenario_name} has {len(scenario.performance_data)}!"
+                )
                 par10_scores.append(float("nan"))
                 succ_rates.append(float("nan"))
         except Exception as ex:
-            print(ex)
+            print("exception for ", approach_name, ex)
+            print(
+                f"File for {approach_name} for scenario {scenario_name} not found!"
+            )
             par10_scores.append(float("nan"))
             succ_rates.append(float("nan"))
 

@@ -172,6 +172,7 @@ for measure in measures:
         df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1. / 2)
 
         if measure in ["mae", "mse", "rmse"]:
+            ax.set_yscale("log")
             current_frame = current_frame.loc[(current_frame["lambda"] <=
                                                0.99)]
     #     print(current_frame[:])
