@@ -75,6 +75,7 @@ for measure in measures:
         ax = axes[index]
         df_baseline_lr = None
         df_baseline_rf = None
+        df_baseline_label_ranking = None
         try:
             df_baseline_lr = pd.read_csv(
                 evaluations_path + "baseline-evaluation-linear-regression" +
@@ -82,6 +83,10 @@ for measure in measures:
             df_baseline_rf = pd.read_csv(evaluations_path +
                                          "baseline-evaluation-random_forest" +
                                          scenario_name + ".csv")
+            df_baseline_label_ranking = pd.read_csv(evaluations_path +
+                                         "baseline-label-ranking-" +
+                                         scenario_name + ".csv")
+            print("df baseline label ", len(df_baseline_label_ranking))
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
@@ -118,6 +123,8 @@ for measure in measures:
                 normalize=True)["ok"]
             val_lr = df_baseline_lr["run_status"].value_counts(
                 normalize=True)["ok"]
+            val_label_ranking = df_baseline_label_ranking["run_status"].value_counts(
+                normalize=True)["ok"]
             epsilons = list(current_frame["epsilon"].unique())
             results = []
             for epsilon in epsilons:
@@ -152,6 +159,8 @@ for measure in measures:
                               ci=None)
             lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
             lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
+            if measure not in ["rmse", "mse", "mae"]:
+                lp.axes.axhline(val_label_ranking, c="brown", ls="--", label="label-ranking-baseline-mean")
             ax.set_title(scenario_name)
             ax.set_ylabel(name_map[measure])
             ax.set_xlabel("$\\epsilon$")
@@ -171,6 +180,7 @@ for measure in measures:
         print(current_frame["lambda"].value_counts())
         df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1. / 2)
         df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1. / 2)
+        df_baseline_label_ranking["rmse"] = df_baseline_label_ranking["mse"].pow(1. / 2)
 
         if measure in ["mae", "mse", "rmse"]:
             ax.set_yscale("log")
@@ -223,6 +233,14 @@ for measure in measures:
                             c="m",
                             ls="--",
                             label="lr-baseline-mean")
+        if measure not in ["rmse", "mse", "mae"]:
+            if df_baseline_label_ranking is not None:
+                lp.axes.axhline(df_baseline_label_ranking[measure].mean(),
+                                c="brown",
+                                ls="--",
+                                label="label-ranking-baseline-mean")
+
+
         ax.set_title(scenario_name)
         ax.set_ylabel(name_map[measure])
         ax.set_xlabel("$\\epsilon$")
@@ -232,7 +250,11 @@ for measure in measures:
     fig.set_size_inches(10.5, 3.0)
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
-    labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression"]
+    if measure in ["rmse", "mse", "mae"]:
+        labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression"]
+    else:
+        labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression", "Label Ranking"]
+    
     legend = fig.legend(list(axes),
                         labels=labels,
                         loc="lower center",

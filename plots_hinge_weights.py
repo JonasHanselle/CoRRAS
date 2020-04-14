@@ -19,31 +19,30 @@ sns.set_style("whitegrid")
 scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
-figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge_nn/"
+figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge/"
+scenario_names = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
 
-scenarios = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+# lambda_values = [0.5]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
-
-learning_rates = [0.001]
-batch_sizes = [128]
-es_patiences = [64]
-es_intervals = [8]
-es_val_ratios = [0.3]
-layer_sizes_vals = ["[32]"]
-activation_functions = ["sigmoid"]
-use_weighted_samples_values = [True, False]
-
+use_quadratic_transform_values = [False, True]
+use_max_inverse_transform_values = ["None"]
+scale_target_to_unit_interval_values = [True]
+skip_censored_values = [False]
+regulerization_params_values = [0.001]
+use_weighted_samples_values = [False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+seed = 15
+
 params = [
-    scenarios, learning_rates, seeds, batch_sizes, es_patiences, es_intervals,
-    es_val_ratios, layer_sizes_vals, activation_functions, epsilon_values
+    scenario_names, use_max_inverse_transform_values,
+    scale_target_to_unit_interval_values, skip_censored_values,
+    regulerization_params_values, use_quadratic_transform_values
 ]
 
-param_product = list(product(*params))
 name_map = {
     "ndcg": "NDCG",
     "tau_corr": "Kendall $\\tau_b$",
@@ -56,18 +55,22 @@ name_map = {
     "success_rate": "SR"
 }
 
+param_product = list(product(*params))
+
+# measures = ["tau_corr", "ndcg", "mae", "mse", "rmse"]
+measures = ["par10", "abs_distance_to_vbs", "success_rate"]
 measures = [
-    "tau_corr", "ndcg", "mae", "mse", "par10", "abs_distance_to_vbs",
-    "success_rate", "rmse"
+    "par10", "abs_distance_to_vbs", "success_rate", "success_rate", "tau_corr",
+    "ndcg", "mae", "mse", "rmse"
 ]
 
 for measure in measures:
     plt.clf()
     fig, axes = plt.subplots(1, 3)
-    print(len(param_product))
-    for index, (scenario_name, learning_rate, seed, batch_size, es_patience,
-                es_interval, es_val_ratio, layer_sizes, activation_function,
-                epsilon) in enumerate(param_product):
+    for index, (scenario_name, use_max_inverse_transform,
+                scale_target_to_unit_interval, skip_censored,
+                regulerization_param,
+                quadratic_transform) in enumerate(param_product):
 
         ax = axes[index]
         df_baseline_lr = None
@@ -81,8 +84,8 @@ for measure in measures:
                                          "baseline-evaluation-random_forest" +
                                          scenario_name + ".csv")
             df_baseline_label_ranking = pd.read_csv(evaluations_path +
-                                                    "baseline-label-ranking-" +
-                                                    scenario_name + ".csv")
+                                         "baseline-label-ranking-" +
+                                         scenario_name + ".csv")
             print("df baseline label ", len(df_baseline_label_ranking))
         except:
             print("Scenario " + scenario_name +
@@ -90,52 +93,48 @@ for measure in measures:
 
         params_string = "-".join([
             scenario_name,
-            str(learning_rate),
-            str(batch_size),
-            str(es_patience),
-            str(es_interval),
-            str(es_val_ratio)
+            str(use_max_inverse_transform),
+            str(scale_target_to_unit_interval),
+            str(quadratic_transform)
         ])
 
         # continue
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
-            corras = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
-                                 scenario_name + "-new.csv")
+            corras = pd.read_csv(evaluations_path + "corras-hinge-linear-" +
+                                 scenario_name + "-new-weights.csv")
+
             corras["lambda"] = 1.0 - corras["lambda"]
 
+            # print(corras.head())
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
             continue
         current_frame = corras.loc[
-            (corras["seed"] == seed)
-            & (corras["learning_rate"] == learning_rate)
-            & (corras["batch_size"] == batch_size) &
-            (corras["es_patience"] == es_patience) &
-            (corras["es_interval"] == es_interval) &
-            (corras["epsilon"] == epsilon) &
-            (corras["layer_sizes"] == layer_sizes) &
-            (corras["activation_function"] == activation_function)]
+            (corras["seed"] == seed) &
+            (corras["scale_to_unit_interval"] == scale_target_to_unit_interval)
+            & (corras["max_inverse_transform"] == use_max_inverse_transform)
+            & (corras["quadratic_transform"] == quadratic_transform)
+            & (corras["regularization_param"] == regulerization_param)]
 
         if measure == "success_rate":
             val_rf = df_baseline_rf["run_status"].value_counts(
                 normalize=True)["ok"]
             val_lr = df_baseline_lr["run_status"].value_counts(
                 normalize=True)["ok"]
-            val_label_ranking = df_baseline_label_ranking[
-                "run_status"].value_counts(normalize=True)["ok"]
+            val_label_ranking = df_baseline_label_ranking["run_status"].value_counts(
+                normalize=True)["ok"]
             lambdas = list(current_frame["lambda"].unique())
             results = []
             for lambd in lambdas:
                 for use_weighted_samples in [True, False]:
                     lambd_frame = current_frame.loc[
-                        (corras["lambda"] == lambd)
-                        & (corras["use_weighted_samples"] ==
-                           use_weighted_samples)]
+                        (corras["lambda"] == lambd) &
+                        (corras["use_weighted_samples"] == use_weighted_samples)]
                     try:
-                        print(lambd_frame["run_status"].value_counts(
-                            normalize=False))
+                        # print(lambd_frame["run_status"].value_counts(
+                        #     normalize=False))
                         results.append([
                             lambd, use_weighted_samples,
                             lambd_frame["run_status"].value_counts(
@@ -148,7 +147,7 @@ for measure in measures:
                 data=results,
                 columns=["lambda", "use_weighted_samples", "success_rate"])
 
-            print(results_frame)
+            # print(results_frame)
             lp = sns.lineplot(x="lambda",
                               y=measure,
                               marker="o",
@@ -161,10 +160,7 @@ for measure in measures:
             lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
             lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
             if measure not in ["rmse", "mse", "mae"]:
-                lp.axes.axhline(val_label_ranking,
-                                c="brown",
-                                ls="--",
-                                label="label-ranking-baseline-mean")
+                lp.axes.axhline(val_label_ranking, c="brown", ls="--", label="label-ranking-baseline-mean")
             ax.set_title(scenario_name)
             ax.set_ylabel(name_map[measure])
             ax.set_xlabel("$\\lambda$")
@@ -184,13 +180,29 @@ for measure in measures:
         print(current_frame["lambda"].value_counts())
         df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1. / 2)
         df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1. / 2)
-        df_baseline_label_ranking["rmse"] = df_baseline_label_ranking[
-            "mse"].pow(1. / 2)
+        df_baseline_label_ranking["rmse"] = df_baseline_label_ranking["mse"].pow(1. / 2)
 
         if measure in ["mae", "mse", "rmse"]:
             ax.set_yscale("log")
             current_frame = current_frame.loc[(current_frame["lambda"] <=
                                                0.99)]
+    #     print(current_frame[:])
+    #     print(current_frame.iloc[:10,8:12].to_latex(na_rep="-", index=False, bold_rows=True, float_format="%.2f", formatters={"tau_corr" : max_formatter}, escape=False))
+    #     for measure in current_frame.columns[8:]:
+    #         plt.clf()
+    # bp = sns.boxplot(x="lambda", y=measure, hue="epsilon", data=df_corras)
+    # bp = sns.boxplot(x="lambda", y=measure, data=df_corras)
+    # if df_baseline is not None:
+    #     bp.axes.axhline(df_baseline[measure].mean(), c="g", ls="--", label="rf-baseline-mean")
+    # plt.title(scenario_name)
+    # plt.legend()
+    # plt.savefig(figures_path+scenario_name+"-" + measure +"-boxplot.pdf")
+    # print("length of current frame", len(current_frame))
+    # print("columns", current_frame.columns[8:])
+    # plt.clf()
+    # bp = sns.lineplot(x="lambda", y=measure, hue="epsilon", data=df_corras, palette=sns.color_palette("Set1", len(pd.unique(df_corras["epsilon"]))))
+    # g = sns.FacetGrid(df_corras, col="max_inverse_transform")
+    # g.map(sns.lineplot, "lambda", measure)
         if measure in ["par10", "abs_distance_to_vbs"]:
             lp = sns.lineplot(x="lambda",
                               y=measure,
@@ -237,29 +249,21 @@ for measure in measures:
     fig.set_size_inches(10.5, 3.0)
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
-    if measure in ["mse", "rmse", "mae"]:
-        labels = [
-            "Hinge-NN unweighted", "Hinge-NN weighted", "Random Forest",
-            "Linear Regression", "Label Ranking"
-        ]
+    if measure in ["rmse", "mse", "mae"]:
+        labels = ["Hinge-LM", "Weighted Hinge-LM", "Random Forest", "Linear Regression", "Label Ranking"]
     else:
-        labels = [
-            "Hinge-NN unweighted", "Hinge-NN weighted", "Random Forest",
-            "Linear Regression"
-        ]
+        labels = ["Hinge-LM", "Weighted Hinge-LM", "Random Forest", "Linear Regression", "Label Ranking"]
     legend = fig.legend(list(axes),
                         labels=labels,
                         loc="lower center",
                         ncol=len(labels),
                         bbox_to_anchor=(0.5, -0.02))
-    plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
-                params_string.replace(".", "_") + "-" + measure + ".pdf",
+    plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
+                params_string.replace(".", "_") + "-" + measure + "-weights.pdf",
                 bbox_extra_artists=(legend, ),
-                bbox_inches="tight")
-
-    os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf " +
-              figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf")
-
+                bbox_inchles="tight")
+    os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
+              params_string.replace(".", "_") + "-" + measure + "-weights.pdf " +
+              figures_path + "-".join(scenario_names) + "-" +
+              params_string.replace(".", "_") + "-" + measure + "-weights.pdf")
     # plt.show()
