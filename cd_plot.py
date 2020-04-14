@@ -1,4 +1,5 @@
 import sys
+import os
 
 import math
 import numpy as np
@@ -143,6 +144,7 @@ for scenario_name in scenario_names:
     # baselines
     df_baseline_rf = None
     df_baseline_lr = None
+    df_baseline_label_ranking = None
     df_baseline_sbs = None
     df_baseline_sf = None
 
@@ -192,6 +194,13 @@ for scenario_name in scenario_names:
     try:
         df_baseline_rf = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-random_forest" +
+                                     scenario_name + ".csv")
+    except Exception as ex:
+        print(ex)
+
+    try:
+        df_baseline_label_ranking = pd.read_csv(evaluations_path +
+                                     "baseline-label-ranking-" +
                                      scenario_name + ".csv")
     except Exception as ex:
         print(ex)
@@ -331,6 +340,7 @@ for scenario_name in scenario_names:
         # df_baseline_sbs,
         df_baseline_rf,
         df_baseline_lr,
+        df_baseline_label_ranking,
         df_baseline_sf,
         df_corras_nnh_unweighted,
         df_corras_nnh_weighted,
@@ -347,11 +357,24 @@ for scenario_name in scenario_names:
     ]
 
     approaches_names = [
-        "VBS", "SBS", "RF", "LR", "RSF", "Hinge-NN",
-        "W Hinge-NN", "Hinge-LM",
-        "W Hinge-LM", "Hinge-QM",
-        "W Hinge-QM", "PL-GLM", "W PL-GLM", "PL-QM", "W PL-QM",
-        "PL-NN", "W PL-NN"
+        "VBS",
+        "SBS",
+        "RF",
+        "LR",
+        "Label Ranking",
+        "RSF",
+        "Hinge-NN",
+        "W Hinge-NN",
+        "Hinge-LM",
+        "W Hinge-LM",
+        "Hinge-QM",
+        "W Hinge-QM",
+        "PL-GLM",
+        "W PL-GLM",
+        "PL-QM",
+        "W PL-QM",
+        "PL-NN",
+        "W PL-NN"
     ]
     # print(scenario.scenario, len(scenario.performance_data))
     # print(len(df_corras_hinge))
@@ -524,3 +547,14 @@ cd = Orange.evaluation.compute_CD(
     avranks, len(comparison_frame_ndcgs))  #tested on 30 datasets
 Orange.evaluation.graph_ranks(avranks, names, cd=cd, width=6, textspace=1.5)
 plt.savefig(fname=figures_path + "ndcgs.pdf", bbox_inches="tight")
+
+os.system("pdfcrop " + figures_path + "ndcgs.pdf " +
+              figures_path + "ndcgs.pdf")
+os.system("pdfcrop " + figures_path + "taus.pdf " +
+              figures_path + "taus.pdf")
+os.system("pdfcrop " + figures_path + "rmses.pdf " +
+              figures_path + "rmses.pdf")
+os.system("pdfcrop " + figures_path + "succ.pdf " +
+              figures_path + "succ.pdf")
+os.system("pdfcrop " + figures_path + "par10.pdf " +
+              figures_path + "par10.pdf")

@@ -22,9 +22,9 @@ evaluations_path = "./evaluations/"
 figures_path = "./figures/progression-plots/"
 
 scenario_names = [
-    "MIP-2016", "CSP-2010", "CPMP-2015", "SAT11-INDU", "SAT11-HAND",
-    "SAT11-RAND", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016",
-    "CSP-Minizinc-Time-2016"
+    "SAT11-RAND", "SAT11-INDU", "SAT11-HAND", "MAXSAT-WPMS-2016",
+    "MAXSAT-PMS-2016", "QBF-2016", "MIP-2016", "CSP-2010",
+    "CSP-Minizinc-Time-2016", "CPMP-2015"
 ]
 
 use_quadratic_transform_values = [True, False]
@@ -142,6 +142,7 @@ for scenario_name in scenario_names:
     # baselines
     df_baseline_rf = None
     df_baseline_lr = None
+    df_baseline_label_ranking = None
     df_baseline_sbs = None
     df_baseline_sf = None
 
@@ -191,6 +192,13 @@ for scenario_name in scenario_names:
     try:
         df_baseline_rf = pd.read_csv(evaluations_path +
                                      "baseline-evaluation-random_forest" +
+                                     scenario_name + ".csv")
+    except Exception as ex:
+        print(ex)
+
+    try:
+        df_baseline_label_ranking = pd.read_csv(evaluations_path +
+                                     "baseline-label-ranking-" +
                                      scenario_name + ".csv")
     except Exception as ex:
         print(ex)
@@ -330,27 +338,41 @@ for scenario_name in scenario_names:
         # df_baseline_sbs,
         df_baseline_rf,
         df_baseline_lr,
-        df_baseline_sf,
-        df_corras_nnh_unweighted,
-        df_corras_nnh_weighted,
+        df_baseline_label_ranking,
+        # df_baseline_sf,
         df_corras_hinge_linear_unweighted,
         df_corras_hinge_linear_weighted,
         df_corras_hinge_quadratic_unweighted,
         df_corras_hinge_quadratic_weighted,
-        df_corras_pl_linear_unweighted,
-        df_corras_pl_linear_weighted,
-        df_corras_pl_quadratic_unweighted,
-        df_corras_pl_quadratic_weighted,
-        df_corras_plnet_unweighted,
-        df_corras_plnet_weighted
+        df_corras_nnh_unweighted,
+        df_corras_nnh_weighted,
+        # df_corras_pl_linear_unweighted,
+        # df_corras_pl_linear_weighted,
+        # df_corras_pl_quadratic_unweighted,
+        # df_corras_pl_quadratic_weighted,
+        # df_corras_plnet_unweighted,
+        # df_corras_plnet_weighted
     ]
 
     approaches_names = [
-        "VBS", "SBS", "RF", "LR", "RSF", "Hinge-NN",
-        "W Hinge-NN", "Hinge-LM",
-        "W Hinge-LM", "Hinge-QM",
-        "W Hinge-QM", "PL-GLM", "W PL-GLM", "PL-QM", "W PL-QM",
-        "PL-NN", "W PL-NN"
+        "VBS",
+        "SBS",
+        "RF",
+        "LR",
+        "Rank",
+        # "RSF",
+        "Hinge-LM",
+        "W Hinge-LM",
+        "Hinge-QM",
+        "W Hinge-QM",
+        "Hinge-NN",
+        "W Hinge-NN",
+        # "PL-GLM",
+        # "W PL-GLM",
+        # "PL-QM",
+        # "W PL-QM",
+        # "PL-NN",
+        # "W PL-NN"
     ]
 
     # print(scenario.scenario, len(scenario.performance_data))
