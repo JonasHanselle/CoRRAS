@@ -21,7 +21,7 @@ evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl/"
 
-scenarios = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
+scenarios = ["MIP-2016", "SAT11-INDU"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 max_pairs_per_instance = 5
@@ -69,7 +69,7 @@ seed = seeds[0]
 
 for measure in measures:
     plt.clf()
-    fig, axes = plt.subplots(1, 3)
+    fig, axes = plt.subplots(1, 2)
     for index, (scenario_name, use_max_inverse_transform,
                 scale_target_to_unit_interval, regularization_param,
                 quadratic_transform) in enumerate(param_product):
@@ -244,9 +244,9 @@ for measure in measures:
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
     if measure in ["rmse", "mse", "mae"]:
-        labels = ["PL-GLM", "PL-QM", "Random Forest", "Linear Regression"]
+        labels = ["PL-GLM unweighted", "PL-GLM weighted", "Random Forest", "Linear Regression"]
     else:
-        labels = ["PL-GLM", "PL-QM", "Random Forest", "Linear Regression", "Label Ranking"]
+        labels = ["PL-GLM unweighted", "PL-GLM weighted", "Random Forest", "Linear Regression", "Label Ranking"]
     legend = fig.legend(list(axes),
                         labels=labels,
                         loc="lower center",

@@ -246,10 +246,10 @@ for measure in measures:
         # ax.legend()
 #         plt.savefig(figures_path + scenario_name + "-" + params_string.replace(".","_") + "-" + measure + "-lineplot-mi.pdf")
     fig.set_size_inches(10.5, 3.0)
-    # plt.subplots_adjust(right=0.85)
+    # plt.subplots_adjust(bottom=0.85)
     fig.tight_layout()
     if measure in ["rmse", "mse", "mae"]:
-        labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression", "Label Ranking"]
+        labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression"]
     else:
         labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression", "Label Ranking"]
     legend = fig.legend(list(axes),
@@ -260,7 +260,7 @@ for measure in measures:
     plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
                 params_string.replace(".", "_") + "-" + measure + ".pdf",
                 bbox_extra_artists=(legend, ),
-                bbox_inchles="tight")
+                bbox_inches="tight")
     os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
               params_string.replace(".", "_") + "-" + measure + ".pdf " +
               figures_path + "-".join(scenario_names) + "-" +

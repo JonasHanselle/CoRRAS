@@ -28,7 +28,7 @@ epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
-use_quadratic_transform_values = [False, True]
+use_quadratic_transform_values = [False]
 use_max_inverse_transform_values = ["None"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [False]
@@ -261,7 +261,7 @@ for measure in measures:
     plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
                 params_string.replace(".", "_") + "-" + measure + "-weights.pdf",
                 bbox_extra_artists=(legend, ),
-                bbox_inchles="tight")
+                bbox_inches="tight")
     os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
               params_string.replace(".", "_") + "-" + measure + "-weights.pdf " +
               figures_path + "-".join(scenario_names) + "-" +

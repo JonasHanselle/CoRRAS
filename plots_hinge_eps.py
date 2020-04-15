@@ -263,7 +263,7 @@ for measure in measures:
     plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
                 params_string.replace(".", "_") + "-" + measure + "-eps.pdf",
                 bbox_extra_artists=(legend, ),
-                bbox_inchles="tight")
+                bbox_inches="tight")
     os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
               params_string.replace(".", "_") + "-" + measure + "-eps.pdf " +
               figures_path + "-".join(scenario_names) + "-" +
