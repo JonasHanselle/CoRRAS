@@ -85,6 +85,8 @@ class NeuralNetwork:
             should be applied, "Squared" and "Absolute" are
             supported
         """
+        tf.set_random_seed(seed)
+
         if sample_weights is None:
             sample_weights = np.ones(features.shape[0])
 
