@@ -1,5 +1,6 @@
 import os
 
+from math import sqrt
 import numpy as np
 import pandas as pd
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
@@ -46,11 +47,12 @@ params = [
 
 name_map = {
     "ndcg": "NDCG",
-    "tau_corr": "Kendall $\\tau_b$",
-    "tau_p": "Kendall $\\tau_b$ p-value",
+    "tau_corr": "Kendall $\\tau$",
+    "tau_p": "Kendall $\\tau$ p-value",
     "mae": "MAE",
     "mse": "MSE",
     "rmse": "RMSE",
+    "rmse_fixed": "RMSE",
     "par10": "PAR10",
     "abs_distance_to_vbs": "MP",
     "success_rate": "SR"
@@ -61,9 +63,10 @@ param_product = list(product(*params))
 # measures = ["tau_corr", "ndcg", "mae", "mse", "rmse"]
 measures = ["par10", "abs_distance_to_vbs", "success_rate"]
 measures = [
-    "par10", "abs_distance_to_vbs", "success_rate", "tau_corr",
-    "ndcg", "mae", "mse", "rmse"
+    "par10", "abs_distance_to_vbs", "success_rate", "tau_corr", "ndcg", "mae",
+    "mse", "rmse", "rmse_fixed"
 ]
+measures = ["rmse_fixed"]
 
 seed = seeds[0]
 
@@ -85,8 +88,8 @@ for measure in measures:
                                          "baseline-evaluation-random_forest" +
                                          scenario_name + ".csv")
             df_baseline_label_ranking = pd.read_csv(evaluations_path +
-                                         "baseline-label-ranking-" +
-                                         scenario_name + ".csv")
+                                                    "baseline-label-ranking-" +
+                                                    scenario_name + ".csv")
             print("df baseline label ", len(df_baseline_label_ranking))
         except:
             print("Scenario " + scenario_name +
@@ -119,8 +122,8 @@ for measure in measures:
                 normalize=True)["ok"]
             val_lr = df_baseline_lr["run_status"].value_counts(
                 normalize=True)["ok"]
-            val_label_ranking = df_baseline_label_ranking["run_status"].value_counts(
-                normalize=True)["ok"]
+            val_label_ranking = df_baseline_label_ranking[
+                "run_status"].value_counts(normalize=True)["ok"]
             lambdas = list(current_frame["lambda"].unique())
             results = []
             for lambd in lambdas:
@@ -155,7 +158,10 @@ for measure in measures:
             lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
             lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
             if measure not in ["rmse", "mse", "mae"]:
-                lp.axes.axhline(val_label_ranking, c="brown", ls="--", label="label-ranking-baseline-mean")
+                lp.axes.axhline(val_label_ranking,
+                                c="brown",
+                                ls="--",
+                                label="label-ranking-baseline-mean")
             ax.set_title(scenario_name)
             ax.set_ylabel(name_map[measure])
             ax.set_xlabel("$\\lambda$")
@@ -168,13 +174,90 @@ for measure in measures:
             #     ".", "_") + "-" + measure + ".pdf", bbox_extra_artists=(legend,), bbox_inches="tight")
             continue
 
+        if measure in ["mae", "mse", "rmse", "rmse_fixed"]:
+            ax.set_yscale("log")
+            current_frame = current_frame.loc[(current_frame["lambda"] <=
+                                               0.99)]
+
+        if measure == "rmse_fixed":
+            val_rf = sqrt(df_baseline_rf["mse"].mean())
+            val_lr = sqrt(df_baseline_lr["mse"].mean())
+            lambdas = list(current_frame["lambda"].unique())
+            results = []
+            for lambd in lambdas:
+                for quadratic_transform in [True, False]:
+                    lambd_frame = current_frame.loc[
+                        (corras["lambda"] == lambd) &
+                        (corras["quadratic_transform"] == quadratic_transform)]
+                    try:
+                        print(sqrt(lambd_frame["mse"].mean()))
+                        results.append([
+                            lambd, quadratic_transform,
+                            sqrt(lambd_frame["mse"].mean())
+                        ])
+                    except:
+                        results.append([lambd, quadratic_transform, -500000.0])
+
+            results_frame = pd.DataFrame(
+                data=results,
+                columns=["lambda", "quadratic_transform", "rmse_fixed"])
+
+            print(results_frame)
+            lp = sns.lineplot(x="lambda",
+                              y=measure,
+                              marker="o",
+                              markersize=8,
+                              hue="quadratic_transform",
+                              data=results_frame,
+                              ax=ax,
+                              legend=None)
+            lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
+            lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
+            if measure not in ["rmse", "mse", "mae", "rmse_fixed"]:
+                lp.axes.axhline(val_label_ranking,
+                                c="brown",
+                                ls="--",
+                                label="label-ranking-baseline-mean")
+            ax.set_title(scenario_name)
+            ax.set_ylabel(name_map[measure])
+            ax.set_xlabel("$\\lambda$")
+            fig.set_size_inches(10.5, 3.0)
+            # plt.subplots_adjust(right=0.85)
+            fig.tight_layout()
+            if measure in ["rmse", "mse", "mae", "rmse_fixed"]:
+                labels = [
+                    "PL-GLM", "PL-QM", "Random Forest", "Linear Regression"
+                ]
+            else:
+                labels = [
+                    "PL-GLM", "PL-QM", "Random Forest", "Linear Regression",
+                    "Label Ranking"
+                ]
+            legend = fig.legend(list(axes),
+                                labels=labels,
+                                loc="lower center",
+                                ncol=len(labels),
+                                bbox_to_anchor=(0.5, -0.02))
+            plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
+                        params_string.replace(".", "_") + "-" + measure +
+                        ".pdf",
+                        bbox_extra_artists=(legend, ),
+                        bbox_inches="tight")
+
+            os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
+                      params_string.replace(".", "_") + "-" + measure +
+                      ".pdf " + figures_path + "-".join(scenarios) + "-" +
+                      params_string.replace(".", "_") + "-" + measure + ".pdf")
+            continue
+
         current_frame["rmse"] = current_frame["mse"].pow(1. / 2)
         print(current_frame.head())
         df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1. / 2)
         df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1. / 2)
-        df_baseline_label_ranking["rmse"] = df_baseline_label_ranking["mse"].pow(1. / 2)
+        df_baseline_label_ranking["rmse"] = df_baseline_label_ranking[
+            "mse"].pow(1. / 2)
 
-        if measure in ["mae", "mse", "rmse"]:
+        if measure in ["mae", "mse", "rmse", "rmse_fixed"]:
             ax.set_yscale("log")
             current_frame = current_frame.loc[(current_frame["lambda"] <=
                                                0.99)]
@@ -242,10 +325,13 @@ for measure in measures:
     fig.set_size_inches(10.5, 3.0)
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
-    if measure in ["rmse", "mse", "mae"]:
+    if measure in ["rmse", "mse", "mae", "rmse_fixed"]:
         labels = ["PL-GLM", "PL-QM", "Random Forest", "Linear Regression"]
     else:
-        labels = ["PL-GLM", "PL-QM", "Random Forest", "Linear Regression", "Label Ranking"]
+        labels = [
+            "PL-GLM", "PL-QM", "Random Forest", "Linear Regression",
+            "Label Ranking"
+        ]
     legend = fig.legend(list(axes),
                         labels=labels,
                         loc="lower center",
@@ -257,7 +343,6 @@ for measure in measures:
                 bbox_inches="tight")
 
     os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
-    
               params_string.replace(".", "_") + "-" + measure + ".pdf " +
               figures_path + "-".join(scenarios) + "-" +
               params_string.replace(".", "_") + "-" + measure + ".pdf")
