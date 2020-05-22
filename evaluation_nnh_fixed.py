@@ -44,7 +44,7 @@ db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
 scenarios = [
-    "CPMP-2015",
+    # "CPMP-2015",
     "MIP-2016",
     # "CSP-2010",
     # "SAT11-HAND",
@@ -59,7 +59,7 @@ scenarios = [
 # scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
 
 lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
-lambda_values = [1.0]
+lambda_values = [0.0, 0.3, 0.5, 0.7, 0.9, 1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -72,13 +72,13 @@ es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = ["[32]"]
 activation_functions = ["sigmoid"]
-use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10", "test a", "test b"]
+use_max_inverse_transform_values = ["max_cutoff"]
+# use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10", "test a", "test b"]
 # use_max_inverse_transform_values = ["test a", "test b"]
 scale_target_to_unit_interval_values = [True]
 use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [5]
 
 params = [
     lambda_values, epsilon_values, splits, seeds, learning_rates, es_intervals,

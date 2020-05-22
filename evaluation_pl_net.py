@@ -46,7 +46,7 @@ db_db = sys.argv[4]
 scenarios = [
     # "CPMP-2015",
     "MIP-2016",
-    # "CSP-2010",
+    "CSP-2010",
     # "SAT11-HAND",
     # "SAT11-INDU",
     # "SAT11-RAND"
@@ -59,6 +59,7 @@ scenarios = [
 # scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+lambda_values = [0.0, 0.3, 0.5, 0.9, 1.0]
 # lambda_values = [0.5,1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -76,7 +77,7 @@ scale_target_to_unit_interval_values = [True]
 use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [1, 2]
+splits = [1, 2, 3]
 
 params = [
     lambda_values, splits, seeds, learning_rates, es_intervals, es_patiences,
@@ -107,7 +108,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "ki_plnet-" + scenario_name
+        table_name = "test_plnet-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -243,4 +244,4 @@ for scenario_name in scenarios:
             "par10_with_feature_cost", "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-pl-nn-" + scenario_name +
-                     "-ki.csv")
+                     "-test.csv")

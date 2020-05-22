@@ -37,7 +37,7 @@ scenarios = [
 # scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
 
 lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
-lambda_values = [1.0]
+# lambda_values = [1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000

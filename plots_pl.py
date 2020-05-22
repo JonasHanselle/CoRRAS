@@ -38,6 +38,7 @@ regularization_params_values = [0.001]
 use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1, 2, 3]
 
 params = [
     scenarios, use_max_inverse_transform_values,

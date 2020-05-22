@@ -25,7 +25,7 @@ figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl_nn/"
 scenarios = [
     # "CPMP-2015",
     "MIP-2016",
-    # "CSP-2010",
+    "CSP-2010",
     # "SAT11-HAND",
     # "SAT11-INDU",
     # "SAT11-RAND",
@@ -38,6 +38,7 @@ scenarios = [
 # scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+lambda_values = [0.0, 0.3, 0.5, 0.9, 1.0]
 # lambda_values = [0.5,1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -55,7 +56,8 @@ scale_target_to_unit_interval_values = [True]
 use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [1, 2]
+splits = [1, 2, 3]
+
 
 params = [
     scenarios, learning_rates, seeds, batch_sizes, es_patiences, es_intervals,
@@ -120,7 +122,7 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(evaluations_path + "corras-pl-nn-" +
-                                 scenario_name + "-ki.csv")
+                                 scenario_name + "-test.csv")
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")

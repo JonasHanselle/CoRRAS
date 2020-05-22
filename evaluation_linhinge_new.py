@@ -44,7 +44,7 @@ db_db = sys.argv[4]
 
 
 scenarios = [
-    "CPMP-2015",
+    # "CPMP-2015",
     "MIP-2016",
     # "CSP-2010",
     # "SAT11-HAND",
@@ -57,7 +57,7 @@ scenarios = [
 ]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [1.0]
+lambda_values = [0.0, 0.3, 0.5, 0.7, 0.9, 1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 100
@@ -73,7 +73,7 @@ use_weighted_samples_values = [False]
 skip_censored_values=[False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [5,]
+# splits = [5,]
 
 params = [
     lambda_values, epsilon_values, splits, seeds,
