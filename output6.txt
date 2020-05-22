@@ -1,0 +1,747 @@
+shard length 146
+algorithm        CBC    CPLEX  Gurobi  SCIP-cpx   XPRESS
+instance_id                                             
+30n20b8        610.0      3.0     3.0      69.0     22.0
+50v-10       72000.0    451.0  1527.0   72000.0   1642.0
+a1c1s1       72000.0    299.0   160.0   72000.0   2258.0
+acc-tight4     185.0     11.0    16.0     152.0     14.0
+acc-tight5     104.0      8.0    10.0      46.0     17.0
+...              ...      ...     ...       ...      ...
+umts         72000.0    731.0    90.0   72000.0    105.0
+unitcal_7      578.0     54.0    77.0     839.0     23.0
+vpphard      72000.0  72000.0   218.0   72000.0    148.0
+vpphard2     72000.0     37.0    63.0   72000.0  72000.0
+zib54-UUE      367.0    447.0   370.0     296.0     62.0
+
+[197 rows x 5 columns]
+asc
+performances algorithm         CBC     CPLEX    Gurobi  SCIP-cpx    XPRESS
+instance_id                                                  
+30n20b8      0.008472  0.000042  0.000042  0.000958  0.000306
+50v-10       1.000000  0.006264  0.021208  1.000000  0.022806
+a1c1s1       1.000000  0.004153  0.002222  1.000000  0.031361
+acc-tight4   0.002569  0.000153  0.000222  0.002111  0.000194
+acc-tight5   0.001444  0.000111  0.000139  0.000639  0.000236
+labels          1  2
+30n20b8  2  3
+30n20b8  4  3
+30n20b8  1  3
+30n20b8  1  4
+30n20b8  4  0
+weight            1    2
+30n20b8  2.0  4.0
+30n20b8  3.0  4.0
+30n20b8  2.0  4.0
+30n20b8  2.0  3.0
+30n20b8  3.0  5.0
+sample weights [1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+   split  problem_instance  ...  SCIP-cpx_performance  XPRESS_performance
+0     10  30_70_45_095_100  ...          58621.264871        14893.354589
+1     10              bab5  ...          33595.135951         1564.398327
+2     10         csched008  ...          24362.015060        10878.189014
+3     10      dfn-gwin-UUM  ...         -21314.400309           34.733902
+4     10         eilA101-2  ...         -60740.090513       -95747.825564
+
+[5 rows x 16 columns]
+Something went wrong during computation with parameters MIP-2016-1.0-1.0-10-15-False-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedMIP-2016`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm        CBC    CPLEX  Gurobi  SCIP-cpx   XPRESS
+instance_id                                             
+30n20b8        610.0      3.0     3.0      69.0     22.0
+50v-10       72000.0    451.0  1527.0   72000.0   1642.0
+a1c1s1       72000.0    299.0   160.0   72000.0   2258.0
+acc-tight4     185.0     11.0    16.0     152.0     14.0
+acc-tight5     104.0      8.0    10.0      46.0     17.0
+...              ...      ...     ...       ...      ...
+umts         72000.0    731.0    90.0   72000.0    105.0
+unitcal_7      578.0     54.0    77.0     839.0     23.0
+vpphard      72000.0  72000.0   218.0   72000.0    148.0
+vpphard2     72000.0     37.0    63.0   72000.0  72000.0
+zib54-UUE      367.0    447.0   370.0     296.0     62.0
+
+[197 rows x 5 columns]
+asc
+performances algorithm         CBC     CPLEX    Gurobi  SCIP-cpx    XPRESS
+instance_id                                                  
+30n20b8      0.008472  0.000042  0.000042  0.000958  0.000306
+50v-10       1.000000  0.006264  0.021208  1.000000  0.022806
+a1c1s1       1.000000  0.004153  0.002222  1.000000  0.031361
+acc-tight4   0.002569  0.000153  0.000222  0.002111  0.000194
+acc-tight5   0.001444  0.000111  0.000139  0.000639  0.000236
+labels          1  2
+30n20b8  2  3
+30n20b8  4  3
+30n20b8  1  3
+30n20b8  1  4
+30n20b8  4  0
+weight            1    2
+30n20b8  2.0  4.0
+30n20b8  3.0  4.0
+30n20b8  2.0  4.0
+30n20b8  2.0  3.0
+30n20b8  3.0  5.0
+sample weights [0.5   0.5   0.5   0.25  1.    1.    0.25  0.25  1.    1.    1.    1.
+ 1.    1.    0.25  0.25  1.    1.    0.5   0.125 0.5   0.5   1.    0.25
+ 1.    1.    0.5   0.25  1.    0.5   0.5   0.25  1.    1.    0.25  1.
+ 1.    0.25  0.25  1.    0.5   1.    1.    0.25  1.    1.    0.5   0.5
+ 0.25  1.    0.25  0.25  1.    0.125 1.    1.    0.25  1.    0.125 1.
+ 1.    1.    1.    1.    0.5   1.    1.    0.5   0.5   0.5   1.    0.125
+ 1.    1.    1.    1.    0.5   1.    0.5   0.25  0.25  1.    0.5   0.5
+ 1.    0.125 1.    1.    1.    1.    0.25  1.    1.    1.    0.5   0.25
+ 0.125 1.    0.5   1.    0.25  0.5   0.5   0.125 1.    1.    1.    1.
+ 1.    0.5   0.25  1.    0.5   1.    0.25  0.25  1.    1.    0.5   0.125
+ 0.5   1.    1.    0.5   1.    0.5   1.    0.25  0.5   0.5   0.25  1.
+ 0.125 0.5   0.25  0.25  0.5   0.5   0.125 0.25  0.125 1.    1.    1.
+ 0.125 1.    0.5   0.5   0.25  1.    1.    1.    1.    1.    1.    1.
+ 1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
+ 1.    1.    0.25  0.125 1.    1.    0.5   0.5   1.    0.5   0.25  1.
+ 0.25  1.    1.    1.    0.25  0.125 1.    1.    1.    1.    0.125 1.
+ 1.    1.    1.    1.    1.    1.    1.    0.125 1.    1.    1.    0.125
+ 1.    0.5   0.25  1.    1.    0.5   0.25  0.25  0.5   1.    0.125 0.5
+ 0.5   0.5   1.    0.5   0.5   1.    0.25  1.    1.    0.125 0.25  0.5
+ 1.    0.125 0.5   0.5   0.25  1.    0.5   0.5   1.    1.    1.    1.
+ 1.    0.125 1.    1.    1.    1.    1.    0.125 1.    0.5   0.25  0.25
+ 0.125 0.5   1.    1.    0.25  0.5   1.    0.5   1.    1.    0.125 1.
+ 1.    0.25  0.5   0.125 0.25  0.125 1.    1.    0.25  0.5   1.    1.
+ 0.25  1.    1.    0.125 0.5   1.    0.5   0.125 1.    1.    1.    1.
+ 0.125 1.    1.    0.25  1.    1.    0.5   1.    1.    1.    1.    1.
+ 0.5   1.    0.25  0.5   0.25  1.    0.5   1.    0.5   0.125 1.    0.25
+ 1.    0.25  1.    1.    1.    1.    0.25  0.25  1.    1.    1.    0.25
+ 0.5   1.    1.    0.5   1.    0.5   0.25  0.125 1.    1.    0.25  1.
+ 0.125 1.    1.    0.125 0.5   0.5   0.25  1.    1.    1.    1.    1.
+ 0.5   1.    1.    0.25  1.    1.    1.    1.    0.25  1.    0.5   0.25
+ 1.    0.5   1.    1.    1.    1.    1.    1.    0.25  0.5   1.    0.5
+ 1.    1.    1.    0.125 1.    0.125 1.    1.    1.    1.    1.    1.
+ 1.    1.    1.    0.25  0.5   0.5   0.5   1.    1.    1.    0.125 1.
+ 1.    1.    1.    1.    1.    1.    1.    1.    0.25  0.125 1.    0.25
+ 0.25  1.    1.    0.125 1.    0.25  0.25  1.    1.    1.    0.125 0.5
+ 0.25  1.    1.    1.    1.    1.    0.25  0.5   0.125 0.5   0.25  1.
+ 0.5   0.25  0.5   1.    1.    1.    0.125 0.25  0.5   1.    0.25  0.5
+ 1.    0.25  0.5   1.    1.    1.    0.25  0.125 1.    1.    0.25  1.
+ 0.5   0.125 0.25  1.    1.    0.25  0.5   0.25  1.    1.    1.    1.
+ 1.    1.    1.    0.25  1.    0.125 1.    1.    0.25  0.25  1.    1.
+ 1.    1.    1.    0.125 1.    1.    1.    0.5   1.    0.5   1.    1.
+ 1.    0.125 1.    1.    1.    0.25  0.25  0.5   0.5   1.    1.    0.25
+ 1.    0.5   1.    1.    1.    1.    1.    0.5   1.    1.    1.    0.25
+ 0.5   1.    0.25  1.    1.    1.    0.25  0.25  1.    0.5   1.    0.5
+ 1.    1.    1.    0.25  1.    1.    1.    1.    1.    1.    1.    0.5
+ 1.    0.125 0.25  0.5   1.    1.    1.    1.    0.5   0.125 0.25  0.25
+ 1.    0.5   1.    1.    1.    0.5   0.5   0.5   1.    0.25  0.5   0.125
+ 0.5   0.5   0.5   1.    0.5   0.25  1.    1.    1.    0.25  0.125 1.
+ 1.    1.    1.    0.25  0.25  0.5   0.25  0.25  0.5   1.    0.25  1.
+ 1.    0.5   1.    0.125 0.5   1.    0.5   1.    0.5   0.25  1.    1.
+ 0.5   1.    0.25  1.    0.5   0.5   0.25  1.    0.5   0.5   1.    0.5
+ 0.5   1.    0.5   0.125 0.5   0.25  0.5   0.125 1.    0.125 0.5   1.
+ 0.5   1.    1.    0.125 1.    0.25  0.5   0.5   0.25  0.5   0.25  1.
+ 1.    1.    0.5   1.    1.    0.25  1.    1.    0.5   0.125 1.    1.
+ 1.    1.    0.125 1.    0.5   0.5   1.    0.125 0.25  1.    0.25  1.
+ 0.5   1.    0.125 1.    0.25  1.    0.25  1.    0.125 1.    0.5   1.
+ 1.    1.    0.125 1.    0.25  0.5   1.    1.    0.5   1.    1.    1.
+ 1.    1.    0.5   1.    0.5   0.25  1.    1.    1.    1.    1.    0.25
+ 1.    0.125 1.    1.    1.    0.25  1.    0.5   1.    0.25  0.5   1.
+ 1.    0.5   1.    1.    0.25  0.5   1.    0.125 0.25  0.5   1.    0.5
+ 1.    0.25  1.    0.25  1.    1.    1.    1.    1.    0.5   0.5   0.125
+ 1.    1.    1.    0.5   0.125 0.25  0.25  0.5   0.5   1.    0.25  0.125
+ 0.5   1.    0.25  0.5   1.    1.    1.    1.    1.    0.125 1.    1.
+ 1.    1.    1.    0.5   1.    0.25  0.5   1.    1.    0.125 1.    1.
+ 1.    1.    1.    1.    0.5   1.    0.25  0.5   1.    1.    0.25  0.5
+ 1.    0.25  1.    0.25  0.25  1.    1.    1.    1.    1.    1.    1.
+ 1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
+ 0.5   1.    0.25  1.    1.    0.125 0.25  0.5   1.    0.25  0.125 1.
+ 1.    0.25  1.    1.    1.    1.    1.    0.25  1.    1.    0.5   1.
+ 0.5   0.25  1.    1.    0.25  0.5   0.5   0.25  0.125 0.25  1.    1.
+ 1.    0.25  1.    1.    1.    1.    1.    0.25  0.5   1.    0.125 0.5
+ 0.5   1.    1.    0.25  0.5   0.5   0.25  0.5   1.    0.125 0.125 0.25
+ 1.    1.    1.    0.5   0.5   0.125 0.25  1.    1.    0.125 1.    0.5
+ 0.5   0.5   1.    0.5   0.125 0.5   0.25  1.    0.5   0.25  0.5   1.
+ 0.5   0.5   1.    0.125 1.    0.125 1.    1.    1.    1.    1.    1.
+ 0.25  1.    0.5   0.5   0.5   1.    0.25  1.    0.5   0.5   0.5   0.25
+ 1.    0.25  0.125 1.    0.5   0.5   1.    1.    0.5   1.    0.25  1.
+ 1.    0.25  0.125 1.    1.    1.    1.    0.25  0.25  0.5   1.    1.
+ 0.5   1.    1.    1.    0.25  0.25  0.25  0.25  1.    0.125 1.    1.
+ 1.    0.25  1.    0.25  1.    1.    0.125 0.25  1.    1.    0.125 1.
+ 1.    1.    1.    1.    1.    1.    0.125 0.125 1.    0.25  0.5   0.25 ]
+   split  problem_instance  ...  SCIP-cpx_performance  XPRESS_performance
+0     10  30_70_45_095_100  ...          59159.853509        23392.889863
+1     10              bab5  ...          32714.629549         5006.957882
+2     10         csched008  ...          29881.177580        17685.901400
+3     10      dfn-gwin-UUM  ...         -10591.784460         4985.182998
+4     10         eilA101-2  ...          16693.461633      -156793.282223
+
+[5 rows x 16 columns]
+Something went wrong during computation with parameters MIP-2016-1.0-1.0-10-15-False-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedMIP-2016`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm        CBC    CPLEX  Gurobi  SCIP-cpx   XPRESS
+instance_id                                             
+30n20b8        610.0      3.0     3.0      69.0     22.0
+50v-10       72000.0    451.0  1527.0   72000.0   1642.0
+a1c1s1       72000.0    299.0   160.0   72000.0   2258.0
+acc-tight4     185.0     11.0    16.0     152.0     14.0
+acc-tight5     104.0      8.0    10.0      46.0     17.0
+...              ...      ...     ...       ...      ...
+umts         72000.0    731.0    90.0   72000.0    105.0
+unitcal_7      578.0     54.0    77.0     839.0     23.0
+vpphard      72000.0  72000.0   218.0   72000.0    148.0
+vpphard2     72000.0     37.0    63.0   72000.0  72000.0
+zib54-UUE      367.0    447.0   370.0     296.0     62.0
+
+[197 rows x 5 columns]
+asc
+performances algorithm         CBC     CPLEX    Gurobi  SCIP-cpx    XPRESS
+instance_id                                                  
+30n20b8      0.008472  0.000042  0.000042  0.000958  0.000306
+50v-10       1.000000  0.006264  0.021208  1.000000  0.022806
+a1c1s1       1.000000  0.004153  0.002222  1.000000  0.031361
+acc-tight4   0.002569  0.000153  0.000222  0.002111  0.000194
+acc-tight5   0.001444  0.000111  0.000139  0.000639  0.000236
+labels          1  2
+30n20b8  2  3
+30n20b8  4  3
+30n20b8  1  3
+30n20b8  1  4
+30n20b8  4  0
+weight            1    2
+30n20b8  2.0  4.0
+30n20b8  3.0  4.0
+30n20b8  2.0  4.0
+30n20b8  2.0  3.0
+30n20b8  3.0  5.0
+sample weights [1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+   split  problem_instance  ...  SCIP-cpx_performance  XPRESS_performance
+0     10  30_70_45_095_100  ...        -105675.671043       -55607.690844
+1     10              bab5  ...         -49270.009412       -85751.850857
+2     10         csched008  ...          40439.088128        29902.649953
+3     10      dfn-gwin-UUM  ...         127980.506623        70399.830542
+4     10         eilA101-2  ...        -544612.105688      -160093.046965
+
+[5 rows x 16 columns]
+Something went wrong during computation with parameters MIP-2016-1.0-1.0-10-15-True-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedMIP-2016`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm        CBC    CPLEX  Gurobi  SCIP-cpx   XPRESS
+instance_id                                             
+30n20b8        610.0      3.0     3.0      69.0     22.0
+50v-10       72000.0    451.0  1527.0   72000.0   1642.0
+a1c1s1       72000.0    299.0   160.0   72000.0   2258.0
+acc-tight4     185.0     11.0    16.0     152.0     14.0
+acc-tight5     104.0      8.0    10.0      46.0     17.0
+...              ...      ...     ...       ...      ...
+umts         72000.0    731.0    90.0   72000.0    105.0
+unitcal_7      578.0     54.0    77.0     839.0     23.0
+vpphard      72000.0  72000.0   218.0   72000.0    148.0
+vpphard2     72000.0     37.0    63.0   72000.0  72000.0
+zib54-UUE      367.0    447.0   370.0     296.0     62.0
+
+[197 rows x 5 columns]
+asc
+performances algorithm         CBC     CPLEX    Gurobi  SCIP-cpx    XPRESS
+instance_id                                                  
+30n20b8      0.008472  0.000042  0.000042  0.000958  0.000306
+50v-10       1.000000  0.006264  0.021208  1.000000  0.022806
+a1c1s1       1.000000  0.004153  0.002222  1.000000  0.031361
+acc-tight4   0.002569  0.000153  0.000222  0.002111  0.000194
+acc-tight5   0.001444  0.000111  0.000139  0.000639  0.000236
+labels          1  2
+30n20b8  2  3
+30n20b8  4  3
+30n20b8  1  3
+30n20b8  1  4
+30n20b8  4  0
+weight            1    2
+30n20b8  2.0  4.0
+30n20b8  3.0  4.0
+30n20b8  2.0  4.0
+30n20b8  2.0  3.0
+30n20b8  3.0  5.0
+sample weights [0.5   0.5   0.5   0.25  1.    1.    0.25  0.25  1.    1.    1.    1.
+ 1.    1.    0.25  0.25  1.    1.    0.5   0.125 0.5   0.5   1.    0.25
+ 1.    1.    0.5   0.25  1.    0.5   0.5   0.25  1.    1.    0.25  1.
+ 1.    0.25  0.25  1.    0.5   1.    1.    0.25  1.    1.    0.5   0.5
+ 0.25  1.    0.25  0.25  1.    0.125 1.    1.    0.25  1.    0.125 1.
+ 1.    1.    1.    1.    0.5   1.    1.    0.5   0.5   0.5   1.    0.125
+ 1.    1.    1.    1.    0.5   1.    0.5   0.25  0.25  1.    0.5   0.5
+ 1.    0.125 1.    1.    1.    1.    0.25  1.    1.    1.    0.5   0.25
+ 0.125 1.    0.5   1.    0.25  0.5   0.5   0.125 1.    1.    1.    1.
+ 1.    0.5   0.25  1.    0.5   1.    0.25  0.25  1.    1.    0.5   0.125
+ 0.5   1.    1.    0.5   1.    0.5   1.    0.25  0.5   0.5   0.25  1.
+ 0.125 0.5   0.25  0.25  0.5   0.5   0.125 0.25  0.125 1.    1.    1.
+ 0.125 1.    0.5   0.5   0.25  1.    1.    1.    1.    1.    1.    1.
+ 1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
+ 1.    1.    0.25  0.125 1.    1.    0.5   0.5   1.    0.5   0.25  1.
+ 0.25  1.    1.    1.    0.25  0.125 1.    1.    1.    1.    0.125 1.
+ 1.    1.    1.    1.    1.    1.    1.    0.125 1.    1.    1.    0.125
+ 1.    0.5   0.25  1.    1.    0.5   0.25  0.25  0.5   1.    0.125 0.5
+ 0.5   0.5   1.    0.5   0.5   1.    0.25  1.    1.    0.125 0.25  0.5
+ 1.    0.125 0.5   0.5   0.25  1.    0.5   0.5   1.    1.    1.    1.
+ 1.    0.125 1.    1.    1.    1.    1.    0.125 1.    0.5   0.25  0.25
+ 0.125 0.5   1.    1.    0.25  0.5   1.    0.5   1.    1.    0.125 1.
+ 1.    0.25  0.5   0.125 0.25  0.125 1.    1.    0.25  0.5   1.    1.
+ 0.25  1.    1.    0.125 0.5   1.    0.5   0.125 1.    1.    1.    1.
+ 0.125 1.    1.    0.25  1.    1.    0.5   1.    1.    1.    1.    1.
+ 0.5   1.    0.25  0.5   0.25  1.    0.5   1.    0.5   0.125 1.    0.25
+ 1.    0.25  1.    1.    1.    1.    0.25  0.25  1.    1.    1.    0.25
+ 0.5   1.    1.    0.5   1.    0.5   0.25  0.125 1.    1.    0.25  1.
+ 0.125 1.    1.    0.125 0.5   0.5   0.25  1.    1.    1.    1.    1.
+ 0.5   1.    1.    0.25  1.    1.    1.    1.    0.25  1.    0.5   0.25
+ 1.    0.5   1.    1.    1.    1.    1.    1.    0.25  0.5   1.    0.5
+ 1.    1.    1.    0.125 1.    0.125 1.    1.    1.    1.    1.    1.
+ 1.    1.    1.    0.25  0.5   0.5   0.5   1.    1.    1.    0.125 1.
+ 1.    1.    1.    1.    1.    1.    1.    1.    0.25  0.125 1.    0.25
+ 0.25  1.    1.    0.125 1.    0.25  0.25  1.    1.    1.    0.125 0.5
+ 0.25  1.    1.    1.    1.    1.    0.25  0.5   0.125 0.5   0.25  1.
+ 0.5   0.25  0.5   1.    1.    1.    0.125 0.25  0.5   1.    0.25  0.5
+ 1.    0.25  0.5   1.    1.    1.    0.25  0.125 1.    1.    0.25  1.
+ 0.5   0.125 0.25  1.    1.    0.25  0.5   0.25  1.    1.    1.    1.
+ 1.    1.    1.    0.25  1.    0.125 1.    1.    0.25  0.25  1.    1.
+ 1.    1.    1.    0.125 1.    1.    1.    0.5   1.    0.5   1.    1.
+ 1.    0.125 1.    1.    1.    0.25  0.25  0.5   0.5   1.    1.    0.25
+ 1.    0.5   1.    1.    1.    1.    1.    0.5   1.    1.    1.    0.25
+ 0.5   1.    0.25  1.    1.    1.    0.25  0.25  1.    0.5   1.    0.5
+ 1.    1.    1.    0.25  1.    1.    1.    1.    1.    1.    1.    0.5
+ 1.    0.125 0.25  0.5   1.    1.    1.    1.    0.5   0.125 0.25  0.25
+ 1.    0.5   1.    1.    1.    0.5   0.5   0.5   1.    0.25  0.5   0.125
+ 0.5   0.5   0.5   1.    0.5   0.25  1.    1.    1.    0.25  0.125 1.
+ 1.    1.    1.    0.25  0.25  0.5   0.25  0.25  0.5   1.    0.25  1.
+ 1.    0.5   1.    0.125 0.5   1.    0.5   1.    0.5   0.25  1.    1.
+ 0.5   1.    0.25  1.    0.5   0.5   0.25  1.    0.5   0.5   1.    0.5
+ 0.5   1.    0.5   0.125 0.5   0.25  0.5   0.125 1.    0.125 0.5   1.
+ 0.5   1.    1.    0.125 1.    0.25  0.5   0.5   0.25  0.5   0.25  1.
+ 1.    1.    0.5   1.    1.    0.25  1.    1.    0.5   0.125 1.    1.
+ 1.    1.    0.125 1.    0.5   0.5   1.    0.125 0.25  1.    0.25  1.
+ 0.5   1.    0.125 1.    0.25  1.    0.25  1.    0.125 1.    0.5   1.
+ 1.    1.    0.125 1.    0.25  0.5   1.    1.    0.5   1.    1.    1.
+ 1.    1.    0.5   1.    0.5   0.25  1.    1.    1.    1.    1.    0.25
+ 1.    0.125 1.    1.    1.    0.25  1.    0.5   1.    0.25  0.5   1.
+ 1.    0.5   1.    1.    0.25  0.5   1.    0.125 0.25  0.5   1.    0.5
+ 1.    0.25  1.    0.25  1.    1.    1.    1.    1.    0.5   0.5   0.125
+ 1.    1.    1.    0.5   0.125 0.25  0.25  0.5   0.5   1.    0.25  0.125
+ 0.5   1.    0.25  0.5   1.    1.    1.    1.    1.    0.125 1.    1.
+ 1.    1.    1.    0.5   1.    0.25  0.5   1.    1.    0.125 1.    1.
+ 1.    1.    1.    1.    0.5   1.    0.25  0.5   1.    1.    0.25  0.5
+ 1.    0.25  1.    0.25  0.25  1.    1.    1.    1.    1.    1.    1.
+ 1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
+ 0.5   1.    0.25  1.    1.    0.125 0.25  0.5   1.    0.25  0.125 1.
+ 1.    0.25  1.    1.    1.    1.    1.    0.25  1.    1.    0.5   1.
+ 0.5   0.25  1.    1.    0.25  0.5   0.5   0.25  0.125 0.25  1.    1.
+ 1.    0.25  1.    1.    1.    1.    1.    0.25  0.5   1.    0.125 0.5
+ 0.5   1.    1.    0.25  0.5   0.5   0.25  0.5   1.    0.125 0.125 0.25
+ 1.    1.    1.    0.5   0.5   0.125 0.25  1.    1.    0.125 1.    0.5
+ 0.5   0.5   1.    0.5   0.125 0.5   0.25  1.    0.5   0.25  0.5   1.
+ 0.5   0.5   1.    0.125 1.    0.125 1.    1.    1.    1.    1.    1.
+ 0.25  1.    0.5   0.5   0.5   1.    0.25  1.    0.5   0.5   0.5   0.25
+ 1.    0.25  0.125 1.    0.5   0.5   1.    1.    0.5   1.    0.25  1.
+ 1.    0.25  0.125 1.    1.    1.    1.    0.25  0.25  0.5   1.    1.
+ 0.5   1.    1.    1.    0.25  0.25  0.25  0.25  1.    0.125 1.    1.
+ 1.    0.25  1.    0.25  1.    1.    0.125 0.25  1.    1.    0.125 1.
+ 1.    1.    1.    1.    1.    1.    0.125 0.125 1.    0.25  0.5   0.25 ]
+   split  problem_instance  ...  SCIP-cpx_performance  XPRESS_performance
+0     10  30_70_45_095_100  ...        -103440.167481       -70308.083674
+1     10              bab5  ...         -64402.442754       -96437.064089
+2     10         csched008  ...          45398.735625        30932.626676
+3     10      dfn-gwin-UUM  ...         143182.605225        74419.406312
+4     10         eilA101-2  ...        -498215.889847      -113695.090403
+
+[5 rows x 16 columns]
+Something went wrong during computation with parameters MIP-2016-1.0-1.0-10-15-True-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedMIP-2016`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-66_ext.xml.minion.converted.minion.gz       1.724741    1.224814
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-3-4.xml.watchless.minion.gz  3.719440e-06  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  1.199820e-06  7.398800e-07
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  1.774202e-02  1.257009e-04
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      1  ...        -49057.806090
+1      1  ...        -55489.158604
+2      1  ...        -40875.644838
+3      1  ...        -44262.615386
+4      1  ...        -36016.595600
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-0.0-1.0-1-15-False-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-66_ext.xml.minion.converted.minion.gz       1.724741    1.224814
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-3-4.xml.watchless.minion.gz  3.719440e-06  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  1.199820e-06  7.398800e-07
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  1.774202e-02  1.257009e-04
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      1  ...        -49057.806090
+1      1  ...        -55489.158604
+2      1  ...        -40875.644838
+3      1  ...        -44262.615386
+4      1  ...        -36016.595600
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-0.0-1.0-1-15-False-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-66_ext.xml.minion.converted.minion.gz       1.724741    1.224814
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-3-4.xml.watchless.minion.gz  3.719440e-06  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  1.199820e-06  7.398800e-07
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  1.774202e-02  1.257009e-04
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      1  ...       -530496.049849
+1      1  ...       -629434.922450
+2      1  ...       -819481.330408
+3      1  ...       -434995.629999
+4      1  ...       -159382.133450
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-0.0-1.0-1-15-True-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-66_ext.xml.minion.converted.minion.gz       1.724741    1.224814
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-3-4.xml.watchless.minion.gz  3.719440e-06  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  1.199820e-06  7.398800e-07
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  1.774202e-02  1.257009e-04
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      1  ...       -530496.049849
+1      1  ...       -629434.922450
+2      1  ...       -819481.330408
+3      1  ...       -434995.629999
+4      1  ...       -159382.133450
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-0.0-1.0-1-15-True-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+1-fullins-5-6.xml.watchless.minion.gz              0.226965    0.199970
+...                                                     ...         ...
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1822 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-4-5.xml.watchless.minion.gz  3.879420e-06  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  1.774202e-02  1.257009e-04
+1-fullins-5-6.xml.watchless.minion.gz  4.539300e-06  3.999400e-06
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+1-fullins-5-6.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-6.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      2  ...        -65358.913378
+1      2  ...        -64822.777746
+2      2  ...        -50792.887441
+3      2  ...        -53381.911505
+4      2  ...        -33928.244147
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-0.0-1.0-2-15-False-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+1-fullins-5-6.xml.watchless.minion.gz              0.226965    0.199970
+...                                                     ...         ...
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1822 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-4-5.xml.watchless.minion.gz  3.879420e-06  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  1.774202e-02  1.257009e-04
+1-fullins-5-6.xml.watchless.minion.gz  4.539300e-06  3.999400e-06
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+1-fullins-5-6.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-6.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      2  ...        -65358.913378
+1      2  ...        -64822.777746
+2      2  ...        -50792.887441
+3      2  ...        -53381.911505
+4      2  ...        -33928.244147
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-0.0-1.0-2-15-False-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+1-fullins-5-6.xml.watchless.minion.gz              0.226965    0.199970
+...                                                     ...         ...
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1822 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-4-5.xml.watchless.minion.gz  3.879420e-06  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  1.774202e-02  1.257009e-04
+1-fullins-5-6.xml.watchless.minion.gz  4.539300e-06  3.999400e-06
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+1-fullins-5-6.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-6.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]

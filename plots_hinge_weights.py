@@ -21,6 +21,7 @@ evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge/"
 scenario_names = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
+scenario_names = ["MIP-2016", "SAT11-INDU"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 # lambda_values = [0.5]
@@ -45,8 +46,8 @@ params = [
 
 name_map = {
     "ndcg": "NDCG",
-    "tau_corr": "Kendall $\\tau_b$",
-    "tau_p": "Kendall $\\tau_b$ p-value",
+    "tau_corr": "Kendall $\\tau$",
+    "tau_p": "Kendall $\\tau$ p-value",
     "mae": "MAE",
     "mse": "MSE",
     "rmse": "RMSE",
@@ -66,7 +67,7 @@ measures = [
 
 for measure in measures:
     plt.clf()
-    fig, axes = plt.subplots(1, 3)
+    fig, axes = plt.subplots(1, 2)
     for index, (scenario_name, use_max_inverse_transform,
                 scale_target_to_unit_interval, skip_censored,
                 regulerization_param,
@@ -250,7 +251,7 @@ for measure in measures:
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
     if measure in ["rmse", "mse", "mae"]:
-        labels = ["Hinge-LM", "Weighted Hinge-LM", "Random Forest", "Linear Regression", "Label Ranking"]
+        labels = ["Hinge-LM", "Weighted Hinge-LM", "Random Forest", "Linear Regression"]
     else:
         labels = ["Hinge-LM", "Weighted Hinge-LM", "Random Forest", "Linear Regression", "Label Ranking"]
     legend = fig.legend(list(axes),

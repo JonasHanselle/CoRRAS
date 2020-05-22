@@ -91,7 +91,7 @@ class NeuralNetwork:
             sample_weights = np.ones(features.shape[0])
 
         # add one column for bias
-        np.random.seed(15)
+        np.random.seed(seed)
         num_features = features.shape[1] + 1
         self.network = self.build_network(
             num_labels,
@@ -304,6 +304,7 @@ class NeuralNetwork:
                     print("early stopping")
                     break
         self.network.set_weights(current_best_weights)
+        print("best weights", current_best_weights)
 
     def predict_performances(self, features: np.ndarray):
         """Predict a vector of performance values.

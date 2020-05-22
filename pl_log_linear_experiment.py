@@ -39,28 +39,39 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["QBF-2016"]
-
+scenarios = [
+    "CPMP-2015",
+    "MIP-2016",
+    # "CSP-2010",
+    # "SAT11-HAND",
+    # "SAT11-INDU",
+    # "SAT11-RAND",
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
+]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.5]
+lambda_values = [1.0]
 max_pairs_per_instance = 5
-maxiter = 100
+maxiter = 15
 seeds = [15]
-use_quadratic_transform_values = [False, True]
+use_quadratic_transform_values = [False]
 # use_quadratic_transform_values = [True]
-use_max_inverse_transform_values = ["max_cutoff"]
+use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10", "test a", "test b"]
 # use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 # scale_target_to_unit_interval_values = [True]
 regularization_params_values = [0.001]
-use_weighted_samples_values = [False, True]
+use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [5,]
 
 params = [
-    scenarios, lambda_values,  seeds, use_quadratic_transform_values,
+    scenarios, lambda_values, splits, seeds, use_quadratic_transform_values,
     use_max_inverse_transform_values, scale_target_to_unit_interval_values,
-    use_weighted_samples_values, regularization_params_values, splits
+    use_weighted_samples_values, regularization_params_values
 ]
 
 param_product = list(product(*params))
@@ -79,9 +90,9 @@ else:
 engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" + db_url +
                            "/" + db_db,
                            echo=False,
-                           pool_recycle=300)
+                           pool_recycle=300, pool_size=1)
 
-for scenario_name, lambda_value, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples, regularization_param, split in shard:
+for scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, use_weighted_samples, regularization_param in shard:
     params_string = "-".join([
         scenario_name,
         str(lambda_value),
@@ -96,48 +107,45 @@ for scenario_name, lambda_value, seed, use_quadratic_transform, use_max_inverse_
 
     # check if table for scenario_name exists
 
-    if scenario_name == "CSP-Minizinc-Time-2016":
-        table_name = "linear-plackett-luce-new" + "CSP-MT-2016" + "-weighted-iter100-fix"
-    else:
-        table_name = "linear-plackett-luce-new" + scenario_name + "-weighted-iter100-fix"
+    table_name = "linear-plackett-luce-new" + scenario_name + "-weighted-iter100-fix"
 
-    connection = engine.connect()
-    if not engine.dialect.has_table(engine, table_name):
-        pass
-    else:
-        meta = MetaData(engine)
-        experiments = Table(table_name,
-                            meta,
-                            autoload=True,
-                            autoload_with=engine)
+    # connection = engine.connect()
+    # if not engine.dialect.has_table(engine, table_name):
+    #     pass
+    # else:
+    #     meta = MetaData(engine)
+    #     experiments = Table(table_name,
+    #                         meta,
+    #                         autoload=True,
+    #                         autoload_with=engine)
 
-        slct = experiments.select(
-            and_(
-                experiments.columns["split"] == split,
-                experiments.columns["lambda"] == lambda_value,
-                experiments.columns["seed"] == seed,
-                experiments.columns["use_quadratic_transform"] ==
-                use_quadratic_transform,
-                experiments.columns["use_max_inverse_transform"] ==
-                use_max_inverse_transform,
-                experiments.columns["scale_target_to_unit_interval"] ==
-                scale_target_to_unit_interval,
-                experiments.columns["use_weighted_samples"] ==
-                use_weighted_samples,
-                experiments.columns["regularization_param"] ==
-                regularization_param,
-            )).limit(1)
-        rs = connection.execute(slct)
-        result = rs.first()
-        if result == None:
-            pass
-        else:
-            print(params_string, "Already in DB!")
-            rs.close()
-            connection.close()
-            continue
-        rs.close()
-        connection.close()
+    #     slct = experiments.select(
+    #         and_(
+    #             experiments.columns["split"] == split,
+    #             experiments.columns["lambda"] == lambda_value,
+    #             experiments.columns["seed"] == seed,
+    #             experiments.columns["use_quadratic_transform"] ==
+    #             use_quadratic_transform,
+    #             experiments.columns["use_max_inverse_transform"] ==
+    #             use_max_inverse_transform,
+    #             experiments.columns["scale_target_to_unit_interval"] ==
+    #             scale_target_to_unit_interval,
+    #             experiments.columns["use_weighted_samples"] ==
+    #             use_weighted_samples,
+    #             experiments.columns["regularization_param"] ==
+    #             regularization_param,
+    #         )).limit(1)
+    #     rs = connection.execute(slct)
+    #     result = rs.first()
+    #     if result == None:
+    #         pass
+    #     else:
+    #         print(params_string, "Already in DB!")
+    #         rs.close()
+    #         connection.close()
+    #         continue
+    #     rs.close()
+    #     connection.close()
 
     # filename = "pl_log_linear" + "-" + params_string + ".csv"
     filename = "pl_log_linear-" + scenario_name + ".csv"
@@ -293,11 +301,11 @@ for scenario_name, lambda_value, seed, use_quadratic_transform, use_max_inverse_
         results_corras = pd.DataFrame(data=result_data_corras,
                                       columns=result_columns_corras)
         print(results_corras.head())
-        connection = engine.connect()
-        results_corras.to_sql(name=table_name,
-                              con=connection,
-                              if_exists="append")
-        connection.close()
+        # connection = engine.connect()
+        # results_corras.to_sql(name=table_name,
+        #                       con=connection,
+        #                       if_exists="append")
+        # connection.close()
         model.save_loss_history(loss_filepath)
 
     except Exception as exc:

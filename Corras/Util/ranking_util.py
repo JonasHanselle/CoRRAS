@@ -241,7 +241,7 @@ def construct_numpy_representation(features: pd.DataFrame,
 
 
 def construct_numpy_representation_only_performances(
-        features: pd.DataFrame, performances: pd.DataFrame):
+    features: pd.DataFrame, performances: pd.DataFrame):
     """Get numpy representation of features, performances
 
     Arguments:
@@ -261,12 +261,12 @@ def construct_numpy_representation_only_performances(
 
 
 def construct_numpy_representation_with_pairs_of_rankings(
-        features: pd.DataFrame,
-        performances: pd.DataFrame,
-        max_pairs_per_instance=100,
-        seed=15,
-        order="asc",
-        skip_value=None):
+    features: pd.DataFrame,
+    performances: pd.DataFrame,
+    max_pairs_per_instance=100,
+    seed=15,
+    order="asc",
+    skip_value=None):
     """Get numpy representation of features, performances and rankings
 
     Arguments:
@@ -288,19 +288,22 @@ def construct_numpy_representation_with_pairs_of_rankings(
     np_features = joined[features.columns.values].values
     np_performances = joined[[x for x in performances.columns]].values
     np_labels = joined[[x for x in labels.columns]].values + 1
+    np_performances = np_performances[
+        np.arange(np_performances.shape[0])[:, np.newaxis], np_labels - 1]
     if order == "desc":
         np_labels = np.flip(np_labels, axis=1)
+        np_performances = np.flip(np_performances, axis=1)
 
     return np_features, np_performances, np_labels
 
 
 def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
-        features: pd.DataFrame,
-        performances: pd.DataFrame,
-        max_pairs_per_instance=100,
-        seed=15,
-        order="asc",
-        skip_value=None):
+    features: pd.DataFrame,
+    performances: pd.DataFrame,
+    max_pairs_per_instance=100,
+    seed=15,
+    order="asc",
+    skip_value=None):
     """Get numpy representation of features, performances and rankings
 
     Arguments:
@@ -329,17 +332,20 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
     np_performances = np_performances[
         np.arange(np_performances.shape[0])[:, np.newaxis], np_rankings - 1]
     # TODO check for maximization problems
-    # if order == "desc":
-    #     np_rankings = np.flip(np_rankings,axis=1)
+    if order == "desc":
+        np_rankings = np.flip(np_rankings,axis=1)
+        np_performances = np.flip(np_performances, axis=1)
+
     return np_features, np_performances, np_rankings
 
 
 def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
-        features: pd.DataFrame,
-        performances: pd.DataFrame,
-        max_pairs_per_instance=100,
-        seed=15,
-        order="asc", skip_value=None):
+    features: pd.DataFrame,
+    performances: pd.DataFrame,
+    max_pairs_per_instance=100,
+    seed=15,
+    order="asc",
+    skip_value=None):
     """Get numpy representation of features, performances and rankings
 
     Arguments:
@@ -353,7 +359,8 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     """
     rankings, weights = sample_pairs(performances,
                                      pairs_per_instance=max_pairs_per_instance,
-                                     seed=seed, skip_value=skip_value)
+                                     seed=seed,
+                                     skip_value=skip_value)
     joined = rankings.join(features).join(performances,
                                           lsuffix="_rank",
                                           rsuffix="_performance")
@@ -373,8 +380,10 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     # print("exp np_weights", np_weights)
 
     # TODO check for maximization problems
-    # if order == "desc":
-    #     np_rankings = np.flip(np_rankings,axis=1)
+    if order == "desc":
+        np_rankings = np.flip(np_rankings, axis=1)
+        np_performances = np.flip(np_performances, axis=1)
+
 
     return np_features, np_performances, np_rankings, np_weights
 
@@ -505,11 +514,11 @@ def sample_ranking_pairs_with_features_from_rankings(features: np.ndarray,
 
 
 def construct_numpy_representation_with_list_rankings(
-        features: pd.DataFrame,
-        performances: pd.DataFrame,
-        max_rankings_per_instance=5,
-        seed=15,
-        pairs=False):
+    features: pd.DataFrame,
+    performances: pd.DataFrame,
+    max_rankings_per_instance=5,
+    seed=15,
+    pairs=False):
     """Get numpy representation of features and performances. Rankings
     are constructed as nested python lists, such that rankings of 
     heterogenous length are possible.

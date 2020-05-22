@@ -125,3 +125,5 @@ notebooks
 
 # vscode
 .vscode
+
+*.tar.xz

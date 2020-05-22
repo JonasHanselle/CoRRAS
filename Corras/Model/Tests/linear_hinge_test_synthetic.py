@@ -129,13 +129,13 @@ class TestLinearHingeSynthetic(unittest.TestCase):
                       rank,
                       inst,
                       perf,
-                      sample_weights=sample_weights,
+                      sample_weights=None,
                       lambda_value=0.0,
                       epsilon_value=1.0,
                       regression_loss="Squared",
                       maxiter=100,
                       log_losses=False,
-                      reg_param=0.00)
+                      reg_param=0.001)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances",

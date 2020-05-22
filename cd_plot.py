@@ -21,7 +21,7 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 # evaluations_path_nnh = "./evaluation-results/evaluations-nnh-config/"
 
-figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/cd/"
+figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/talk/cd/"
 
 scenario_names = [
     "MIP-2016", "CSP-2010", "CPMP-2015", "SAT11-INDU", "SAT11-HAND",
@@ -206,7 +206,7 @@ for scenario_name in scenario_names:
         print(ex)
     try:
         df_corras_plnet = pd.read_csv(evaluations_path + "corras-pl-nn-" +
-                                      scenario_name + "-scen.csv")
+                                      scenario_name + "-seeded.csv")
         df_corras_plnet_weighted = df_corras_plnet.loc[
             (df_corras_plnet["seed"] == seed)
             & (df_corras_plnet["activation_function"] == "sigmoid") &
@@ -228,7 +228,7 @@ for scenario_name in scenario_names:
         # load hinge neural network data
     try:
         df_corras_nnh = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
-                                    scenario_name + "-scen.csv")
+                                    scenario_name + "-new.csv")
         # print("plnet head", df_corras_plnet.head())
 
         df_corras_nnh_weighted = df_corras_plnet.loc[
@@ -251,7 +251,7 @@ for scenario_name in scenario_names:
 
     try:
         df_corras_pl = pd.read_csv(evaluations_path + "corras-pl-log-linear-" +
-                                   scenario_name + "-new-scen.csv")
+                                   scenario_name + "-new-short.csv")
 
         df_corras_pl_linear_weighted = df_corras_pl.loc[
             (df_corras_pl["seed"] == seed)
@@ -294,7 +294,7 @@ for scenario_name in scenario_names:
     try:
         df_corras_hinge = pd.read_csv(evaluations_path +
                                       "corras-hinge-linear-" + scenario_name +
-                                      "-new-weights-scen.csv")
+                                      "-new-weights.csv")
 
         df_corras_hinge_linear_weighted = df_corras_hinge.loc[
             (df_corras_hinge["seed"] == seed)
@@ -339,42 +339,42 @@ for scenario_name in scenario_names:
     approaches_dfs = [
         # df_baseline_sbs,
         df_baseline_rf,
-        df_baseline_lr,
+        # df_baseline_lr,
         df_baseline_label_ranking,
-        df_baseline_sf,
-        df_corras_nnh_unweighted,
-        df_corras_nnh_weighted,
-        df_corras_hinge_linear_unweighted,
-        df_corras_hinge_linear_weighted,
-        df_corras_hinge_quadratic_unweighted,
-        df_corras_hinge_quadratic_weighted,
+        # df_baseline_sf,
         df_corras_pl_linear_unweighted,
-        df_corras_pl_linear_weighted,
+        # df_corras_pl_linear_weighted,
         df_corras_pl_quadratic_unweighted,
-        df_corras_pl_quadratic_weighted,
+        # df_corras_pl_quadratic_weighted,
         df_corras_plnet_unweighted,
-        df_corras_plnet_weighted
+        # df_corras_plnet_weighted,
+        df_corras_hinge_linear_unweighted,
+        # df_corras_hinge_linear_weighted,
+        df_corras_hinge_quadratic_unweighted,
+        # df_corras_hinge_quadratic_weighted,
+        df_corras_nnh_unweighted,
+        # df_corras_nnh_weighted
     ]
 
     approaches_names = [
         "VBS",
         "SBS",
         "RF",
+        # "LR",
         "LR",
-        "Label Ranking",
-        "RSF",
-        "Hinge-NN",
-        "W Hinge-NN",
-        "Hinge-LM",
-        "W Hinge-LM",
-        "Hinge-QM",
-        "W Hinge-QM",
-        "PL-GLM",
-        "W PL-GLM",
+        # "RSF",
+        "PL-LM",
+        # "W PL-GLM",
         "PL-QM",
-        "W PL-QM",
+        # "W PL-QM",
         "PL-NN",
-        "W PL-NN"
+        # "W PL-NN",
+        "Hinge-LM",
+        # "W Hinge-LM",
+        "Hinge-QM",
+        # "W Hinge-QM",
+        "Hinge-NN",
+        # "W Hinge-NN"
     ]
     # print(scenario.scenario, len(scenario.performance_data))
     # print(len(df_corras_hinge))
@@ -433,7 +433,7 @@ for scenario_name in scenario_names:
         try:
             if len(approach_df) == len(scenario.performance_data):
                 taus.append(approach_df["tau_corr"].mean())
-                rmses.append(approach_df["rmse"].mean())
+                rmses.append(math.sqrt(approach_df["mse"].mean()))
                 ndcgs.append(approach_df["ndcg"].mean())
             else:
                 print(len(approach_df), len(scenario.performance_data))
@@ -515,21 +515,21 @@ Orange.evaluation.graph_ranks(avranks, names, cd=cd, width=6, textspace=1.5)
 plt.savefig(fname=figures_path + "taus.pdf", bbox_inches="tight")
 
 
-ranks = comparison_frame_rmses.iloc[:, 1:].rank(axis=1, method="average", ascending=True)
-print(ranks.head())
+# ranks = comparison_frame_rmses.iloc[:, 1:].rank(axis=1, method="average", ascending=True)
+# print(ranks.head())
 
-names = comparison_frame_rmses.columns[1:].to_list()
-print(names)
-avranks = []
-for name in names:
-    avranks.append(ranks[name].mean())
-# avranks =  [1.9, 3.2, 2.8, 3.3 ]
-print(names)
-print(avranks)
-cd = Orange.evaluation.compute_CD(
-    avranks, len(comparison_frame_rmses))  #tested on 30 datasets
-Orange.evaluation.graph_ranks(avranks, names, cd=cd, width=6, textspace=1.5)
-plt.savefig(fname=figures_path + "rmses.pdf", bbox_inches="tight")
+# names = comparison_frame_rmses.columns[1:].to_list()
+# print(names)
+# avranks = []
+# for name in names:
+#     avranks.append(ranks[name].mean())
+# # avranks =  [1.9, 3.2, 2.8, 3.3 ]
+# print(names)
+# print(avranks)
+# cd = Orange.evaluation.compute_CD(
+#     avranks, len(comparison_frame_rmses))  #tested on 30 datasets
+# Orange.evaluation.graph_ranks(avranks, names, cd=cd, width=6, textspace=1.5)
+# plt.savefig(fname=figures_path + "rmses.pdf", bbox_inches="tight")
 
 
 ranks = comparison_frame_ndcgs.iloc[:, 1:].rank(axis=1, method="average", ascending=False)
@@ -552,8 +552,8 @@ os.system("pdfcrop " + figures_path + "ndcgs.pdf " +
               figures_path + "ndcgs.pdf")
 os.system("pdfcrop " + figures_path + "taus.pdf " +
               figures_path + "taus.pdf")
-os.system("pdfcrop " + figures_path + "rmses.pdf " +
-              figures_path + "rmses.pdf")
+# os.system("pdfcrop " + figures_path + "rmses.pdf " +
+#               figures_path + "rmses.pdf")
 os.system("pdfcrop " + figures_path + "succ.pdf " +
               figures_path + "succ.pdf")
 os.system("pdfcrop " + figures_path + "par10.pdf " +

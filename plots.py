@@ -31,8 +31,8 @@ params = [scenario_names, use_max_inverse_transform_values,
           scale_target_to_unit_interval_values]
 
 name_map = {"ndcg": "NDCG",
-            "tau_corr": "Kendall $\\tau_b$",
-            "tau_p": "Kendall $\\tau_b$ p-value",
+            "tau_corr": "Kendall $\\tau$",
+            "tau_p": "Kendall $\\tau$ p-value",
             "mae": "MAE",
             "mse": "MSE",
             "rmse": "RMSE",

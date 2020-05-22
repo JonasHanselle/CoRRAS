@@ -47,7 +47,7 @@ class NeuralNetworkSquaredHinge:
             rankings: np.ndarray,
             features: np.ndarray,
             performances: np.ndarray,
-            sample_weights = None,
+            sample_weights=None,
             lambda_value=0.5,
             epsilon_value=1,
             num_epochs=1000,
@@ -78,8 +78,9 @@ class NeuralNetworkSquaredHinge:
 
         if sample_weights is None:
             sample_weights = np.ones(features.shape[0])
-        
+
         # add one column for bias
+        np.random.seed(seed)
         num_features = features.shape[1] + 1
         self.network = self.build_network(
             num_labels,
@@ -152,8 +153,13 @@ class NeuralNetworkSquaredHinge:
                     sample_weight,
                     tf.square(
                         tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0)))))
-            return lambda_value * reg_loss + (
-                1 - lambda_value) * rank_loss, reg_loss, rank_loss
+            if lambda_value == 1.0:
+                return rank_loss, reg_loss, rank_loss
+            if lambda_value == 0.0:
+                return reg_loss, reg_loss, rank_loss
+            return (
+                1 - lambda_value
+            ) * reg_loss + lambda_value * rank_loss, reg_loss, rank_loss
 
         # define gradient of custom loss function
 

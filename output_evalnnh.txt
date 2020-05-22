@@ -1,0 +1,21 @@
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 324 entries, but the SAT12-ALL contains 162 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+The frame contains 322 entries, but the SAT12-ALL contains 161 entries!
+File for TTP-2016 not found in corras result data! Exception Table neural-net-squared-hinge-TTP-2016-weighted not found

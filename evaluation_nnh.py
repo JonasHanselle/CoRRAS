@@ -40,14 +40,20 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = [
-    "SAT11-HAND", "SAT11-INDU", "SAT11-RAND", "MIP-2016", "CPMP-2015",
-    "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016", "QBF-2016",
-    "MAXSAT-PMS-2016"
-]
 
+scenarios = [
+    "CPMP-2015",
+    "MIP-2016",
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
+]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.5]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -55,12 +61,12 @@ seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [64]
+es_patiences = [8]
 es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = ["[32]"]
 activation_functions = ["sigmoid"]
-use_weighted_samples_values = [True, False]
+use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 # splits = [1]
@@ -93,13 +99,14 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "neural-net-squared-hinge-" + scenario_name + "-weighted"
+        table_name = "neural-net-squared-hinge-" + scenario_name + "-seeded"
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
                                    echo=False)
         connection = engine.connect()
         corras = pd.read_sql_table(table_name=table_name, con=connection)
+        print("corras", corras)
         connection.close()
     except Exception as exc:
         print("File for " + scenario_name +
@@ -218,4 +225,4 @@ for scenario_name in scenarios:
             "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-hinge-nn-" + scenario_name +
-                     "-scen.csv")
+                     "-new.csv")

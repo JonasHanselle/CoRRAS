@@ -66,7 +66,6 @@ def create_latex_max(df: pd.DataFrame,
     result += "\\end{tabular} \n"
     result += "\\end{adjustbox} \n"
     result += f"\\caption{{{caption}}} \n"
-    result += "\\label{tab:table_label} \n"
     result += "\\end{table} \n"
 
     result = result.replace("nan", "-")
@@ -94,7 +93,6 @@ def create_latex_min(df: pd.DataFrame,
     result += "\\end{tabular} \n"
     result += "\\end{adjustbox} \n"
     result += f"\\caption{{{caption}}} \n"
-    result += "\\label{tab:table_label} \n"
     result += "\\end{table} \n"
 
     result = result.replace("nan", "-")
@@ -337,42 +335,42 @@ for scenario_name in scenario_names:
     approaches_dfs = [
         # df_baseline_sbs,
         df_baseline_rf,
-        df_baseline_lr,
+        # df_baseline_lr,
         df_baseline_label_ranking,
         # df_baseline_sf,
-        df_corras_hinge_linear_unweighted,
-        df_corras_hinge_linear_weighted,
-        df_corras_hinge_quadratic_unweighted,
-        df_corras_hinge_quadratic_weighted,
-        df_corras_nnh_unweighted,
-        df_corras_nnh_weighted,
         # df_corras_pl_linear_unweighted,
-        # df_corras_pl_linear_weighted,
+        df_corras_pl_linear_weighted,
         # df_corras_pl_quadratic_unweighted,
-        # df_corras_pl_quadratic_weighted,
+        df_corras_pl_quadratic_weighted,
         # df_corras_plnet_unweighted,
-        # df_corras_plnet_weighted
+        df_corras_plnet_weighted,
+        # df_corras_hinge_linear_unweighted,
+        df_corras_hinge_linear_weighted,
+        # df_corras_hinge_quadratic_unweighted,
+        df_corras_hinge_quadratic_weighted,
+        # df_corras_nnh_unweighted,
+        df_corras_nnh_weighted
     ]
 
     approaches_names = [
         "VBS",
         "SBS",
         "RF",
+        # "LR",
         "LR",
-        "Rank",
         # "RSF",
-        "Hinge-LM",
-        "W Hinge-LM",
-        "Hinge-QM",
-        "W Hinge-QM",
-        "Hinge-NN",
-        "W Hinge-NN",
-        # "PL-GLM",
-        # "W PL-GLM",
+        # "PL-LM",
+        "W PL-GLM",
         # "PL-QM",
-        # "W PL-QM",
+        "W PL-QM",
         # "PL-NN",
-        # "W PL-NN"
+        "W PL-NN",
+        # "Hinge-LM",
+        "W Hinge-LM",
+        # "Hinge-QM",
+        "W Hinge-QM",
+        # "Hinge-NN",
+        "W Hinge-NN"
     ]
 
     # print(scenario.scenario, len(scenario.performance_data))
@@ -432,7 +430,8 @@ for scenario_name in scenario_names:
         try:
             if len(approach_df) == len(scenario.performance_data):
                 taus.append(approach_df["tau_corr"].mean())
-                rmses.append(approach_df["rmse"].mean())
+                # rmses.append(approach_df["rmse"].mean())
+                rmses.append(math.sqrt(approach_df["mse"].mean()))
                 ndcgs.append(approach_df["ndcg"].mean())
             else:
                 print(len(approach_df), len(scenario.performance_data))
@@ -501,12 +500,18 @@ print(create_latex_max(comparison_frame_taus, skip_max=1, caption="taus"))
 # print("ndcgs")
 print(create_latex_max(comparison_frame_ndcgs, skip_max=1, caption="ndcgs"))
 # print("rmses")
-print(create_latex_min(comparison_frame_rmses, skip_min=1, caption="rmses"))
+print(create_latex_min(comparison_frame_rmses, skip_min=1, caption="rmses fixed"))
 
 # print("gap succ")
-create_latex_min(sbs_vbs_gap_succ, caption="gap succ")
+create_latex_min(comparison_frame_par10, caption="par10")
 # print("gap par10")
-create_latex_min(sbs_vbs_gap_par10, caption="gap par10")
+create_latex_min(comparison_frame_succ, caption="succ")
+
+
+# print("gap succ")
+create_latex_min(sbs_vbs_gap_succ.drop("SBS", axis=1).drop("VBS", axis=1), caption="gap succ", skip_min=1)
+# print("gap par10")
+create_latex_min(sbs_vbs_gap_par10.drop("SBS", axis=1).drop("VBS", axis=1), caption="gap par10", skip_min=1)
 
 gap_numerator_par10 = comparison_frame_par10.iloc[:, 1:].subtract(
     comparison_frame_par10.iloc[:, 1])

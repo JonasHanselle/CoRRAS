@@ -20,33 +20,51 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge/"
-scenario_names = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
+
+scenario_names = [
+    "CPMP-2015",
+    "MIP-2016",
+    "CSP-2010",
+    # "SAT11-HAND",
+    # "SAT11-INDU",
+    # "SAT11-RAND"
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
+]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-# lambda_values = [0.5]
+lambda_values = [1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
-maxiter = 1000
+maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [False, True]
-use_max_inverse_transform_values = ["None"]
+use_quadratic_transform_values = [False]
+# use_quadratic_transform_values = [True]
+use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10", "test a", "test b"]
+# use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-skip_censored_values = [False]
-regulerization_params_values = [0.001]
+# scale_target_to_unit_interval_values = [True]
+regularization_params_values = [0.001]
 use_weighted_samples_values = [False]
+skip_censored_values=[False]
+
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-seed = 15
+splits = [5,]
+
+seed=15
 
 params = [
-    scenario_names, use_max_inverse_transform_values,
+    scenario_names,use_quadratic_transform_values,
     scale_target_to_unit_interval_values, skip_censored_values,
-    regulerization_params_values, use_weighted_samples_values
+    regularization_params_values, use_weighted_samples_values
 ]
 
 name_map = {
     "ndcg": "NDCG",
-    "tau_corr": "Kendall $\\tau_b$",
-    "tau_p": "Kendall $\\tau_b$ p-value",
+    "tau_corr": "Kendall $\\tau$",
+    "tau_p": "Kendall $\\tau$ p-value",
     "mae": "MAE",
     "mse": "MSE",
     "rmse": "RMSE",
@@ -59,10 +77,11 @@ param_product = list(product(*params))
 
 # measures = ["tau_corr", "ndcg", "mae", "mse", "rmse"]
 measures = ["par10", "abs_distance_to_vbs", "success_rate"]
-measures = [
-    "par10", "abs_distance_to_vbs", "success_rate", "success_rate", "tau_corr",
-    "ndcg", "mae", "mse", "rmse"
-]
+# measures = [
+#     "par10", "abs_distance_to_vbs", "success_rate", "success_rate", "tau_corr",
+#     "ndcg", "mae", "mse", "rmse"
+# ]
+measures = ["tau_corr", "mae", "par10"]
 
 for measure in measures:
     plt.clf()
@@ -84,8 +103,8 @@ for measure in measures:
                                          "baseline-evaluation-random_forest" +
                                          scenario_name + ".csv")
             df_baseline_label_ranking = pd.read_csv(evaluations_path +
-                                         "baseline-label-ranking-" +
-                                         scenario_name + ".csv")
+                                                    "baseline-label-ranking-" +
+                                                    scenario_name + ".csv")
             print("df baseline label ", len(df_baseline_label_ranking))
         except:
             print("Scenario " + scenario_name +
@@ -101,9 +120,9 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(evaluations_path + "corras-hinge-linear-" +
-                                 scenario_name + "-new-weights.csv")
+                                 scenario_name + "-test.csv")
 
-            corras["lambda"] = 1.0 - corras["lambda"]
+            # corras["lambda"] = 1.0 - corras["lambda"]
 
             # print(corras.head())
         except:
@@ -113,7 +132,7 @@ for measure in measures:
         current_frame = corras.loc[
             (corras["seed"] == seed) &
             (corras["scale_to_unit_interval"] == scale_target_to_unit_interval)
-            & (corras["max_inverse_transform"] == use_max_inverse_transform)
+            # & (corras["max_inverse_transform"] == use_max_inverse_transform)
             & (corras["use_weighted_samples"] == use_weighted_samples)
             & (corras["regularization_param"] == regulerization_param)]
 
@@ -122,8 +141,8 @@ for measure in measures:
                 normalize=True)["ok"]
             val_lr = df_baseline_lr["run_status"].value_counts(
                 normalize=True)["ok"]
-            val_label_ranking = df_baseline_label_ranking["run_status"].value_counts(
-                normalize=True)["ok"]
+            val_label_ranking = df_baseline_label_ranking[
+                "run_status"].value_counts(normalize=True)["ok"]
             lambdas = list(current_frame["lambda"].unique())
             results = []
             for lambd in lambdas:
@@ -151,15 +170,18 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              hue="max_inverse_transform",
                               data=results_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None)
             lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
             lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
             if measure not in ["rmse", "mse", "mae"]:
-                lp.axes.axhline(val_label_ranking, c="brown", ls="--", label="label-ranking-baseline-mean")
+                lp.axes.axhline(val_label_ranking,
+                                c="brown",
+                                ls="--",
+                                label="label-ranking-baseline-mean")
             ax.set_title(scenario_name)
             ax.set_ylabel(name_map[measure])
             ax.set_xlabel("$\\lambda$")
@@ -179,12 +201,13 @@ for measure in measures:
         print(current_frame["lambda"].value_counts())
         df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1. / 2)
         df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1. / 2)
-        df_baseline_label_ranking["rmse"] = df_baseline_label_ranking["mse"].pow(1. / 2)
+        df_baseline_label_ranking["rmse"] = df_baseline_label_ranking[
+            "mse"].pow(1. / 2)
 
         if measure in ["mae", "mse", "rmse"]:
             ax.set_yscale("log")
-            current_frame = current_frame.loc[(current_frame["lambda"] <=
-                                               0.99)]
+            # current_frame = current_frame.loc[(current_frame["lambda"] <=
+            #                                    0.99)]
     #     print(current_frame[:])
     #     print(current_frame.iloc[:10,8:12].to_latex(na_rep="-", index=False, bold_rows=True, float_format="%.2f", formatters={"tau_corr" : max_formatter}, escape=False))
     #     for measure in current_frame.columns[8:]:
@@ -207,20 +230,20 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              hue="max_inverse_transform",
                               data=current_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None)
         else:
             lp = sns.lineplot(x="lambda",
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              hue="max_inverse_transform",
                               data=current_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=95)
         if df_baseline_rf is not None:
             lp.axes.axhline(df_baseline_rf[measure].mean(),
@@ -251,18 +274,21 @@ for measure in measures:
     if measure in ["rmse", "mse", "mae"]:
         labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression"]
     else:
-        labels = ["Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression", "Label Ranking"]
-    legend = fig.legend(list(axes),
-                        labels=labels,
-                        loc="lower center",
-                        ncol=len(labels),
-                        bbox_to_anchor=(0.5, -0.02))
-    plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
-                params_string.replace(".", "_") + "-" + measure + ".pdf",
-                bbox_extra_artists=(legend, ),
-                bbox_inches="tight")
-    os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf " +
-              figures_path + "-".join(scenario_names) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf")
-    # plt.show()
+        labels = [
+            "Hinge-LM", "Hinge-QM", "Random Forest", "Linear Regression",
+            "Label Ranking"
+        ]
+    # legend = fig.legend(list(axes),
+    #                     labels=labels,
+    #                     loc="lower center",
+    #                     ncol=len(labels),
+    #                     bbox_to_anchor=(0.5, -0.02))
+    # plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
+    #             params_string.replace(".", "_") + "-" + measure + ".pdf",
+    #             bbox_extra_artists=(legend, ),
+    #             bbox_inches="tight")
+    # os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf " +
+    #           figures_path + "-".join(scenario_names) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf")
+    plt.show()

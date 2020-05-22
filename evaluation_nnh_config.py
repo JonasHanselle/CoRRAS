@@ -62,7 +62,7 @@ seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [64]
+es_patiences = [8]
 es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = [[16, 16]]

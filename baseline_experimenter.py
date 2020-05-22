@@ -17,7 +17,8 @@ from Corras.Scenario import aslib_ranking_scenario
 from Corras.Util import ranking_util as util
 
 # Baseline
-from sklearn.linear_model import LinearRegression
+# from sklearn.linear_model import RandomForestRegression
+from sklearn.ensemble import RandomForestRegressor
 
 # Database
 import sqlalchemy as sql
@@ -40,11 +41,7 @@ num_splits = 10
 result_data_corras = []
 baselines = None
 
-scenarios = [
-    "CPMP-2015", "CSP-2010", "CSP-Minizinc-Time-2016", "MAXSAT-WPMS-2016",
-    "SAT12-ALL", "TTP-2016", "MAXSAT-PMS-2016", "MIP-2016", "SAT11-HAND",
-    "SAT11-INDU", "SAT11-RAND", "SAT12-ALL", "TTP-2016"
-]
+scenarios = ["QBF-2016"]
 
 for scenario_name in scenarios:
     try:
@@ -54,7 +51,7 @@ for scenario_name in scenarios:
 
         # scenario.create_cv_splits(n_folds=num_splits)
 
-        table_name = "baseline_linear_regression-" + scenario.scenario
+        table_name = "baseline_random_forest-" + scenario.scenario
 
         for i_split in range(1, num_splits + 1):
 
@@ -77,7 +74,7 @@ for scenario_name in scenarios:
             baselines = []
             for label in range(0,
                                len(train_scenario.performance_data.columns)):
-                baselines.append(LinearRegression())
+                baselines.append(RandomForestRegressor())
             for label in range(0,
                                len(train_scenario.performance_data.columns)):
                 baselines[label].fit(train_features_np,

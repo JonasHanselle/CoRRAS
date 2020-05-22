@@ -43,29 +43,46 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["CSP-Minizinc-Time-2016"]
+scenarios = [
+    # "CPMP-2015",
+    "MIP-2016",
+    # "CSP-2010",
+    # "SAT11-HAND",
+    # "SAT11-INDU",
+    # "SAT11-RAND"
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
+]
 
-# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.5]
+# scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
+
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+# lambda_values = [0.5,1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [64]
+es_patiences = [8]
 es_intervals = [8]
 es_val_ratios = [0.3]
-layer_sizes_vals = [[32]]
+layer_sizes_vals = ["[32]"]
 activation_functions = ["sigmoid"]
-use_weighted_samples_values = [True, False]
+use_max_inverse_transform_values = ["max_cutoff"]
+scale_target_to_unit_interval_values = [True]
+use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1, 2]
 
 params = [
-    lambda_values, splits, seeds, learning_rates, batch_sizes, es_patiences,
-    es_intervals, es_val_ratios, layer_sizes_vals, activation_functions,
-    use_weighted_samples_values
+    lambda_values, splits, seeds, learning_rates, es_intervals, es_patiences,
+    es_val_ratios, batch_sizes, layer_sizes_vals, activation_functions,
+    use_weighted_samples_values, scale_target_to_unit_interval_values,
+    use_max_inverse_transform_values
 ]
 
 param_product = list(product(*params))
@@ -90,7 +107,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "neural-net-plackett-luce-" + scenario_name + "-new-fix"
+        table_name = "ki_plnet-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -117,7 +134,7 @@ for scenario_name in scenarios:
     # print(scenario.performance_data)
     # print(relevance_scores)
 
-    for lambda_value, split, seed, learning_rate, batch_size, es_patience, es_interval, es_val_ratio, layer_sizes, activation_function, use_weighted_samples in param_product:
+    for lambda_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_sizes, activation_function, use_weighted_samples, scale_target_to_unit_interval, use_max_inverse_transform in param_product:
 
         test_scenario, train_scenario = scenario.get_split(split)
 
@@ -130,12 +147,20 @@ for scenario_name in scenarios:
             (corras["es_patience"] == es_patience) &
             (corras["es_val_ratio"] == es_val_ratio) &
             (corras["batch_size"] == batch_size) &
-            (corras["layer_sizes"] == str(layer_sizes)) &
-            (corras["activation_function"] == activation_function) &
-            (corras["use_weighted_samples"] == use_weighted_samples)]
+            (corras["layer_sizes"] == layer_sizes) &
+            (corras["use_weighted_samples"] == use_weighted_samples) &
+            (corras["scale_target_to_unit_interval"] ==
+             scale_target_to_unit_interval) &
+            (corras["use_max_inverse_transform"] == use_max_inverse_transform)
+            & (corras["activation_function"] == activation_function)]
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
-        # print(len(current_frame), len(scenario.instances))
+        if len(current_frame) != len(test_scenario.performance_data):
+            print(
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split}!"
+            )
+            continue
+
         for problem_instance, performances in scenario.performance_data.iterrows(
         ):
             if not problem_instance in current_frame.index:
@@ -195,21 +220,27 @@ for scenario_name in scenarios:
             par10_with_feature_cost = par10 + feature_cost
             run_status = run_stati.iloc[np.argmin(corras_performances)]
             corras_measures.append([
-                split, seed, problem_instance, lambda_value, learning_rate,
-                es_interval, es_patience, es_val_ratio, batch_size,
-                layer_sizes, activation_function, use_weighted_samples,
-                tau_corr, tau_p, ndcg, mse, mae, abs_vbs_distance, par10,
-                par10_with_feature_cost, run_status
+                split, seed, problem_instance, lambda_value,
+                learning_rate, es_interval, es_patience, es_val_ratio,
+                batch_size, layer_sizes, activation_function,
+                use_weighted_samples,
+                scale_target_to_unit_interval,
+                use_max_inverse_transform, tau_corr, tau_p, ndcg, mse,
+                mae, abs_vbs_distance, par10, par10_with_feature_cost,
+                run_status
             ])
             # print(corras_measures)
     df_corras = pd.DataFrame(
         data=corras_measures,
         columns=[
-            "split", "seed", "problem_instance", "lambda", "learning_rate",
-            "es_interval", "es_patience", "es_val_ratio", "batch_size",
-            "layer_sizes", "activation_function", "use_weighted_samples",
-            "tau_corr", "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs",
-            "par10", "par10_with_feature_cost", "run_status"
+            "split", "seed", "problem_instance", "lambda",
+            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
+            "batch_size", "layer_sizes", "activation_function",
+            "use_weighted_samples",
+            "scale_target_to_unit_interval",
+            "use_max_inverse_transform", "tau_corr", "tau_p", "ndcg",
+            "mse", "mae", "abs_distance_to_vbs", "par10",
+            "par10_with_feature_cost", "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-pl-nn-" + scenario_name +
-                     "-scen.csv")
+                     "-ki.csv")

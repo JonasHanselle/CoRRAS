@@ -50,7 +50,7 @@ scenarios = [
     "SAT12-ALL",
     "CSP-Minizinc-Time-2016"
 ]
-lambda_values = [0.5]
+lambda_values = [0.6]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000

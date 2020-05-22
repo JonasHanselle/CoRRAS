@@ -16,6 +16,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
         self.train_size = 250
         self.test_size = 10
         self.noise_factor = 0.0
+        np.random.seed(1)
         features_train = np.asarray(
             onp.random.randint(low=0, high=30, size=(self.train_size, 4)))
         features_test = np.asarray(
@@ -105,10 +106,10 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
                    inst,
                    perf,
                    sample_weights=None,
-                   lambda_value=0.0,
+                   lambda_value=0.5,
                    epsilon_value=1.0,
                    regression_loss="Squared",
-                   num_epochs=150,
+                   num_epochs=25,
                    learning_rate=0.001,
                    batch_size=32,
                    early_stop_interval=10,
@@ -126,6 +127,7 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
             print("Predicted Ranking Model 1",
                   model1.predict_ranking(row.values))
             print("\n")
+        print("network weights", model1.network.get_weights())
         # sns.set_style("darkgrid")
         # df = model1.get_loss_history_frame()
         # df2 = model1.get_es_val_history_frame()

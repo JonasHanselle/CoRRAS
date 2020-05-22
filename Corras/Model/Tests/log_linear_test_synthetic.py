@@ -115,6 +115,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
     def test_regression(self):
         model1 = ll.LogLinearModel(use_exp_for_regression=False,
                                    use_reciprocal_for_regression=False)
+        order = "asc"        
         perf = self.train_performances.to_numpy()
         perf_bar = perf
         inst_bar = self.train_inst.to_numpy()
@@ -122,6 +123,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
         perf_max_inv = maximum - perf
         max_inv = np.max(perf_max_inv)
         perf_max_inv = perf_max_inv / max_inv
+        order = "desc"
         train_performances_max_inv = pd.DataFrame(
             data=perf_max_inv,
             index=self.train_performances.index,
@@ -131,12 +133,12 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
             train_performances_max_inv,
             max_pairs_per_instance=15,
             seed=15,
-            order="desc")
+            order=order)
         # sample_weights = sample_weights / sample_weights.max()
         print(inst)
         print(perf)
         print(rank)
-        lambda_value = 1.0
+        lambda_value = 0.0
         # print(sample_weights)
         model1.fit_np(5,
                       rank,
@@ -144,7 +146,7 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
                       perf,
                       lambda_value=lambda_value,
                       regression_loss="Squared",
-                      maxiter=1000,
+                      maxiter=100,
                       log_losses=True,
                       sample_weights=None,
                       reg_param=-0.001)
@@ -161,14 +163,12 @@ class TestLogLinearModelSynthetic(unittest.TestCase):
             #         str(baseline.predict(row.values.reshape(1, -1)))
             #         for baseline in baselines
             #     ]))
-            # print("Predicted Performances Model 1", model1.predict_performances(row.values))
-            # print("\n")
+            print("Predicted Performances Model 1", maximum - (model1.predict_performances(row.values) * max_inv))
+            print("\n")
             print("True Ranking", self.test_ranking.loc[index].values)
-            corras_ranking = pd.Series(data= maximum - model1.predict_performances(row.values) * max_inv).rank(
+            corras_ranking = pd.Series(data= maximum - (model1.predict_performances(row.values) * max_inv)).rank(
                     method="min").fillna(-1).astype("int16").to_numpy()
-            print("Model1 predicted ranking", corras_ranking)
-            # print("Predicted Ranking Model 1",
-            #       model1.predict_ranking(row.to_numpy()))
+            print("Model1 predicted ranking1", corras_ranking)
             print("\n")
 
         print("lr params", baselines[1].coef_)

@@ -47,7 +47,7 @@ class LinearHingeModel:
                regression_loss="Squared",
                maxiter=100,
                print_output=False,
-               log_losses=True,
+               log_losses=False,
                reg_param=0.0):
         """[summary]
 
@@ -83,8 +83,8 @@ class LinearHingeModel:
             squared_error = squared_error / labels.shape[0]
             hinge_loss = hinge_loss / labels.shape[0]
             self.loss_history.append([squared_error, hinge_loss])
-            squared_error = lambda_value * squared_error
-            hinge_loss = (1 - lambda_value) * hinge_loss
+            squared_error =  (1 - lambda_value) * squared_error
+            hinge_loss =  lambda_value * hinge_loss
             total_error = squared_error + hinge_loss
 
         # minimize loss function
@@ -102,10 +102,10 @@ class LinearHingeModel:
                 hinge_loss = sample_weight * hinge_loss
             squared_error = squared_error / labels.shape[0]
             hinge_loss = hinge_loss / labels.shape[0]
-            squared_error = lambda_value * squared_error
-            hinge_loss = (1 - lambda_value) * hinge_loss
+            squared_error = (1 - lambda_value) * squared_error
+            hinge_loss =  lambda_value * hinge_loss
             # TODO check whether whole matrix or only current weight vectors should be taken into account
-            total_error = squared_error + hinge_loss + reg_param * w**2
+            total_error = squared_error + hinge_loss + reg_param * np.sum(w**2) 
             return np.mean(total_error)
 
         jac = grad(g)

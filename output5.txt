@@ -1,0 +1,54 @@
+df baseline label  527
+   Unnamed: 0  split  seed  ...      par10  run_status          rmse
+0           0      1    15  ...  36000.000      memout  25318.380303
+1           1      1    15  ...      0.024          ok  17932.357742
+2           2      1    15  ...      0.036          ok   1265.864097
+3           3      1    15  ...      0.352          ok   1499.535127
+4           4      1    15  ...  36000.000     timeout  29948.560953
+
+[5 rows x 21 columns]
+Index(['Unnamed: 0', 'split', 'seed', 'problem_instance', 'lambda', 'epsilon',
+       'quadratic_transform', 'max_inverse_transform',
+       'scale_to_unit_interval', 'skip_censored', 'regularization_param',
+       'use_weighted_samples', 'tau_corr', 'tau_p', 'ndcg', 'mse', 'mae',
+       'abs_distance_to_vbs', 'par10', 'run_status', 'rmse'],
+      dtype='object')
+0.9    1581
+1.0    1581
+Name: lambda, dtype: int64
+df baseline label  218
+   Unnamed: 0  split  seed  ...  par10  run_status           rmse
+0           0      1    15  ...  299.0          ok   39852.547255
+1           1      1    15  ...    4.0          ok    3553.761722
+2           2      1    15  ...    2.0          ok    3657.017999
+3           3      1    15  ...  128.0          ok    3461.805090
+4           4      1    15  ...    7.0          ok  137242.938372
+
+[5 rows x 21 columns]
+Index(['Unnamed: 0', 'split', 'seed', 'problem_instance', 'lambda', 'epsilon',
+       'quadratic_transform', 'max_inverse_transform',
+       'scale_to_unit_interval', 'skip_censored', 'regularization_param',
+       'use_weighted_samples', 'tau_corr', 'tau_p', 'ndcg', 'mse', 'mae',
+       'abs_distance_to_vbs', 'par10', 'run_status', 'rmse'],
+      dtype='object')
+0.9    1090
+1.0    1090
+Name: lambda, dtype: int64
+df baseline label  2024
+   Unnamed: 0  split  seed  ...         par10  run_status          rmse
+0           0      1    15  ...      0.171973          ok   3015.871033
+1           1      1    15  ...  50000.000000     timeout  49501.757124
+2           2      1    15  ...  50000.000000     timeout  49628.259423
+3           3      1    15  ...      0.162975          ok   2513.393122
+4           4      1    15  ...      0.099985          ok   2286.375494
+
+[5 rows x 21 columns]
+Index(['Unnamed: 0', 'split', 'seed', 'problem_instance', 'lambda', 'epsilon',
+       'quadratic_transform', 'max_inverse_transform',
+       'scale_to_unit_interval', 'skip_censored', 'regularization_param',
+       'use_weighted_samples', 'tau_corr', 'tau_p', 'ndcg', 'mse', 'mae',
+       'abs_distance_to_vbs', 'par10', 'run_status', 'rmse'],
+      dtype='object')
+0.9    6072
+1.0    6072
+Name: lambda, dtype: int64

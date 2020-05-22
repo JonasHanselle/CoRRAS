@@ -39,21 +39,25 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
+scenarios = ["SAT11-INDU"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-# lambda_values = [0.5]
+lambda_values = [0.6]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
+max_pairs_per_instance = 5
+maxiter = 100
+seeds = [15]
 use_quadratic_transform_values = [False, True]
-use_max_inverse_transform_values = ["None"]
+use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [False]
+use_weighted_samples_values = [False]
 regulerization_params_values = [0.001]
-use_weighted_samples_values = [False,True]
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+splits = [4]
 
 params = [
     scenarios, lambda_values, epsilon_values, splits, seeds,
@@ -77,52 +81,54 @@ else:
 
 print("shard length", len(shard))
 
-engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
-                            db_url + "/" + db_db,
-                            echo=False)
+# engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" + db_url +
+#                            "/" + db_db,
+#                            echo=False,
+#                            pool_recycle=300,
+#                            pool_size=1)
 
 for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval, skip_censored, regulerization_param, use_weighted_samples in shard:
 
     # check if table for scenario_name exists
 
     table_name = "linear-squared-hinge-new-weighted" + scenario_name + "-iter100"
-    connection = engine.connect()
-    if not engine.dialect.has_table(engine, table_name):
-        pass
-    else:
-        meta = MetaData(engine)
-        experiments = Table(table_name,
-                            meta,
-                            autoload=True,
-                            autoload_with=engine)
+    # connection = engine.connect()
+    # if not engine.dialect.has_table(engine, table_name):
+    #     pass
+    # else:
+    #     meta = MetaData(engine)
+    #     experiments = Table(table_name,
+    #                         meta,
+    #                         autoload=True,
+    #                         autoload_with=engine)
 
-        slct = experiments.select(
-            and_(
-                experiments.columns["split"] == split,
-                experiments.columns["lambda"] == lambda_value,
-                experiments.columns["epsilon"] == epsilon_value,
-                experiments.columns["seed"] == seed,
-                experiments.columns["use_quadratic_transform"] ==
-                use_quadratic_transform,
-                experiments.columns["skip_censored"] == skip_censored,
-                experiments.columns["regulerization_param"] ==
-                regulerization_param,
-                experiments.columns["use_weighted_samples"] ==
-                use_weighted_samples,
-                experiments.columns["scale_target_to_unit_interval"] ==
-                scale_target_to_unit_interval)).limit(1)
-        rs = connection.execute(slct)
-        result = rs.first()
-        if result == None:
-            print("Not in DB!")
-            pass
-        else:
-            print("Already in DB!")
-            rs.close()
-            connection.close()
-            continue
-        rs.close()
-        connection.close()
+    #     slct = experiments.select(
+    #         and_(
+    #             experiments.columns["split"] == split,
+    #             experiments.columns["lambda"] == lambda_value,
+    #             experiments.columns["epsilon"] == epsilon_value,
+    #             experiments.columns["seed"] == seed,
+    #             experiments.columns["use_quadratic_transform"] ==
+    #             use_quadratic_transform,
+    #             experiments.columns["skip_censored"] == skip_censored,
+    #             experiments.columns["regulerization_param"] ==
+    #             regulerization_param,
+    #             experiments.columns["use_weighted_samples"] ==
+    #             use_weighted_samples,
+    #             experiments.columns["scale_target_to_unit_interval"] ==
+    #             scale_target_to_unit_interval)).limit(1)
+    #     rs = connection.execute(slct)
+    #     result = rs.first()
+    #     if result == None:
+    #         print("Not in DB!")
+    #         pass
+    #     else:
+    #         print("Already in DB!")
+    #         rs.close()
+    #         connection.close()
+    #         continue
+    #     rs.close()
+    #     connection.close()
     params_string = "-".join([
         scenario_name,
         str(lambda_value),
@@ -300,11 +306,11 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                               index_label="id",
                               mode="a",
                               header=False)
-        connection = engine.connect()
-        results_corras.to_sql(name=table_name,
-                              con=connection,
-                              if_exists="append")
-        connection.close()
+        # connection = engine.connect()
+        # results_corras.to_sql(name=table_name,
+        #                       con=connection,
+        #                       if_exists="append")
+        # connection.close()
         model.save_loss_history(loss_filepath)
 
     except Exception as exc:

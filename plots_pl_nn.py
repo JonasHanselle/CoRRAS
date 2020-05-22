@@ -21,23 +21,42 @@ evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl_nn/"
 
+
 scenarios = [
-    "MIP-2016", "SAT11-INDU", "SAT11-HAND"
+    # "CPMP-2015",
+    "MIP-2016",
+    # "CSP-2010",
     # "SAT11-HAND",
+    # "SAT11-INDU",
+    # "SAT11-RAND",
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
 ]
+
+# scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
+
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+# lambda_values = [0.5,1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [64]
+es_patiences = [8]
 es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = ["[32]"]
 activation_functions = ["sigmoid"]
+use_max_inverse_transform_values = ["max_cutoff"]
+scale_target_to_unit_interval_values = [True]
 use_weighted_samples_values = [False]
+
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1, 2]
+
 params = [
     scenarios, learning_rates, seeds, batch_sizes, es_patiences, es_intervals,
     es_val_ratios, layer_sizes_vals, activation_functions
@@ -46,8 +65,8 @@ params = [
 param_product = list(product(*params))
 name_map = {
     "ndcg": "NDCG",
-    "tau_corr": "Kendall $\\tau_b$",
-    "tau_p": "Kendall $\\tau_b$ p-value",
+    "tau_corr": "Kendall $\\tau$",
+    "tau_p": "Kendall $\\tau$ p-value",
     "mae": "MAE",
     "mse": "MSE",
     "rmse": "RMSE",
@@ -63,7 +82,7 @@ measures = [
 
 for measure in measures:
     plt.clf()
-    fig, axes = plt.subplots(1, 3)
+    fig, axes = plt.subplots(1, 6)
     print(len(param_product))
     for index, (scenario_name, learning_rate, seed, batch_size, es_patience,
                 es_interval, es_val_ratio, layer_sizes,
@@ -101,7 +120,7 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(evaluations_path + "corras-pl-nn-" +
-                                 scenario_name + ".csv")
+                                 scenario_name + "-ki.csv")
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
@@ -115,6 +134,9 @@ for measure in measures:
             (corras["es_interval"] == es_interval) &
             (corras["layer_sizes"] == layer_sizes) &
             (corras["activation_function"] == activation_function)]
+
+        if(len(current_frame) != 11*len(df_baseline_lr)):
+            print(f"LEN OF {scenario_name} IS {len(current_frame)} BUT SHOULD BE {len(df_baseline_lr)}")
 
         if measure == "success_rate":
             val_rf = df_baseline_rf["run_status"].value_counts(
@@ -248,13 +270,16 @@ for measure in measures:
                         loc="lower center",
                         ncol=len(labels),
                         bbox_to_anchor=(0.5, -0.02))
-    plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
-                params_string.replace(".", "_") + "-" + measure + ".pdf",
-                bbox_extra_artists=(legend, ),
-                bbox_inches="tight")
 
-    os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf " +
-              figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf")
+    plt.show()
+    
+    # plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
+    #             params_string.replace(".", "_") + "-" + measure + ".pdf",
+    #             bbox_extra_artists=(legend, ),
+    #             bbox_inches="tight")
+
+    # os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf " +
+    #           figures_path + "-".join(scenarios) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf")
     # plt.show()

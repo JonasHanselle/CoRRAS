@@ -45,8 +45,8 @@ params = [
 
 name_map = {
     "ndcg": "NDCG",
-    "tau_corr": "Kendall $\\tau_b$",
-    "tau_p": "Kendall $\\tau_b$ p-value",
+    "tau_corr": "Kendall $\\tau$",
+    "tau_p": "Kendall $\\tau$ p-value",
     "mae": "MAE",
     "mse": "MSE",
     "rmse": "RMSE",

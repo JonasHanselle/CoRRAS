@@ -41,28 +41,45 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-scenarios = ["SAT11-INDU", "MIP-2016", "CSP-2010"]
 
-# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.5]
-epsilon_values = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
+
+scenarios = [
+    "CPMP-2015",
+    "MIP-2016",
+    # "CSP-2010",
+    # "SAT11-HAND",
+    # "SAT11-INDU",
+    # "SAT11-RAND"
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
+]
+
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+lambda_values = [1.0]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [False, True]
-use_max_inverse_transform_values = ["None"]
+use_quadratic_transform_values = [False]
+# use_quadratic_transform_values = [True]
+use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10", "test a", "test b"]
+# use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-skip_censored_values = [False]
-regulerization_params_values = [0.001]
-use_weighted_samples_values = [False,True]
+# scale_target_to_unit_interval_values = [True]
+regularization_params_values = [0.001]
+use_weighted_samples_values = [False]
+skip_censored_values=[False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [5,]
 
 params = [
     lambda_values, epsilon_values, splits, seeds,
     use_quadratic_transform_values, use_max_inverse_transform_values,
     scale_target_to_unit_interval_values, skip_censored_values,
-    regulerization_params_values, use_weighted_samples_values
+    regularization_params_values, use_weighted_samples_values
 ]
 
 param_product = list(product(*params))
@@ -79,14 +96,14 @@ for scenario_name in scenarios:
     # params_string = "-".join([scenario_name,
     #     str(lambda_value), str(split), str(seed), str(use_quadratic_transform), str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
 
-    filename = "linear_hinge" + "-" + scenario_name + ".csv"
+    filename = "linhinge_test-" + scenario_name + ".csv"
     # loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
     filepath = results_path_corras + filename
     # print(filepath)
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "linear-squared-hinge-new-weighted" + scenario_name +"-iter100"
+        table_name = "test_linhinge-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -188,4 +205,4 @@ for scenario_name in scenarios:
             "abs_distance_to_vbs", "par10", "run_status"
         ])
     df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
-                     scenario_name + "-new-weights-eps.csv")
+                     scenario_name + "-test.csv")

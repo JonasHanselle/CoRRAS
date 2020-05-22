@@ -21,8 +21,23 @@ evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge_nn/"
 
-scenarios = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
-lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+scenarios = [
+    "CPMP-2015",
+    "MIP-2016",
+    # "CSP-2010",
+    # "SAT11-HAND",
+    # "SAT11-INDU",
+    # "SAT11-RAND",
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
+]
+
+# scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
+
+lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+lambda_values = [1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
@@ -30,12 +45,14 @@ seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
-es_patiences = [64]
+es_patiences = [8]
 es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = ["[32]"]
 activation_functions = ["sigmoid"]
-use_weighted_samples_values = [True, False]
+use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10"]
+scale_target_to_unit_interval_values = [True]
+use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 params = [
@@ -46,8 +63,8 @@ params = [
 param_product = list(product(*params))
 name_map = {
     "ndcg": "NDCG",
-    "tau_corr": "Kendall $\\tau_b$",
-    "tau_p": "Kendall $\\tau_b$ p-value",
+    "tau_corr": "Kendall $\\tau$",
+    "tau_p": "Kendall $\\tau$ p-value",
     "mae": "MAE",
     "mse": "MSE",
     "rmse": "RMSE",
@@ -101,8 +118,8 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
-                                 scenario_name + "-new.csv")
-            corras["lambda"] = 1.0 - corras["lambda"]
+                                 scenario_name + "-test.csv")
+            # corras["lambda"] = 1.0 - corras["lambda"]
 
         except:
             print("Scenario " + scenario_name +
@@ -153,10 +170,10 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_weighted_samples",
+                              hue="use_max_inverse_transform",
                               data=results_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None)
             lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
             lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
@@ -180,7 +197,7 @@ for measure in measures:
         current_frame["rmse"] = current_frame["mse"].pow(1. / 2)
         print(current_frame.head())
         print(current_frame.columns)
-        # print(current_frame["use_weighted_samples"].value_counts())
+        # print(current_frame["max_inverse_transform"].value_counts())
         print(current_frame["lambda"].value_counts())
         df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1. / 2)
         df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1. / 2)
@@ -196,20 +213,20 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_weighted_samples",
+                              hue="use_max_inverse_transform",
                               data=current_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None)
         else:
             lp = sns.lineplot(x="lambda",
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_weighted_samples",
+                              hue="use_max_inverse_transform",
                               data=current_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=95)
         if df_baseline_rf is not None:
             lp.axes.axhline(df_baseline_rf[measure].mean(),
@@ -237,7 +254,7 @@ for measure in measures:
     fig.set_size_inches(10.5, 3.0)
     # plt.subplots_adjust(right=0.85)
     fig.tight_layout()
-    if measure in ["mse", "rmse", "mae"]:
+    if measure not in ["mse", "rmse", "mae"]:
         labels = [
             "Hinge-NN unweighted", "Hinge-NN weighted", "Random Forest",
             "Linear Regression", "Label Ranking"
@@ -252,14 +269,14 @@ for measure in measures:
                         loc="lower center",
                         ncol=len(labels),
                         bbox_to_anchor=(0.5, -0.02))
-    plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
-                params_string.replace(".", "_") + "-" + measure + ".pdf",
-                bbox_extra_artists=(legend, ),
-                bbox_inches="tight")
+    # plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
+    #             params_string.replace(".", "_") + "-" + measure + ".pdf",
+    #             bbox_extra_artists=(legend, ),
+    #             bbox_inches="tight")
 
-    os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf " +
-              figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf")
+    # os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf " +
+    #           figures_path + "-".join(scenarios) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf")
 
-    # plt.show()
+    plt.show()

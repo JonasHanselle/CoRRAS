@@ -1,0 +1,283 @@
+shard length 6
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+...                                                     ...         ...
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1822 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-3-4.xml.watchless.minion.gz  3.719440e-06  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  1.199820e-06  7.398800e-07
+1-fullins-4-5.xml.watchless.minion.gz  3.879420e-06  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      9  ...          -865.634363
+1      9  ...          -426.342438
+2      9  ...         -4331.609788
+3      9  ...         -2345.328467
+4      9  ...         12776.724716
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-1.0-1.0-9-15-True-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-3.xml.watchless.minion.gz              0.030995    0.025995
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+...                                                     ...         ...
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+will199GPIA-7.xml.watchless.minion.gz              0.306952    0.276958
+
+[1822 rows x 2 columns]
+asc
+performances algorithm                                  learning      standard
+instance_id                                                      
+1-fullins-3-3.xml.watchless.minion.gz  6.199000e-07  5.199000e-07
+1-fullins-3-4.xml.watchless.minion.gz  3.719440e-06  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  1.199820e-06  7.398800e-07
+1-fullins-4-5.xml.watchless.minion.gz  3.879420e-06  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  1.939700e-06  1.619760e-06
+labels                                        1  2
+1-fullins-3-3.xml.watchless.minion.gz  1  0
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-3.xml.watchless.minion.gz  1.0  2.0
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0      9  ...          -865.634363
+1      9  ...          -426.342438
+2      9  ...         -4331.609788
+3      9  ...         -2345.328467
+4      9  ...         12776.724716
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-1.0-1.0-9-15-True-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-681_ext.xml.minion.converted.minion.gz  50000.000000   89.362415
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                              learning      standard
+instance_id                                                  
+1-fullins-3-4.xml.watchless.minion.gz  0.000004  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  0.000001  7.398800e-07
+1-fullins-4-5.xml.watchless.minion.gz  0.000004  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  0.000002  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  0.017742  1.257009e-04
+labels                                        1  2
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0     10  ...          4266.443449
+1     10  ...         -4881.554396
+2     10  ...         -5532.729738
+3     10  ...          4828.988306
+4     10  ...          4817.764285
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-1.0-1.0-10-15-False-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-681_ext.xml.minion.converted.minion.gz  50000.000000   89.362415
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                              learning      standard
+instance_id                                                  
+1-fullins-3-4.xml.watchless.minion.gz  0.000004  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  0.000001  7.398800e-07
+1-fullins-4-5.xml.watchless.minion.gz  0.000004  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  0.000002  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  0.017742  1.257009e-04
+labels                                        1  2
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0     10  ...          4266.443449
+1     10  ...         -4881.554396
+2     10  ...         -5532.729738
+3     10  ...          4828.988306
+4     10  ...          4817.764285
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-1.0-1.0-10-15-False-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-681_ext.xml.minion.converted.minion.gz  50000.000000   89.362415
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                              learning      standard
+instance_id                                                  
+1-fullins-3-4.xml.watchless.minion.gz  0.000004  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  0.000001  7.398800e-07
+1-fullins-4-5.xml.watchless.minion.gz  0.000004  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  0.000002  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  0.017742  1.257009e-04
+labels                                        1  2
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0     10  ...          8851.287516
+1     10  ...         -4936.008964
+2     10  ...         -4082.725505
+3     10  ...           999.340050
+4     10  ...           407.421837
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-1.0-1.0-10-15-True-None-False-0.001-True-False message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)
+algorithm                                          learning    standard
+instance_id                                                            
+1-fullins-3-4.xml.watchless.minion.gz              0.185972    0.167974
+1-fullins-4-4.xml.watchless.minion.gz              0.059991    0.036994
+1-fullins-4-5.xml.watchless.minion.gz              0.193971    0.171973
+1-fullins-5-4.xml.watchless.minion.gz              0.096985    0.080988
+1-fullins-5-5.xml.watchless.minion.gz            887.100994    6.285043
+...                                                     ...         ...
+tsp-25-681_ext.xml.minion.converted.minion.gz  50000.000000   89.362415
+tsp-25-715_ext.xml.minion.converted.minion.gz  50000.000000  412.106350
+tsp-25-843_ext.xml.minion.converted.minion.gz  50000.000000   54.657690
+will199GPIA-5.xml.watchless.minion.gz              0.118982    0.115982
+will199GPIA-6.xml.watchless.minion.gz              0.601909    0.251961
+
+[1821 rows x 2 columns]
+asc
+performances algorithm                              learning      standard
+instance_id                                                  
+1-fullins-3-4.xml.watchless.minion.gz  0.000004  3.359480e-06
+1-fullins-4-4.xml.watchless.minion.gz  0.000001  7.398800e-07
+1-fullins-4-5.xml.watchless.minion.gz  0.000004  3.439460e-06
+1-fullins-5-4.xml.watchless.minion.gz  0.000002  1.619760e-06
+1-fullins-5-5.xml.watchless.minion.gz  0.017742  1.257009e-04
+labels                                        1  2
+1-fullins-3-4.xml.watchless.minion.gz  1  0
+1-fullins-4-4.xml.watchless.minion.gz  1  0
+1-fullins-4-5.xml.watchless.minion.gz  1  0
+1-fullins-5-4.xml.watchless.minion.gz  1  0
+1-fullins-5-5.xml.watchless.minion.gz  1  0
+weight                                          1    2
+1-fullins-3-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-4-5.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-4.xml.watchless.minion.gz  1.0  2.0
+1-fullins-5-5.xml.watchless.minion.gz  1.0  2.0
+sample weights [1. 1. 1. ... 1. 1. 1.]
+   split  ... standard_performance
+0     10  ...          8851.287516
+1     10  ...         -4936.008964
+2     10  ...         -4082.725505
+3     10  ...           999.340050
+4     10  ...           407.421837
+
+[5 rows x 13 columns]
+Something went wrong during computation with parameters CSP-2010-1.0-1.0-10-15-True-None-False-0.001-True-True message: (MySQLdb._exceptions.OperationalError) (2013, 'Lost connection to MySQL server during query')
+[SQL: DESCRIBE `linear-squared-hinge-new-weightedCSP-2010`]
+(Background on this error at: http://sqlalche.me/e/e3q8)

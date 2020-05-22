@@ -42,19 +42,25 @@ db_db = sys.argv[4]
 seeds = [15]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-scenarios = [
-    "SAT11-RAND", "SAT11-INDU", "SAT11-HAND", "MAXSAT-WPMS-2016",
-    "MAXSAT-PMS-2016", "QBF-2016", "MIP-2016", "CSP-2010",
-    "CSP-Minizinc-Time-2016", "CPMP-2015"
-]
 
+scenarios = [
+    "CPMP-2015",
+    "MIP-2016",
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
+    # "CSP-Minizinc-Time-2016",
+    # "MAXSAT-WPMS-2016",
+    # "MAXSAT-PMS-2016",
+    # "QBF-2016"
+]
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [1.0]
 # scenarios = ["CPMP-2015"]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [False]
+use_quadratic_transform_values = [False, True]
 # use_quadratic_transform_values = [True]
 use_max_inverse_transform_values = ["max_cutoff"]
 # use_max_inverse_transform_values = ["max_cutoff"]
@@ -128,7 +134,7 @@ for scenario_name in scenarios:
 
         if len(current_frame) != len(test_scenario.performance_data):
             print(
-                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries! For lambda = {lambda_value} and quadratic transform = {use_quadratic_transform}"
             )
             continue
 
@@ -195,5 +201,5 @@ for scenario_name in scenarios:
             "abs_distance_to_vbs", "par10", "par10_with_feature_cost",
             "run_status"
         ])
-    df_corras.to_csv(evaluations_path + "baseline-label-ranking-" +
-                     scenario_name + ".csv")
+    df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" +
+                     scenario_name + "-new-short.csv")
