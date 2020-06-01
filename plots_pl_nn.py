@@ -23,12 +23,12 @@ figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl_nn/"
 
 
 scenarios = [
-    # "CPMP-2015",
+    "CPMP-2015",
     "MIP-2016",
     "CSP-2010",
-    # "SAT11-HAND",
-    # "SAT11-INDU",
-    # "SAT11-RAND",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
     # "CSP-Minizinc-Time-2016",
     # "MAXSAT-WPMS-2016",
     # "MAXSAT-PMS-2016",
@@ -121,16 +121,16 @@ for measure in measures:
         # continue
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
-            corras = pd.read_csv(evaluations_path + "corras-pl-nn-" +
-                                 scenario_name + "-test.csv")
+            corras = pd.read_csv(evaluations_path + "ki2020-plnet-" +
+                                 scenario_name + ".csv")
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
             continue
         print(corras.head())
         current_frame = corras.loc[
-            (corras["seed"] == seed)
-            & (corras["learning_rate"] == learning_rate)
+            # (corras["seed"] == seed)
+            (corras["learning_rate"] == learning_rate)
             & (corras["batch_size"] == batch_size) &
             (corras["es_patience"] == es_patience) &
             (corras["es_interval"] == es_interval) &
@@ -175,7 +175,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_weighted_samples",
+                              hue="seed",
                               data=results_frame,
                               ax=ax,
                               legend=None,
@@ -215,7 +215,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_weighted_samples",
+                              hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend=None,
@@ -225,7 +225,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_weighted_samples",
+                              hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend=None,

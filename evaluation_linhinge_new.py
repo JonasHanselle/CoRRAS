@@ -41,15 +41,13 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-
-
 scenarios = [
-    # "CPMP-2015",
+    "CPMP-2015",
     "MIP-2016",
-    # "CSP-2010",
-    # "SAT11-HAND",
-    # "SAT11-INDU",
-    # "SAT11-RAND"
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
     # "CSP-Minizinc-Time-2016",
     # "MAXSAT-WPMS-2016",
     # "MAXSAT-PMS-2016",
@@ -57,29 +55,23 @@ scenarios = [
 ]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.0, 0.3, 0.5, 0.7, 0.9, 1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 100
-seeds = [15]
-use_quadratic_transform_values = [False]
-# use_quadratic_transform_values = [True]
-use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10", "test a", "test b"]
-# use_max_inverse_transform_values = ["max_cutoff"]
+seeds = [1, 2, 3, 4, 5, 15]
+use_quadratic_transform_values = [False, True]
+use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-# scale_target_to_unit_interval_values = [True]
-regularization_params_values = [0.001]
+skip_censored_values = [False]
+regulerization_params_values = [0.001]
 use_weighted_samples_values = [False]
-skip_censored_values=[False]
-
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-# splits = [5,]
 
 params = [
     lambda_values, epsilon_values, splits, seeds,
     use_quadratic_transform_values, use_max_inverse_transform_values,
     scale_target_to_unit_interval_values, skip_censored_values,
-    regularization_params_values, use_weighted_samples_values
+    regulerization_params_values, use_weighted_samples_values
 ]
 
 param_product = list(product(*params))
@@ -103,7 +95,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "test_linhinge-" + scenario_name
+        table_name = "ki2020_linhinge-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -147,13 +139,14 @@ for scenario_name in scenarios:
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if len(current_frame) != len(test_scenario.performance_data):
-            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split}!")
+            print(
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split} seed {seed}!"
+            )
             continue
-
-        for problem_instance, performances in scenario.performance_data.iterrows(
+        for problem_instance, performances in test_scenario.performance_data.iterrows(
         ):
-            if not problem_instance in current_frame.index:
-                continue
+            # if not problem_instance in current_frame.index:
+            #     continue
             true_performances = scenario.performance_data.loc[
                 problem_instance].astype("float64").to_numpy()
             true_ranking = scenario.performance_rankings.loc[
@@ -172,7 +165,7 @@ for scenario_name in scenarios:
                 performance_indices].astype("float64").to_numpy()
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
-                    method="min").fillna(-1).astype("int16").to_numpy()
+                    method="min").astype("int16").to_numpy()
             if np.isinf(corras_performances).any():
                 print("Warning, NaN in performance prediction for " +
                       problem_instance + "!")
@@ -204,5 +197,5 @@ for scenario_name in scenarios:
             "use_weighted_samples", "tau_corr", "tau_p", "ndcg", "mse", "mae",
             "abs_distance_to_vbs", "par10", "run_status"
         ])
-    df_corras.to_csv(evaluations_path + "corras-hinge-linear-" +
-                     scenario_name + "-test.csv")
+    df_corras.to_csv(evaluations_path + "ki2020-linhinge-" + scenario_name +
+                     ".csv")

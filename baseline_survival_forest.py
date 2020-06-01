@@ -37,7 +37,7 @@ db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
 # max_rankings_per_instance = 5
-seed = 1
+seed = 15
 num_splits = 10
 result_data_corras = []
 baselines = None

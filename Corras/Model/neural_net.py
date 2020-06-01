@@ -159,7 +159,7 @@ class NeuralNetwork:
                 tf.multiply(sample_weight,
                             tf.square(tf.subtract(y_hat, y_perf[:, i]))))
             # exp_utils = tf.exp(output)
-            exp_utils_ordered = tf.exp(tf.stack([y_hat_0, y_hat_1], axis=1))
+            exp_utils_ordered = tf.exp(tf.stack([y_hat_1, y_hat_0], axis=1))
             exp_utils = tf.exp(output)
             # exp_utils_ordered = exp_utils[
             #     np.arange(exp_utils.shape[0])[:, np.newaxis], y_ind]

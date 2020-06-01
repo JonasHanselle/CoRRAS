@@ -39,9 +39,6 @@ db_user = sys.argv[2]
 db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
-seeds = [15]
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
 
 scenarios = [
     "CPMP-2015",
@@ -59,15 +56,13 @@ lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 # scenarios = ["CPMP-2015"]
 max_pairs_per_instance = 5
 maxiter = 100
-seeds = [15]
 use_quadratic_transform_values = [False, True]
-# use_quadratic_transform_values = [True]
 use_max_inverse_transform_values = ["max_cutoff"]
-# use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-# scale_target_to_unit_interval_values = [True]
 regularization_params_values = [0.001]
 use_weighted_samples_values = [False]
+seeds = [1, 2, 3, 4, 5, 15]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
     splits, lambda_values, seeds, use_quadratic_transform_values,
@@ -88,10 +83,13 @@ for scenario_name in scenarios:
 
     corras = None
     try:
-        if scenario_name == "CSP-Minizinc-Time-2016":
-            table_name = "linear-plackett-luce-new" + "CSP-MT-2016" + "-weighted-iter100-fix"
-        else:
-            table_name = "linear-plackett-luce-new" + scenario_name + "-weighted-iter100-fix"
+
+        # if scenario_name == "CSP-Minizinc-Time-2016":
+        #     table_name = "linear-plackett-luce-new" + "CSP-MT-2016" + "-weighted-iter100-fix"
+        # else:
+        #     table_name = "linear-plackett-luce-new" + scenario_name + "-weighted-iter100-fix"
+
+        table_name = "ki2020_linpl-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -134,10 +132,12 @@ for scenario_name in scenarios:
 
         if len(current_frame) != len(test_scenario.performance_data):
             print(
-                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries! For lambda = {lambda_value} and quadratic transform = {use_quadratic_transform}"
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split} seed {seed}!"
+            )
+            print(
+                f"lambda {lambda_value} seed {seed} quadratic {use_quadratic_transform} max inverse {use_max_inverse_transform} scale {scale_target_to_unit_interval} weighted {use_weighted_samples} reg {regularization_param}"
             )
             continue
-
         for problem_instance, performances in scenario.performance_data.iterrows(
         ):
             if not problem_instance in current_frame.index:
@@ -167,7 +167,7 @@ for scenario_name in scenarios:
                 performance_indices].astype("float64").to_numpy()
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
-                    method="min").fillna(-1).astype("int16").to_numpy()
+                    method="min").astype("int16").to_numpy()
             if np.isinf(corras_performances).any():
                 print("Warning, NaN in performance prediction for " +
                       problem_instance + "!")
@@ -201,5 +201,5 @@ for scenario_name in scenarios:
             "abs_distance_to_vbs", "par10", "par10_with_feature_cost",
             "run_status"
         ])
-    df_corras.to_csv(evaluations_path + "corras-pl-log-linear-" +
-                     scenario_name + "-new-short.csv")
+    df_corras.to_csv(evaluations_path + "ki2020_linpl-" +
+                     scenario_name + ".csv")

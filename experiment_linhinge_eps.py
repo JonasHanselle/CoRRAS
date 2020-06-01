@@ -39,20 +39,20 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-scenarios = ["CSP-2010"]
+scenarios = ["CPMP-2015"]
 
-lambda_values = [0.0, 0.1,  0.3,  0.5,  0.7, 0.9, 1.0]
+lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 100
 seeds = [15]
-use_quadratic_transform_values = [False]
+use_quadratic_transform_values = [True, False]
 use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [False]
 regulerization_params_values = [0.001]
-use_weighted_samples_values = [False]
-splits = [1, 2]
+use_weighted_samples_values = [False,True]
+splits = [2]
 
 params = [
     scenarios, lambda_values, epsilon_values, splits, seeds,
@@ -85,8 +85,8 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
 
     # check if table for scenario_name exists
 
-    table_name = "linear-squared-hinge-new-weighted" + scenario_name + "-iter100"
-    table_name = "linear-squared-hinge" + scenario_name + "-fixed"
+    table_name="test_table_features"
+
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
         pass
@@ -173,7 +173,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         train_features = train_scenario.feature_data
         # preprocessing
         imputer = SimpleImputer()
-        polytransform = PolynomialFeatures(2)
+        polytransform = PolynomialFeatures(degree=2, include_bias=use_weighted_samples)
         scaler = StandardScaler()
 
         # Impute
@@ -188,9 +188,14 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
                                           index=train_features.index,
                                           columns=new_cols)
 
+        np.savetxt("quad_data_" + str(use_weighted_samples) + ".csv", train_features, delimiter=",")
+
         # Standardize
         train_features[train_features.columns] = scaler.fit_transform(
             train_features[train_features.columns])
+
+        np.savetxt("transformed_data.csv", train_features, delimiter=",")
+
 
         # inst, perf, rank = util.construct_numpy_representation_with_pairs_of_rankings(
         #     train_features, train_performances, max_pairs_per_instance=max_pairs_per_instance, seed=seed)
@@ -205,10 +210,10 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
         if use_max_inverse_transform == "max_cutoff":
             perf = perf.clip(0, cutoff)
             perf = cutoff - perf
-            order = "asc"
+            order = "desc"
         elif use_max_inverse_transform == "max_par10":
             perf = par10 - perf
-            order = "asc"
+            order = "desc"
 
         perf_max = 1
 
@@ -236,8 +241,8 @@ for scenario_name, lambda_value, epsilon_value, split, seed, use_quadratic_trans
             skip_value=skip_value)
 
         sample_weights = sample_weights / sample_weights.max()
-        if not use_weighted_samples:
-            sample_weights = np.ones(len(sample_weights))
+        # if not use_weighted_samples:
+        sample_weights = np.ones(len(sample_weights))
         print("sample weights", sample_weights)
         model = mode1 = lh.LinearHingeModel()
         model.fit_np(len(scenario.algorithms),

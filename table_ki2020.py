@@ -49,10 +49,6 @@ params = [
 
 param_product = list(product(*params))
 
-lambda_value_pl = 0.5
-lambda_value_hinge = 0.5
-epsilon_value_hinge = 1.0
-
 
 def create_latex_max(df: pd.DataFrame,
                      decimal_format="{:10.3f}",
@@ -212,17 +208,15 @@ for scenario_name in scenario_names:
     except Exception as ex:
         print(ex)
     try:
-        df_corras_plnet = pd.read_csv(evaluations_path + "corras-pl-nn-" +
-                                      scenario_name + "-seeded.csv")
+        df_corras_plnet = pd.read_csv(evaluations_path + "ki2020-plnet-" +
+                                      scenario_name + ".csv")
         df_corras_plnet_weighted = df_corras_plnet.loc[
-            (df_corras_plnet["seed"] == seed)
-            & (df_corras_plnet["activation_function"] == "sigmoid") &
+            (df_corras_plnet["activation_function"] == "sigmoid") &
             (df_corras_plnet["layer_sizes"] == "[32]") &
             (df_corras_plnet["use_weighted_samples"] == True)]
 
         df_corras_plnet_unweighted = df_corras_plnet.loc[
-            (df_corras_plnet["seed"] == seed)
-            & (df_corras_plnet["activation_function"] == "sigmoid") &
+            (df_corras_plnet["activation_function"] == "sigmoid") &
             (df_corras_plnet["layer_sizes"] == "[32]") &
             (df_corras_plnet["use_weighted_samples"] == False)]
     except Exception as ex:
@@ -232,23 +226,18 @@ for scenario_name in scenario_names:
 
         # load hinge neural network data
     try:
-        df_corras_nnh = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
-                                    scenario_name + "-new.csv")
+        df_corras_nnh = pd.read_csv(evaluations_path + "ki2020-nnh-" +
+                                    scenario_name + ".csv")
         # print("plnet head", df_corras_plnet.head())
 
-        df_corras_nnh.loc[:, "lambda"] = round(1.0 - df_corras_nnh["lambda"],
-                                               1)
-
         df_corras_nnh_weighted = df_corras_plnet.loc[
-            (df_corras_nnh["seed"] == seed)
-            & (df_corras_nnh["activation_function"] == "sigmoid") &
+            (df_corras_nnh["activation_function"] == "sigmoid") &
             (df_corras_nnh["layer_sizes"] == "[32]") &
             (df_corras_nnh["epsilon"] == 1.0) &
             (df_corras_nnh["use_weighted_samples"] == True)]
 
         df_corras_nnh_unweighted = df_corras_nnh.loc[
-            (df_corras_nnh["seed"] == seed)
-            & (df_corras_nnh["activation_function"] == "sigmoid") &
+            (df_corras_nnh["activation_function"] == "sigmoid") &
             (df_corras_nnh["layer_sizes"] == "[32]") &
             (df_corras_nnh["epsilon"] == 1.0) &
             (df_corras_nnh["use_weighted_samples"] == False)]
@@ -256,33 +245,29 @@ for scenario_name in scenario_names:
         print(ex)
 
     try:
-        df_corras_pl = pd.read_csv(evaluations_path + "corras-pl-log-linear-" +
-                                   scenario_name + "-new-short.csv")
+        df_corras_pl = pd.read_csv(evaluations_path + "ki2020_linpl-" +
+                                   scenario_name + ".csv")
 
         df_corras_pl_linear_weighted = df_corras_pl.loc[
-            (df_corras_pl["seed"] == seed)
-            & (df_corras_pl["quadratic_transform"] == False) &
+            (df_corras_pl["quadratic_transform"] == False) &
             (df_corras_pl["scale_to_unit_interval"] == True) &
             (df_corras_pl["max_inverse_transform"] == "max_cutoff") &
             (df_corras_pl["use_weighted_samples"] == True)]
 
         df_corras_pl_linear_unweighted = df_corras_pl.loc[
-            (df_corras_pl["seed"] == seed)
-            & (df_corras_pl["quadratic_transform"] == False) &
+            (df_corras_pl["quadratic_transform"] == False) &
             (df_corras_pl["scale_to_unit_interval"] == True) &
             (df_corras_pl["max_inverse_transform"] == "max_cutoff") &
             (df_corras_pl["use_weighted_samples"] == False)]
 
         df_corras_pl_quadratic_weighted = df_corras_pl.loc[
-            (df_corras_pl["seed"] == seed)
-            & (df_corras_pl["quadratic_transform"] == True) &
+            (df_corras_pl["quadratic_transform"] == True) &
             (df_corras_pl["scale_to_unit_interval"] == True) &
             (df_corras_pl["max_inverse_transform"] == "max_cutoff") &
             (df_corras_pl["use_weighted_samples"] == True)]
 
         df_corras_pl_quadratic_unweighted = df_corras_pl.loc[
-            (df_corras_pl["seed"] == seed)
-            & (df_corras_pl["quadratic_transform"] == True) &
+            (df_corras_pl["quadratic_transform"] == True) &
             (df_corras_pl["scale_to_unit_interval"] == True) &
             (df_corras_pl["max_inverse_transform"] == "max_cutoff") &
             (df_corras_pl["use_weighted_samples"] == False)]
@@ -291,42 +276,35 @@ for scenario_name in scenario_names:
 
     try:
         df_corras_hinge = pd.read_csv(evaluations_path +
-                                      "corras-hinge-linear-" + scenario_name +
-                                      "-new-weights.csv")
+                                      "ki2020-linhinge-" + scenario_name +
+                                      ".csv")
 
-        df_corras_hinge.loc[:,
-                            "lambda"] = round(1.0 - df_corras_hinge["lambda"],
-                                              1)
 
         df_corras_hinge_linear_weighted = df_corras_hinge.loc[
-            (df_corras_hinge["seed"] == seed)
-            & (df_corras_hinge["quadratic_transform"] == False) &
+            (df_corras_hinge["quadratic_transform"] == False) &
             (df_corras_hinge["scale_to_unit_interval"] == True) &
-            (df_corras_hinge["max_inverse_transform"] == "None") &
+            (df_corras_hinge["max_inverse_transform"] == "max_cutoff") &
             (df_corras_hinge["epsilon"] == 1.0) &
             (df_corras_hinge["use_weighted_samples"] == True)]
 
         df_corras_hinge_linear_unweighted = df_corras_hinge.loc[
-            (df_corras_hinge["seed"] == seed)
-            & (df_corras_hinge["quadratic_transform"] == False) &
+            (df_corras_hinge["quadratic_transform"] == False) &
             (df_corras_hinge["scale_to_unit_interval"] == True) &
-            (df_corras_hinge["max_inverse_transform"] == "None") &
+            (df_corras_hinge["max_inverse_transform"] == "max_cutoff") &
             (df_corras_hinge["epsilon"] == 1.0) &
             (df_corras_hinge["use_weighted_samples"] == False)]
 
         df_corras_hinge_quadratic_weighted = df_corras_hinge.loc[
-            (df_corras_hinge["seed"] == seed)
-            & (df_corras_hinge["quadratic_transform"] == True) &
+            (df_corras_hinge["quadratic_transform"] == True) &
             (df_corras_hinge["scale_to_unit_interval"] == True) &
-            (df_corras_hinge["max_inverse_transform"] == "None") &
+            (df_corras_hinge["max_inverse_transform"] == "max_cutoff") &
             (df_corras_hinge["epsilon"] == 1.0) &
             (df_corras_hinge["use_weighted_samples"] == True)]
 
         df_corras_hinge_quadratic_unweighted = df_corras_hinge.loc[
-            (df_corras_hinge["seed"] == seed)
-            & (df_corras_hinge["quadratic_transform"] == True) &
+            (df_corras_hinge["quadratic_transform"] == True) &
             (df_corras_hinge["scale_to_unit_interval"] == True) &
-            (df_corras_hinge["max_inverse_transform"] == "None") &
+            (df_corras_hinge["max_inverse_transform"] == "max_cutoff") &
             (df_corras_hinge["epsilon"] == 1.0) &
             (df_corras_hinge["use_weighted_samples"] == False)]
     except Exception as ex:
@@ -382,10 +360,10 @@ for scenario_name in scenario_names:
     #     else:
     #         print(approaches_names[i], len(x))
 
-    if df_corras_plnet_unweighted is not None:
-        print("CORRAS PL NET", scenario_name,
-              df_corras_plnet_unweighted["tau_corr"].mean(),
-              len(scenario.performance_data), len(df_corras_plnet_unweighted))
+    # if df_corras_plnet_unweighted is not None:
+    #     print("CORRAS PL NET", scenario_name,
+    #           df_corras_plnet_unweighted["tau_corr"].mean(),
+    #           len(scenario.performance_data), len(df_corras_plnet_unweighted))
 
     for lambda_val in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
         par10_scores = [scenario_name]
@@ -396,7 +374,7 @@ for scenario_name in scenario_names:
             # print(approach_df.head())
             current_df = approach_df[approach_df["lambda"] == lambda_val]
             try:
-                if len(current_df) == len(scenario.performance_data):
+                if len(current_df) == 6*len(scenario.performance_data):
                     par10_scores.append(current_df["par10"].mean())
                     succ_rates.append(current_df["run_status"].value_counts(
                         normalize=True)["ok"])
@@ -431,7 +409,7 @@ for scenario_name in scenario_names:
                                               approaches_dfs):
             current_df = approach_df[approach_df["lambda"] == lambda_val]
             try:
-                if len(current_df) == len(scenario.performance_data):
+                if len(current_df) == 6 * len(scenario.performance_data):
                     taus.append(current_df["tau_corr"].mean())
                     rmses.append(math.sqrt(current_df["mse"].mean()))
                     ndcgs.append(current_df["ndcg"].mean())
@@ -470,6 +448,7 @@ comparison_frame_succ = pd.DataFrame(data=comparison_data_succ,
                                      ["lambda"])
 
 print(comparison_frame_taus)
+
 
 counters_data = []
 

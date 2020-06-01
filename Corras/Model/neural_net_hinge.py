@@ -152,11 +152,7 @@ class NeuralNetworkSquaredHinge:
                 tf.multiply(
                     sample_weight,
                     tf.square(
-                        tf.maximum(0, epsilon_value - (y_hat_1 - y_hat_0)))))
-            if lambda_value == 1.0:
-                return rank_loss, reg_loss, rank_loss
-            if lambda_value == 0.0:
-                return reg_loss, reg_loss, rank_loss
+                        tf.maximum(0, epsilon_value - (y_hat_0 - y_hat_1)))))
             return (
                 1 - lambda_value
             ) * reg_loss + lambda_value * rank_loss, reg_loss, rank_loss

@@ -10,32 +10,6 @@ class LinearHingeModel:
         self.weights = None
         self.loss_history = []
 
-    def squared_error(self, performances: np.ndarray, features: np.ndarray,
-                      weights: np.ndarray):
-        """Compute squared error for regression
-
-        Arguments:
-            performances {np.ndarray} -- [description]
-            features {np.ndarray} -- [description]
-            weights {np.ndarray} -- [description]
-
-        Returns:
-            [type] -- [description]
-        """
-        loss = 0
-        feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
-        utilities = None
-        if self.use_exp_for_regression:
-            utilities = np.exp(np.dot(weights, feature_values.T))
-        else:
-            utilities = np.dot(weights, feature_values.T)
-        inverse_utilities = utilities
-        if self.use_reciprocal_for_regression:
-            inverse_utilities = np.reciprocal(utilities)
-        loss += np.mean(
-            np.square(np.subtract(performances.T, inverse_utilities)))
-        return loss
-
     def fit_np(self,
                num_labels,
                labels,
@@ -64,6 +38,8 @@ class LinearHingeModel:
             sample_weights = np.ones(features.shape[0])
         # add one column for bias
         feature_values = np.hstack((features, np.ones((features.shape[0], 1))))
+        print("feature_values", feature_values)
+        np.savetxt("features_test.csv", feature_values, delimiter=",")
         num_features = feature_values.shape[1]
         self.weights = np.ones(
             (num_labels, num_features)) / (num_features * num_labels)
@@ -79,7 +55,7 @@ class LinearHingeModel:
                 squared_error = squared_error + np.sum(
                     np.square(y_hats - cur_performances))
                 hinge_loss = hinge_loss + max(
-                    0, epsilon_value - (y_hats[1] - y_hats[0]))**2
+                    0, epsilon_value - (y_hats[0] - y_hats[1]))**2
             squared_error = squared_error / labels.shape[0]
             hinge_loss = hinge_loss / labels.shape[0]
             self.loss_history.append([squared_error, hinge_loss])
@@ -98,7 +74,7 @@ class LinearHingeModel:
                 squared_error = squared_error + sample_weight * np.sum(
                     np.square(y_hats - cur_performances))
                 hinge_loss = hinge_loss + max(
-                    0, epsilon_value - (y_hats[1] - y_hats[0]))**2
+                    0, epsilon_value - (y_hats[0] - y_hats[1]))**2
                 hinge_loss = sample_weight * hinge_loss
             squared_error = squared_error / labels.shape[0]
             hinge_loss = hinge_loss / labels.shape[0]

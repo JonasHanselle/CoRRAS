@@ -22,10 +22,6 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/KI2020/figures/plots/"
-scenario_names = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
-scenario_names = ["MIP-2016", "CSP-2010"]
-scenario_names = ["SAT11-INDU", "CSP-2010"]
-scenario_names = ["SAT11-INDU", "CSP-2010"]
 scenario_names = [
     "SAT11-RAND",
     "CSP-2010",
@@ -44,7 +40,6 @@ lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
-seeds = [15]
 use_quadratic_transform_values = [False, True]
 use_max_inverse_transform_values = ["None"]
 scale_target_to_unit_interval_values = [True]
@@ -52,7 +47,6 @@ skip_censored_values = [False]
 regulerization_params_values = [0.001]
 use_weighted_samples_values = [False]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-seed = 15
 
 params = [
     scenario_names, use_max_inverse_transform_values,
@@ -79,6 +73,11 @@ measures = ["par10", "abs_distance_to_vbs", "success_rate"]
 measures = [
     "par10", "tau_corr", "mae", "mse"
 ]
+
+measures = [
+    "tau_corr", "par10"
+]
+
 
 # measures = ["par10", "mae", "tau_corr"]
 
@@ -119,45 +118,60 @@ for measure in measures:
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
             corras_linhinge = pd.read_csv(evaluations_path +
-                                          "corras-hinge-linear-" +
-                                          scenario_name + "-ki.csv")
-            # corras_linhinge["lambda"] = 1.0 - corras_linhinge["lambda"]
-            corras_hinge_nn = corras = pd.read_csv(evaluations_path +
-                                                   "corras-hinge-nn-" +
-                                                   scenario_name + "-ki.csv")
-            # corras_hinge_nn["lambda"] = 1.0 - corras_hinge_nn["lambda"]
-
-            corras_plnn = pd.read_csv(evaluations_path + "corras-pl-nn-" +
-                                      scenario_name + "-seeded.csv")
-
+                                            "ki2020-linhinge-" +
+                                            scenario_name + ".csv")
+            corras_plnn = pd.read_csv(evaluations_path + "ki2020-plnet-" +
+                                        scenario_name + ".csv")
             corras_linpl = pd.read_csv(evaluations_path +
-                                       "corras-pl-log-linear-" +
-                                       scenario_name + "-new-short.csv")
-
-            corras_linhinge = corras_linhinge.loc[
-                corras_linhinge["use_weighted_samples"] == False]
-            corras_hinge_nn = corras_hinge_nn.loc[
-                corras_hinge_nn["use_weighted_samples"] == False]
-            corras_plnn = corras_plnn.loc[corras_plnn["use_weighted_samples"]
-                                          == False]
-            corras_linpl = corras_linpl.loc[
-                corras_linpl["use_weighted_samples"] == False]
-
+                                        "ki2020_linpl-" +
+                                        scenario_name + ".csv")
+            corras_hinge_nn = corras = pd.read_csv(evaluations_path +
+                                                    "ki2020-nnh-" +
+                                                    scenario_name + ".csv")
             print(f"lengths {len(corras_linhinge)} {len(corras_hinge_nn)} {len(corras_plnn)} {len(corras_linpl)}")
 
+            # for lambda_val in lambda_values:
+            #     current_frame = corras_linhinge[corras_linhinge["lambda"] == lambda_val]
+            #     print("linhinge", lambda_val, current_frame.count())
+            #     current_frame = corras_plnn[corras_plnn["lambda"] == lambda_val]
+            #     print("plnn", lambda_val, current_frame.count())
+            #     current_frame = corras_hinge_nn[corras_hinge_nn["lambda"] == lambda_val]
+            #     print("hnn", lambda_val, current_frame.count())
+            #     current_frame = corras_linpl[corras_linpl["lambda"] == lambda_val]
+            #     print("linpl", lambda_val, current_frame.count())
+            # continue
+        # continue
+            corras_linhinge = corras_linhinge.groupby(["lambda", "seed", "quadratic_transform"]).agg("mean").reset_index()
+
+            corras_plnn = corras_plnn.groupby(["lambda", "seed"]).agg("mean").reset_index()
+            corras_hinge_nn = corras_hinge_nn.groupby(["lambda", "seed"]).agg("mean").reset_index()
+
+            corras_linpl = corras_linpl.groupby(["lambda", "seed", "quadratic_transform"]).agg("mean").reset_index()
+
+            # corras_linhinge = corras_linhinge.loc[
+            #     corras_linhinge["use_weighted_samples"] == False]
+            # corras_hinge_nn = corras_hinge_nn.loc[
+            #     corras_hinge_nn["use_weighted_samples"] == False]
+            # corras_plnn = corras_plnn.loc[corras_plnn["use_weighted_samples"]
+            #                               == False]
+            # corras_linpl = corras_linpl.loc[
+            #     corras_linpl["use_weighted_samples"] == False]
+
+
             corras_linhinge["Approach"] = "Hinge-LM"
+            print(corras_linhinge.head())
             corras_linpl["Approach"] = "PL-LM"
             corras_plnn["Approach"] = "PL-NN"
             corras_hinge_nn["Approach"] = "Hinge-NN"
 
-
             # print(corras_linhinge.loc[corras_linhinge["quadratic_transform"] ==
             #                     True]["Approach"])
 
+            print(corras_linhinge.columns)
             corras_linhinge.loc[corras_linhinge["quadratic_transform"] == True,
                                 "Approach"] = "Hinge-QM"
             corras_linpl.loc[corras_linpl["quadratic_transform"] == True,
-                             "Approach"] = "PL-QM"
+                                "Approach"] = "PL-QM"
             print(corras_linpl.loc[corras_linpl["Approach"] == "PL-QM"])
 
             # df_all = corras_linhinge[[
@@ -181,16 +195,16 @@ for measure in measures:
             frames = [
                 corras_hinge_nn[[
                     "Approach", "lambda", "mae", "par10", "tau_corr",
-                    "problem_instance"
+                    
                 ]], corras_linpl[[
                     "Approach", "lambda", "mae", "par10", "tau_corr",
-                    "problem_instance"
+                    
                 ]], corras_plnn[[
                     "Approach", "lambda", "mae", "par10", "tau_corr",
-                    "problem_instance"
+                    
                 ]], corras_linhinge[[
                     "Approach", "lambda", "mae", "par10", "tau_corr",
-                    "problem_instance"
+                    
                 ]]
             ]
 
@@ -205,8 +219,8 @@ for measure in measures:
             # print(corras.head())
         except Exception as ex:
             print("Scenario " + scenario_name +
-                  " not found in corras evaluation dataaaaaaaa!" + str(ex))
-            # continue
+                " not found in corras evaluation dataaaaaaaa!" + str(ex))
+            continue
         # current_frame = corras.loc[
         #     (corras["seed"] == seed) &
         #     (corras["scale_to_unit_interval"] == scale_target_to_unit_interval)
@@ -252,7 +266,7 @@ for measure in measures:
                               data=df_all,
                               hue="Approach",
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None,
                               hue_order=labels)
         else:
@@ -263,7 +277,7 @@ for measure in measures:
                               data=df_all,
                               hue="Approach",
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None,
                               hue_order=labels)
         ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
@@ -297,7 +311,7 @@ for measure in measures:
 #         plt.savefig(figures_path + scenario_name + "-" + params_string.replace(".","_") + "-" + measure + "-lineplot-mi.pdf")
     fig.set_size_inches(10.5, 5.5)
     # if measure in ["rmse", "mse", "mae"]:
-    plt.subplots_adjust(bottom=0.14, wspace=0.3, hspace=0.42)
+    plt.subplots_adjust(bottom=0.14, wspace=0.35, hspace=0.42)
     # labels = list(df_all.Approach.unique())
     # if measure in ["rmse", "mse", "mae"]:
     #     labels += ["Random Forest Regression"]

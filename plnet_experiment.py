@@ -1,31 +1,26 @@
-import sys
 import os.path
+import sys
+import urllib
+from itertools import product
 
 import autograd.numpy as np
 import pandas as pd
-
-from itertools import product
-
+# Database
+import sqlalchemy as sql
+from scipy.stats import kendalltau
+from sklearn.impute import SimpleImputer
 # evaluation stuff
 from sklearn.model_selection import KFold
-from scipy.stats import kendalltau
-
 # preprocessing
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sqlalchemy import MetaData, Table
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import and_, exists, or_, select
 
 # Corras
 import Corras.Model.neural_net as neural_net
 from Corras.Scenario import aslib_ranking_scenario
 from Corras.Util import ranking_util as util
-
-# Database
-import sqlalchemy as sql
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import Table, MetaData
-from sqlalchemy.sql import exists, select, and_, or_
-import urllib
 
 result_path = "./results/"
 loss_path = "./losses-plnet/"
@@ -40,9 +35,9 @@ db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
 scenarios = [
-    # "CPMP-2015",
-    "MIP-2016",
-    "CSP-2010",
+    "CPMP-2015",
+    # "MIP-2016",
+    # "CSP-2010",
     # "SAT11-HAND",
     # "SAT11-INDU",
     # "SAT11-RAND"
@@ -55,8 +50,7 @@ scenarios = [
 # scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.0, 0.3, 0.5, 0.9, 1.0]
-# lambda_values = [0.5,1.0]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
@@ -68,15 +62,15 @@ es_intervals = [8]
 es_val_ratios = [0.3]
 layer_sizes_vals = [[32]]
 activation_functions = ["sigmoid"]
-use_max_inverse_transform_values = ["max_cutoff"]
+use_weighted_samples_values = [False]
 scale_target_to_unit_interval_values = [True]
+use_max_inverse_transform_values = ["max_cutoff"]
 use_weighted_samples_values = [False]
 
-splits = [1, 2, 3]
-# splits = [1, 2]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
-    scenarios, lambda_values, splits, seeds, learning_rates, es_intervals,
+    scenarios,  splits, lambda_values, seeds, learning_rates, es_intervals,
     es_patiences, es_val_ratios, batch_sizes, layer_sizes_vals,
     activation_functions, use_weighted_samples_values,
     scale_target_to_unit_interval_values, use_max_inverse_transform_values
@@ -98,12 +92,11 @@ else:
 engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" + db_url +
                            "/" + db_db,
                            echo=False,
-                           pool_recycle=300,
-                           pool_size=1)
+                           pool_recycle=300)
 
-for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples, scale_target_to_unit_interval, use_max_inverse_transform in shard:
+for scenario_name,  split, lambda_value, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples, scale_target_to_unit_interval, use_max_inverse_transform in shard:
 
-    table_name = "test_plnet-" + scenario_name
+    table_name = "ki2020_plnet-" + scenario_name
 
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
@@ -208,9 +201,6 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
         par10 = cutoff * 10
 
         perf = train_performances.to_numpy()
-
-        # perf_max = np.max(perf)
-        # perf = perf / perf_max
 
         order = "asc"
 

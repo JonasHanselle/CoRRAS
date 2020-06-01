@@ -22,7 +22,14 @@ evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/pl/"
 
-scenarios = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
+scenarios = [
+    # "CPMP-2015",
+    # "MIP-2016",
+    # "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND"
+    ]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 max_pairs_per_instance = 5
@@ -67,7 +74,7 @@ measures = [
     "par10", "abs_distance_to_vbs", "success_rate", "tau_corr", "ndcg", "mae",
     "mse", "rmse", "rmse_fixed"
 ]
-measures = ["rmse_fixed"]
+measures = ["tau_corr", "par10"]
 
 seed = seeds[0]
 
@@ -105,14 +112,14 @@ for measure in measures:
         # continue
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
-            corras = pd.read_csv(evaluations_path + "corras-pl-log-linear-" +
-                                 scenario_name + "-new-short.csv")
+            corras = pd.read_csv(evaluations_path + "ki2020_linpl-" +
+                                 scenario_name + ".csv")
         except:
             print("Scenario " + scenario_name +
                   " not found in corras evaluation data!")
             continue
         current_frame = corras.loc[
-            (corras["seed"] == seed) &
+            # (corras["seed"] == seed) &
             (corras["scale_to_unit_interval"] == scale_target_to_unit_interval)
             & (corras["max_inverse_transform"] == use_max_inverse_transform)
             & (corras["use_weighted_samples"] == use_weighted_samples)
@@ -152,7 +159,8 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              style="quadratic_transform",
+                            #   hue="seed",
                               data=results_frame,
                               ax=ax,
                               legend=None)
@@ -208,7 +216,8 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              style="quadratic_transform",
+                            #   hue="seed",
                               data=results_frame,
                               ax=ax,
                               legend=None)
@@ -266,7 +275,7 @@ for measure in measures:
     #     print(current_frame.iloc[:10,8:12].to_latex(na_rep="-", index=False, bold_rows=True, float_format="%.2f", formatters={"tau_corr" : max_formatter}, escape=False))
     #     for measure in current_frame.columns[8:]:
     #         plt.clf()
-    # bp = sns.boxplot(x="lambda", y=measure, hue="epsilon", data=df_corras)
+    # bp = sns.boxplot(x="lambda", y=measure, style="epsilon", data=df_corras)
     # bp = sns.boxplot(x="lambda", y=measure, data=df_corras)
     # if df_baseline is not None:
     #     bp.axes.axhline(df_baseline[measure].mean(), c="g", ls="--", label="rf-baseline-mean")
@@ -276,7 +285,7 @@ for measure in measures:
     # print("length of current frame", len(current_frame))
     # print("columns", current_frame.columns[8:])
     # plt.clf()
-    # bp = sns.lineplot(x="lambda", y=measure, hue="epsilon", data=df_corras, palette=sns.color_palette("Set1", len(pd.unique(df_corras["epsilon"]))))
+    # bp = sns.lineplot(x="lambda", y=measure, style="epsilon", data=df_corras, palette=sns.color_palette("Set1", len(pd.unique(df_corras["epsilon"]))))
     # g = sns.FacetGrid(df_corras, col="max_inverse_transform")
     # g.map(sns.lineplot, "lambda", measure)
 
@@ -285,7 +294,8 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              style="quadratic_transform",
+                            #   hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend=None,
@@ -295,7 +305,8 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              style="quadratic_transform",
+                            #   hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend=None,
@@ -338,13 +349,13 @@ for measure in measures:
                         loc="lower center",
                         ncol=len(labels),
                         bbox_to_anchor=(0.5, -0.02))
-    plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
-                params_string.replace(".", "_") + "-" + measure + ".pdf",
-                bbox_extra_artists=(legend, ),
-                bbox_inches="tight")
+    # plt.savefig(fname=figures_path + "-".join(scenarios) + "-" +
+    #             params_string.replace(".", "_") + "-" + measure + ".pdf",
+    #             bbox_extra_artists=(legend, ),
+    #             bbox_inches="tight")
 
-    os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf " +
-              figures_path + "-".join(scenarios) + "-" +
-              params_string.replace(".", "_") + "-" + measure + ".pdf")
-    # plt.show()
+    # os.system("pdfcrop " + figures_path + "-".join(scenarios) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf " +
+    #           figures_path + "-".join(scenarios) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + ".pdf")
+    plt.show()

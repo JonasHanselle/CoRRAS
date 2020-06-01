@@ -208,15 +208,13 @@ for scenario_name in scenario_names:
         df_corras_plnet = pd.read_csv(evaluations_path + "corras-pl-nn-" +
                                       scenario_name + "-seeded.csv")
         df_corras_plnet_weighted = df_corras_plnet.loc[
-            (df_corras_plnet["seed"] == seed)
-            & (df_corras_plnet["activation_function"] == "sigmoid") &
+            (df_corras_plnet["activation_function"] == "sigmoid") &
             (df_corras_plnet["layer_sizes"] == "[32]") &
             (df_corras_plnet["lambda"] == 0.5) &
             (df_corras_plnet["use_weighted_samples"] == True)]
 
         df_corras_plnet_unweighted = df_corras_plnet.loc[
-            (df_corras_plnet["seed"] == seed)
-            & (df_corras_plnet["activation_function"] == "sigmoid") &
+            (df_corras_plnet["activation_function"] == "sigmoid") &
             (df_corras_plnet["layer_sizes"] == "[32]") &
             (df_corras_plnet["lambda"] == 0.5) &
             (df_corras_plnet["use_weighted_samples"] == False)]
@@ -232,7 +230,6 @@ for scenario_name in scenario_names:
         # print("plnet head", df_corras_plnet.head())
 
         df_corras_nnh_weighted = df_corras_plnet.loc[
-            (df_corras_nnh["seed"] == seed)
             & (df_corras_nnh["activation_function"] == "sigmoid") &
             (df_corras_nnh["layer_sizes"] == "[32]") &
             (df_corras_nnh["lambda"] == 0.5) &
@@ -430,13 +427,14 @@ for scenario_name in scenario_names:
     ndcgs = [scenario_name]
 
     for approach_name, approach_df in zip(approaches_names, approaches_dfs):
+        print(approach_name, len(approach_df))
         try:
             if len(approach_df) == len(scenario.performance_data):
                 taus.append(approach_df["tau_corr"].mean())
                 rmses.append(math.sqrt(approach_df["mse"].mean()))
                 ndcgs.append(approach_df["ndcg"].mean())
             else:
-                print(len(approach_df), len(scenario.performance_data))
+                # print(len(approach_df), len(scenario.performance_data))
                 taus.append(float("nan"))
                 rmses.append(float("nan"))
                 ndcgs.append(float("nan"))

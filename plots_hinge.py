@@ -51,7 +51,7 @@ use_weighted_samples_values = [False]
 skip_censored_values=[False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [5,]
+# splits = [5,]
 
 seed=15
 
@@ -72,7 +72,6 @@ name_map = {
     "abs_distance_to_vbs": "MP",
     "success_rate": "SR"
 }
-
 param_product = list(product(*params))
 
 # measures = ["tau_corr", "ndcg", "mae", "mse", "rmse"]
@@ -81,7 +80,7 @@ measures = ["par10", "abs_distance_to_vbs", "success_rate"]
 #     "par10", "abs_distance_to_vbs", "success_rate", "success_rate", "tau_corr",
 #     "ndcg", "mae", "mse", "rmse"
 # ]
-measures = ["tau_corr", "mae", "par10"]
+measures = ["par10", "tau_corr"]
 
 for measure in measures:
     plt.clf()
@@ -105,11 +104,8 @@ for measure in measures:
             df_baseline_label_ranking = pd.read_csv(evaluations_path +
                                                     "baseline-label-ranking-" +
                                                     scenario_name + ".csv")
-            print("df baseline label ", len(df_baseline_label_ranking))
         except:
-            print("Scenario " + scenario_name +
-                  " not found in corras evaluation data!")
-
+            pass
         params_string = "-".join([
             scenario_name,
             str(use_max_inverse_transform),
@@ -119,23 +115,22 @@ for measure in measures:
         # continue
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
-            corras = pd.read_csv(evaluations_path + "corras-hinge-linear-" +
-                                 scenario_name + "-test.csv")
-
-            # corras["lambda"] = 1.0 - corras["lambda"]
-
-            # print(corras.head())
+            corras = pd.read_csv(evaluations_path + "ki2020-linhinge-" +
+                                 scenario_name + ".csv")
+            corras = corras.dropna()
         except:
-            print("Scenario " + scenario_name +
-                  " not found in corras evaluation data!")
             continue
         current_frame = corras.loc[
-            (corras["seed"] == seed) &
+            # (corras["seed"] == seed) &
             (corras["scale_to_unit_interval"] == scale_target_to_unit_interval)
             # & (corras["max_inverse_transform"] == use_max_inverse_transform)
             & (corras["use_weighted_samples"] == use_weighted_samples)
             & (corras["regularization_param"] == regulerization_param)]
 
+        for lambda_value in lambda_values:
+            lambda_frame = current_frame[current_frame["lambda"] == lambda_value]
+            print(f"lambda_value = {lambda_value}", lambda_frame.count())
+        continue
         if measure == "success_rate":
             val_rf = df_baseline_rf["run_status"].value_counts(
                 normalize=True)["ok"]
@@ -151,7 +146,6 @@ for measure in measures:
                         (corras["lambda"] == lambd) &
                         (corras["quadratic_transform"] == quadratic_transform)]
                     try:
-                        # print(lambd_frame["run_status"].value_counts(
                         #     normalize=False))
                         results.append([
                             lambd, quadratic_transform,
@@ -165,12 +159,11 @@ for measure in measures:
                 data=results,
                 columns=["lambda", "quadratic_transform", "success_rate"])
 
-            # print(results_frame)
             lp = sns.lineplot(x="lambda",
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="max_inverse_transform",
+                              hue="seed",
                               data=results_frame,
                               ax=ax,
                               legend="full",
@@ -195,10 +188,6 @@ for measure in measures:
             continue
 
         current_frame["rmse"] = current_frame["mse"].pow(1. / 2)
-        print(current_frame.head())
-        print(current_frame.columns)
-        # print(current_frame["use_weighted_samples"].value_counts())
-        print(current_frame["lambda"].value_counts())
         df_baseline_rf["rmse"] = df_baseline_rf["mse"].pow(1. / 2)
         df_baseline_lr["rmse"] = df_baseline_lr["mse"].pow(1. / 2)
         df_baseline_label_ranking["rmse"] = df_baseline_label_ranking[
@@ -208,8 +197,6 @@ for measure in measures:
             ax.set_yscale("log")
             # current_frame = current_frame.loc[(current_frame["lambda"] <=
             #                                    0.99)]
-    #     print(current_frame[:])
-    #     print(current_frame.iloc[:10,8:12].to_latex(na_rep="-", index=False, bold_rows=True, float_format="%.2f", formatters={"tau_corr" : max_formatter}, escape=False))
     #     for measure in current_frame.columns[8:]:
     #         plt.clf()
     # bp = sns.boxplot(x="lambda", y=measure, hue="epsilon", data=df_corras)
@@ -219,8 +206,6 @@ for measure in measures:
     # plt.title(scenario_name)
     # plt.legend()
     # plt.savefig(figures_path+scenario_name+"-" + measure +"-boxplot.pdf")
-    # print("length of current frame", len(current_frame))
-    # print("columns", current_frame.columns[8:])
     # plt.clf()
     # bp = sns.lineplot(x="lambda", y=measure, hue="epsilon", data=df_corras, palette=sns.color_palette("Set1", len(pd.unique(df_corras["epsilon"]))))
     # g = sns.FacetGrid(df_corras, col="max_inverse_transform")
@@ -230,7 +215,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="max_inverse_transform",
+                              hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend="full",
@@ -240,7 +225,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="max_inverse_transform",
+                              hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend="full",

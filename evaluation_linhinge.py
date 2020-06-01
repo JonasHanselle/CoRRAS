@@ -178,7 +178,7 @@ for scenario_name in scenarios:
                 performance_indices].astype("float64").to_numpy()
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
-                    method="min").fillna(-1).astype("int16").to_numpy()
+                    method="min").astype("int16").to_numpy()
             if np.isinf(corras_performances).any():
                 print("Warning, NaN in performance prediction for " +
                       problem_instance + "!")

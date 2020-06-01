@@ -30,7 +30,7 @@ def remove_duplicates(rankings: pd.DataFrame):
 
 def break_ties_of_ranking(ranking: pd.DataFrame,
                           max_rankings_per_instance=15,
-                          seed=15):
+                          seed=1):
     """Breaks up ties in a ranking. A ranking 1 2 3 3 
     will be replaces by two rankings 1 2 3 -1 and 1 2 -1 3
     Entries -1 indicate that the label is absent in the 
@@ -213,7 +213,7 @@ def construct_ordered_tensor(features: pd.DataFrame,
 def construct_numpy_representation(features: pd.DataFrame,
                                    performances: pd.DataFrame,
                                    max_rankings_per_instance=5,
-                                   seed=15):
+                                   seed=1):
     """Get numpy representation of features, performances and rankings
 
     Arguments:
@@ -264,7 +264,7 @@ def construct_numpy_representation_with_pairs_of_rankings(
     features: pd.DataFrame,
     performances: pd.DataFrame,
     max_pairs_per_instance=100,
-    seed=15,
+    seed=1,
     order="asc",
     skip_value=None):
     """Get numpy representation of features, performances and rankings
@@ -301,7 +301,7 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features(
     features: pd.DataFrame,
     performances: pd.DataFrame,
     max_pairs_per_instance=100,
-    seed=15,
+    seed=1,
     order="asc",
     skip_value=None):
     """Get numpy representation of features, performances and rankings
@@ -343,7 +343,7 @@ def construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_a
     features: pd.DataFrame,
     performances: pd.DataFrame,
     max_pairs_per_instance=100,
-    seed=15,
+    seed=1,
     order="asc",
     skip_value=None):
     """Get numpy representation of features, performances and rankings
@@ -517,7 +517,7 @@ def construct_numpy_representation_with_list_rankings(
     features: pd.DataFrame,
     performances: pd.DataFrame,
     max_rankings_per_instance=5,
-    seed=15,
+    seed=1,
     pairs=False):
     """Get numpy representation of features and performances. Rankings
     are constructed as nested python lists, such that rankings of 

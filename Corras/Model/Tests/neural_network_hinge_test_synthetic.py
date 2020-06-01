@@ -106,16 +106,16 @@ class TestNeuralNetworkHingeSynthetic(unittest.TestCase):
                    inst,
                    perf,
                    sample_weights=None,
-                   lambda_value=0.5,
+                   lambda_value=0.0,
                    epsilon_value=1.0,
                    regression_loss="Squared",
-                   num_epochs=25,
+                   num_epochs=250,
                    learning_rate=0.001,
                    batch_size=32,
-                   early_stop_interval=10,
-                   patience=32,
-                   hidden_layer_sizes=[16, 16],
-                   activation_function="sigmoid")
+                   early_stop_interval=8,
+                   patience=8,
+                   hidden_layer_sizes=[32],
+                   activation_function="sigmoid", seed=15)
 
         for index, row in self.test_inst.iterrows():
             print("True Performances",

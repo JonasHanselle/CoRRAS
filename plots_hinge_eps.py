@@ -20,27 +20,27 @@ scenario_path = "./aslib_data-aslib-v4.0/"
 evaluations_path = "./evaluations/"
 
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge/"
-scenario_names = ["MIP-2016", "SAT11-INDU", "CSP-2010"]
+scenario_names = ["CPMP-2015"]
 
-# lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.5]
-epsilon_values = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
+lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+# lambda_values = [0.5]
+epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
 seeds = [15]
-use_quadratic_transform_values = [False, True]
-use_max_inverse_transform_values = ["None"]
+use_quadratic_transform_values = [True]
+use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
 skip_censored_values = [False]
 regulerization_params_values = [0.001]
-use_weighted_samples_values = [False]
-splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+use_weighted_samples_values = [True]
+splits = [2]
 seed = 15
 
 params = [
     scenario_names, use_max_inverse_transform_values,
     scale_target_to_unit_interval_values, skip_censored_values,
-    regulerization_params_values, use_weighted_samples_values, lambda_values
+    regulerization_params_values, use_weighted_samples_values, epsilon_values
 ]
 
 name_map = {
@@ -57,12 +57,12 @@ name_map = {
 
 param_product = list(product(*params))
 
-# measures = ["tau_corr", "ndcg", "mae", "mse", "rmse"]
-measures = ["par10", "abs_distance_to_vbs", "success_rate"]
-measures = [
-    "par10", "abs_distance_to_vbs", "success_rate", "success_rate", "tau_corr",
-    "ndcg", "mae", "mse", "rmse"
-]
+measures = ["tau_corr", "par10", "mae"]
+# measures = ["par10", "abs_distance_to_vbs", "success_rate"]
+# measures = [
+#     "par10", "abs_distance_to_vbs", "success_rate", "success_rate", "tau_corr",
+#     "ndcg", "mae", "mse", "rmse"
+# ]
 
 for measure in measures:
     plt.clf()
@@ -70,7 +70,7 @@ for measure in measures:
     for index, (scenario_name, use_max_inverse_transform,
                 scale_target_to_unit_interval, skip_censored,
                 regulerization_param,
-                use_weighted_samples, lambda_value) in enumerate(param_product):
+                use_weighted_samples, epsilon_value) in enumerate(param_product):
 
         ax = axes[index]
         df_baseline_lr = None
@@ -100,10 +100,10 @@ for measure in measures:
         # continue
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
-            corras = pd.read_csv(evaluations_path + "corras-hinge-linear-" +
-                                 scenario_name + "-new-weights-eps.csv")
+            corras = pd.read_csv(evaluations_path + "quadfeature-linhinge-" +
+                                 scenario_name + ".csv")
 
-            corras["lambda"] = 1.0 - corras["lambda"]
+            # corras["lambda"] = 1.0 - corras["lambda"]
 
             # print(corras.head())
         except:
@@ -114,10 +114,11 @@ for measure in measures:
             (corras["seed"] == seed) &
             (corras["scale_to_unit_interval"] == scale_target_to_unit_interval)
             & (corras["max_inverse_transform"] == use_max_inverse_transform)
-            & (corras["use_weighted_samples"] == use_weighted_samples)
+            # & (corras["use_weighted_samples"] == use_weighted_samples)
+            & (corras["quadratic_transform"] == True)
             & (corras["regularization_param"] == regulerization_param)
-            & (corras["lambda"] == lambda_value)]
-
+            & (corras["epsilon"] == epsilon_value)]
+        current_frame.to_csv("blubb.csv")
         if measure == "success_rate":
             val_rf = df_baseline_rf["run_status"].value_counts(
                 normalize=True)["ok"]
@@ -148,14 +149,15 @@ for measure in measures:
                 columns=["epsilon", "quadratic_transform", "success_rate"])
 
             # print(results_frame)
-            lp = sns.lineplot(x="epsilon",
+            lp = sns.lineplot(x="lambda",
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              hue="use_weighted_samples",
+                              style="quadratic_transform",
                               data=results_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None)
             lp.axes.axhline(val_rf, c="g", ls="--", label="rf-baseline-mean")
             lp.axes.axhline(val_lr, c="m", ls="--", label="lr-baseline-mean")
@@ -204,25 +206,27 @@ for measure in measures:
     # g = sns.FacetGrid(df_corras, col="max_inverse_transform")
     # g.map(sns.lineplot, "lambda", measure)
         if measure in ["par10", "abs_distance_to_vbs"]:
-            lp = sns.lineplot(x="epsilon",
+            lp = sns.lineplot(x="lambda",
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              hue="use_weighted_samples",
+                              style="quadratic_transform",
                               data=current_frame,
                               ax=ax,
-                              legend=None,
+                              legend="full",
                               ci=None)
         else:
-            lp = sns.lineplot(x="epsilon",
+            lp = sns.lineplot(x="lambda",
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="quadratic_transform",
+                              hue="use_weighted_samples",
+                              style="quadratic_transform",
                               data=current_frame,
                               ax=ax,
-                              legend=None,
-                              ci=95)
+                              legend="full",
+                              ci=None)
         if df_baseline_rf is not None:
             lp.axes.axhline(df_baseline_rf[measure].mean(),
                             c="g",
@@ -260,12 +264,12 @@ for measure in measures:
                         loc="lower center",
                         ncol=len(labels),
                         bbox_to_anchor=(0.5, -0.02))
-    plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
-                params_string.replace(".", "_") + "-" + measure + "-eps.pdf",
-                bbox_extra_artists=(legend, ),
-                bbox_inches="tight")
-    os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
-              params_string.replace(".", "_") + "-" + measure + "-eps.pdf " +
-              figures_path + "-".join(scenario_names) + "-" +
-              params_string.replace(".", "_") + "-" + measure + "-eps.pdf")
-    # plt.show()
+    # plt.savefig(fname=figures_path + "-".join(scenario_names) + "-" +
+    #             params_string.replace(".", "_") + "-" + measure + "-eps.pdf",
+    #             bbox_extra_artists=(legend, ),
+    #             bbox_inches="tight")
+    # os.system("pdfcrop " + figures_path + "-".join(scenario_names) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + "-eps.pdf " +
+    #           figures_path + "-".join(scenario_names) + "-" +
+    #           params_string.replace(".", "_") + "-" + measure + "-eps.pdf")
+    plt.show()

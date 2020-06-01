@@ -57,7 +57,7 @@ lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
-seeds = [15]
+seeds = [1,2,3,4,5,15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
@@ -149,10 +149,10 @@ for scenario_name in scenarios:
 
         if len(current_frame) != len(test_scenario.performance_data):
             print(
-                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries! Seeds: {seed}"
             )
             continue
-
+        continue
 
         if current_frame.empty:
             # print("Current frame is empty!")
@@ -185,9 +185,10 @@ for scenario_name in scenarios:
             # print(corras)
             corras_performances = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").to_numpy()
-            if (len(true_performances) != len(corras_performances)):
-                corras_performances = corras_performances[0]
-                continue
+            # if (len(true_performances) != len(corras_performances)):
+            #     corras_performances = corras_performances[0]
+            #     continue
+
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
                     method="min").fillna(-1).astype("int16").to_numpy()

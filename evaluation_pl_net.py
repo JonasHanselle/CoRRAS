@@ -44,12 +44,12 @@ db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
 scenarios = [
-    # "CPMP-2015",
+    "CPMP-2015",
     "MIP-2016",
     "CSP-2010",
-    # "SAT11-HAND",
-    # "SAT11-INDU",
-    # "SAT11-RAND"
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND"
     # "CSP-Minizinc-Time-2016",
     # "MAXSAT-WPMS-2016",
     # "MAXSAT-PMS-2016",
@@ -59,11 +59,9 @@ scenarios = [
 # scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
 
 lambda_values = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-lambda_values = [0.0, 0.3, 0.5, 0.9, 1.0]
-# lambda_values = [0.5,1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
-seeds = [15]
+seeds = [1, 2, 3, 4, 5, 15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
@@ -77,7 +75,6 @@ scale_target_to_unit_interval_values = [True]
 use_weighted_samples_values = [False]
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [1, 2, 3]
 
 params = [
     lambda_values, splits, seeds, learning_rates, es_intervals, es_patiences,
@@ -108,7 +105,7 @@ for scenario_name in scenarios:
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "test_plnet-" + scenario_name
+        table_name = "ki2020_plnet-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -158,10 +155,13 @@ for scenario_name in scenarios:
         # print(current_frame)
         if len(current_frame) != len(test_scenario.performance_data):
             print(
-                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split}!"
+                f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries split {split} seed {seed} !"
             )
-            continue
+            print(
+                f"lambda {lambda_value} seed {seed}  max inverse {use_max_inverse_transform} scale {scale_target_to_unit_interval} weighted {use_weighted_samples} layers {layer_sizes}"
+            )
 
+            continue
         for problem_instance, performances in scenario.performance_data.iterrows(
         ):
             if not problem_instance in current_frame.index:
@@ -191,18 +191,14 @@ for scenario_name in scenarios:
                 performance_indices].astype("float64").to_numpy()
             if len(current_frame) != len(test_scenario.performance_data):
                 print(
-                    f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
+                    f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split} with seed {seed}!"
                 )
-                # print(current_frame)
-                # if scenario_name not in ["SAT11-INDU", "CSP-2010"]:
-                #     continue
-            # print(
-            #     f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries!"
-            # )
+
+                continue
 
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
-                    method="min").fillna(-1).astype("int16").to_numpy()
+                    method="min").astype("int16").to_numpy()
             if np.isinf(corras_performances).any():
                 print("Warning, NaN in performance prediction for " +
                       problem_instance + "!")
@@ -221,27 +217,23 @@ for scenario_name in scenarios:
             par10_with_feature_cost = par10 + feature_cost
             run_status = run_stati.iloc[np.argmin(corras_performances)]
             corras_measures.append([
-                split, seed, problem_instance, lambda_value,
-                learning_rate, es_interval, es_patience, es_val_ratio,
-                batch_size, layer_sizes, activation_function,
-                use_weighted_samples,
-                scale_target_to_unit_interval,
-                use_max_inverse_transform, tau_corr, tau_p, ndcg, mse,
-                mae, abs_vbs_distance, par10, par10_with_feature_cost,
-                run_status
+                split, seed, problem_instance, lambda_value, learning_rate,
+                es_interval, es_patience, es_val_ratio, batch_size,
+                layer_sizes, activation_function, use_weighted_samples,
+                scale_target_to_unit_interval, use_max_inverse_transform,
+                tau_corr, tau_p, ndcg, mse, mae, abs_vbs_distance, par10,
+                par10_with_feature_cost, run_status
             ])
             # print(corras_measures)
     df_corras = pd.DataFrame(
         data=corras_measures,
         columns=[
-            "split", "seed", "problem_instance", "lambda",
-            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
-            "batch_size", "layer_sizes", "activation_function",
-            "use_weighted_samples",
-            "scale_target_to_unit_interval",
-            "use_max_inverse_transform", "tau_corr", "tau_p", "ndcg",
-            "mse", "mae", "abs_distance_to_vbs", "par10",
-            "par10_with_feature_cost", "run_status"
+            "split", "seed", "problem_instance", "lambda", "learning_rate",
+            "es_interval", "es_patience", "es_val_ratio", "batch_size",
+            "layer_sizes", "activation_function", "use_weighted_samples",
+            "scale_target_to_unit_interval", "use_max_inverse_transform",
+            "tau_corr", "tau_p", "ndcg", "mse", "mae", "abs_distance_to_vbs",
+            "par10", "par10_with_feature_cost", "run_status"
         ])
-    df_corras.to_csv(evaluations_path + "corras-pl-nn-" + scenario_name +
-                     "-test.csv")
+    df_corras.to_csv(evaluations_path + "ki2020-plnet-" + scenario_name +
+                     ".csv")

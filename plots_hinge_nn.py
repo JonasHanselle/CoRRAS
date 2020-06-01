@@ -22,12 +22,12 @@ evaluations_path = "./evaluations/"
 figures_path = "../Masters_Thesis/New_Thesis/masters-thesis/gfx/plots/hinge_nn/"
 
 scenarios = [
-    "CPMP-2015",
-    "MIP-2016",
+    # "CPMP-2015",
+    # "MIP-2016",
     # "CSP-2010",
-    # "SAT11-HAND",
-    # "SAT11-INDU",
-    # "SAT11-RAND",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
     # "CSP-Minizinc-Time-2016",
     # "MAXSAT-WPMS-2016",
     # "MAXSAT-PMS-2016",
@@ -41,7 +41,7 @@ lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
-seeds = [15]
+seeds = [1]
 
 learning_rates = [0.001]
 batch_sizes = [128]
@@ -74,8 +74,7 @@ name_map = {
 }
 
 measures = [
-    "tau_corr", "ndcg", "mae", "mse", "par10", "abs_distance_to_vbs",
-    "success_rate", "rmse"
+    "tau_corr",  "par10"
 ]
 
 for measure in measures:
@@ -117,8 +116,8 @@ for measure in measures:
         # continue
         try:
             # df_corras = pd.read_csv(evaluations_path + "corras-linhinge-evaluation-" + scenario_name + ".csv")
-            corras = pd.read_csv(evaluations_path + "corras-hinge-nn-" +
-                                 scenario_name + "-test.csv")
+            corras = pd.read_csv(evaluations_path + "ki2020-nnh-" +
+                                 scenario_name + ".csv")
             # corras["lambda"] = 1.0 - corras["lambda"]
 
         except:
@@ -126,8 +125,8 @@ for measure in measures:
                   " not found in corras evaluation data!")
             continue
         current_frame = corras.loc[
-            (corras["seed"] == seed)
-            & (corras["learning_rate"] == learning_rate)
+            # (corras["seed"] == seed)
+            (corras["learning_rate"] == learning_rate)
             & (corras["batch_size"] == batch_size) &
             (corras["es_patience"] == es_patience) &
             (corras["es_interval"] == es_interval) &
@@ -170,7 +169,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_max_inverse_transform",
+                            #   hue="seed",
                               data=results_frame,
                               ax=ax,
                               legend="full",
@@ -213,7 +212,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_max_inverse_transform",
+                            #   hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend="full",
@@ -223,7 +222,7 @@ for measure in measures:
                               y=measure,
                               marker="o",
                               markersize=8,
-                              hue="use_max_inverse_transform",
+                            #   hue="seed",
                               data=current_frame,
                               ax=ax,
                               legend="full",

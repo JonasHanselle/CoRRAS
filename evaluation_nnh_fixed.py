@@ -44,26 +44,23 @@ db_pw = urllib.parse.quote_plus(sys.argv[3])
 db_db = sys.argv[4]
 
 scenarios = [
-    # "CPMP-2015",
+    "CPMP-2015",
     "MIP-2016",
-    # "CSP-2010",
-    # "SAT11-HAND",
-    # "SAT11-INDU",
-    # "SAT11-RAND",
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND",
     # "CSP-Minizinc-Time-2016",
     # "MAXSAT-WPMS-2016",
     # "MAXSAT-PMS-2016",
     # "QBF-2016"
 ]
 
-# scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
-
 lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
-lambda_values = [0.0, 0.3, 0.5, 0.7, 0.9, 1.0]
 epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
-seeds = [15]
+seeds = [1,2,3,4,5,15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
@@ -73,8 +70,6 @@ es_val_ratios = [0.3]
 layer_sizes_vals = ["[32]"]
 activation_functions = ["sigmoid"]
 use_max_inverse_transform_values = ["max_cutoff"]
-# use_max_inverse_transform_values = ["max_cutoff", "none", "max_par10", "test a", "test b"]
-# use_max_inverse_transform_values = ["test a", "test b"]
 scale_target_to_unit_interval_values = [True]
 use_weighted_samples_values = [False]
 
@@ -102,15 +97,14 @@ for scenario_name in scenarios:
     # str(lambda_value), str(split), str(seed), str(use_quadratic_transform),
     # str(use_max_inverse_transform), str(scale_target_to_unit_interval)])
 
-    filename = "ki_nnh" + "-" + scenario_name + "-test.csv"
+    filename = "ki2020_nnh" + "-" + scenario_name
     # loss_filename = "pl_log_linear" + "-" + params_string + "-losses.csv"
     filepath = results_path_corras + filename
     # print(filepath)
     # loss_filepath = results_path_corras + loss_filename
     corras = None
     try:
-        table_name = "ki_nnh-" + scenario_name
-        table_name = "test_table_nnh-" + scenario_name
+        table_name = "ki2020_nnh-" + scenario_name
 
         engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" +
                                    db_url + "/" + db_db,
@@ -122,6 +116,7 @@ for scenario_name in scenarios:
         print("File for " + scenario_name +
               " not found in corras result data! Exception " + str(exc))
         continue
+    
     # for lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval in param_product:
     # print(corras.head())
     corras.set_index("problem_instance", inplace=True)
@@ -163,8 +158,9 @@ for scenario_name in scenarios:
         # current_frame = corras.loc[(corras["lambda"] == lambda_value)]
         # print(current_frame)
         if len(current_frame) != len(test_scenario.performance_data):
-            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split}!")
+            print(f"The frame contains {len(current_frame)} entries, but the {scenario_name} contains {len(test_scenario.performance_data)} entries in split {split} with seed {seed}!")
             continue      
+        # continue
 
         # print(len(current_frame), len(scenario.instances))
         for problem_instance, performances in scenario.performance_data.iterrows(
@@ -199,7 +195,7 @@ for scenario_name in scenarios:
             #     continue
             corras_ranking = current_frame.loc[problem_instance][
                 performance_indices].astype("float64").rank(
-                    method="min").fillna(-1).astype("int16").to_numpy()
+                    method="min").astype("int16").to_numpy()
             if np.isinf(corras_performances).any():
                 print("Warning, NaN in performance prediction for " +
                       problem_instance + "!")
@@ -238,5 +234,5 @@ for scenario_name in scenarios:
             "mse", "mae", "abs_distance_to_vbs", "par10",
             "par10_with_feature_cost", "run_status"
         ])
-    df_corras.to_csv(evaluations_path + "corras-hinge-nn-" + scenario_name +
-                     "-test.csv")
+    df_corras.to_csv(evaluations_path + "ki2020-nnh-" + scenario_name +
+                     ".csv")
