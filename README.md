@@ -1,3 +1,3 @@
 # Hybrid Ranking and Regression for Algorithm Selection
 
-This repository contains the code corresponding to the paper "Hybrid Ranking and Regression for Algorithm Selection". 
+This repository contains the code corresponding to the paper "Hybrid Ranking and Regression for Algorithm Selection". To run the experiments, the python scripts in the "experiments" folders can be used. The ASLib benchmark data can be obtained from the official repository https://github.com/coseal/aslib_data/releases. To mange the benchmark data, we make use of the ASlibScenario package provided by Marius Lindauer https://github.com/mlindauer/ASlibScenario. 
