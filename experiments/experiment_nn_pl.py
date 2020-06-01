@@ -34,28 +34,18 @@ db_user = sys.argv[4]
 db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
-
 scenarios = [
-    # "CPMP-2015",
-    # "MIP-2016",
-    # "CSP-2010",
+    "CPMP-2015",
+    "MIP-2016",
+    "CSP-2010",
     "SAT11-HAND",
-    # "SAT11-INDU",
-    # "SAT11-RAND",
-    # "CSP-Minizinc-Time-2016",
-    # "MAXSAT-WPMS-2016",
-    # "MAXSAT-PMS-2016",
-    # "QBF-2016"
+    "SAT11-INDU",
+    "SAT11-RAND"
 ]
 
-# scenarios = ["CPMP-2015", "SAT11-RAND", "MIP-2016", "QBF-2016", "MAXSAT-WPMS-2016", "MAXSAT-PMS-2016"]
 
-lambda_values = [0.1,0.2,0.3,0.4,0.6,0.7,0.8,0.9]
-# lambda_values = [0.0,0.5,1.0]
-epsilon_values = [1.0]
 max_pairs_per_instance = 5
 maxiter = 1000
-seeds = [15]
 
 learning_rates = [0.001]
 batch_sizes = [128]
@@ -65,14 +55,19 @@ es_val_ratios = [0.3]
 layer_sizes_vals = [[32]]
 activation_functions = ["sigmoid"]
 use_weighted_samples_values = [False]
+scale_target_to_unit_interval_values = [True]
+use_max_inverse_transform_values = ["max_cutoff"]
+use_weighted_samples_values = [False]
 
-
+seeds = [1,2,3,4,5,15]
+lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
     scenarios, lambda_values, splits, seeds, learning_rates, es_intervals,
     es_patiences, es_val_ratios, batch_sizes, layer_sizes_vals,
-    activation_functions, use_weighted_samples_values
+    activation_functions, use_weighted_samples_values,
+    scale_target_to_unit_interval_values, use_max_inverse_transform_values
 ]
 
 param_product = list(product(*params))
@@ -93,9 +88,9 @@ engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" + db_url +
                            echo=False,
                            pool_recycle=300)
 
-for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples in shard:
+for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples, scale_target_to_unit_interval, use_max_inverse_transform in shard:
 
-    table_name = "neural-net-plackett-luce-" + scenario_name + "-seeded"
+    table_name = "ki2020_plnet-" + scenario_name
 
     connection = engine.connect()
     if not engine.dialect.has_table(engine, table_name):
@@ -121,7 +116,11 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
                 experiments.columns["activation_function"] ==
                 activation_function,
                 experiments.columns["use_weighted_samples"] ==
-                use_weighted_samples)).limit(1)
+                use_weighted_samples,
+                experiments.columns["scale_target_to_unit_interval"] ==
+                scale_target_to_unit_interval,
+                experiments.columns["use_max_inverse_transform"] ==
+                use_max_inverse_transform)).limit(1)
         rs = connection.execute(slct)
         result = rs.first()
         if result == None:
@@ -144,8 +143,7 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
         str(es_interval),
         str(es_patience),
         str(es_val_ratio),
-        str(batch_size),
-        str(use_weighted_samples)
+        str(batch_size)
     ])
 
     # filename = "pl_log_linear" + "-" + params_string + ".csv"
@@ -193,12 +191,28 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
         train_features[train_features.columns] = scaler.fit_transform(
             train_features[train_features.columns])
 
+        cutoff = scenario.algorithm_cutoff_time
+        par10 = cutoff * 10
+
         perf = train_performances.to_numpy()
 
-        perf_max = np.max(perf)
-        perf = perf / perf_max
-
         order = "asc"
+
+        if use_max_inverse_transform == "max_cutoff":
+            perf = perf.clip(0, cutoff)
+            perf = cutoff - perf
+            order = "desc"
+        elif use_max_inverse_transform == "max_par10":
+            perf = par10 - perf
+            order = "desc"
+
+        perf_max = 1
+
+        if scale_target_to_unit_interval:
+            perf_max = np.max(perf)
+            perf = perf / perf_max
+
+        print("perf", perf)
 
         train_performances = pd.DataFrame(data=perf,
                                           index=train_performances.index,
@@ -249,15 +263,22 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
             scaled_row = scaler.transform(imputed_row).flatten()
             # predicted_ranking = model.predict_ranking(scaled_row)
             predicted_performances = model.predict_performances(scaled_row)
-            # rescale
-            predicted_performances = perf_max * predicted_performances
+
+            if scale_target_to_unit_interval:
+                predicted_performances = perf_max * predicted_performances
+            if use_max_inverse_transform == "max_cutoff":
+                predicted_performances = cutoff - predicted_performances
+            elif use_max_inverse_transform == "max_par10":
+                predicted_performances = par10 - predicted_performances
 
             result_data_corras.append([
                 split, index, lambda_value, seed, learning_rate, es_interval,
                 es_patience, es_val_ratio, batch_size,
                 str(layer_size), activation_function, use_weighted_samples,
+                scale_target_to_unit_interval, use_max_inverse_transform,
                 *predicted_performances
             ])
+            # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
             # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
 
         performance_cols_corras = [
@@ -267,21 +288,24 @@ for scenario_name, lambda_value, split, seed, learning_rate, es_interval, es_pat
         result_columns_corras = [
             "split", "problem_instance", "lambda", "seed", "learning_rate",
             "es_interval", "es_patience", "es_val_ratio", "batch_size",
-            "layer_sizes", "activation_function", "use_weighted_samples"
+            "layer_sizes", "activation_function", "use_weighted_samples",
+            "scale_target_to_unit_interval", "use_max_inverse_transform"
         ]
         print("result len", len(result_columns_corras))
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(data=result_data_corras,
                                       columns=result_columns_corras)
-        # results_corras.to_csv(filepath, index_label="id",
-        #                         mode="a", header=False)
+        results_corras.to_csv(filepath,
+                              index_label="id",
+                              mode="a",
+                              header=False)
         connection = engine.connect()
         results_corras.to_sql(name=table_name,
                               con=connection,
                               if_exists="append")
         connection.close()
-        # model.save_loss_history(loss_filepath)
-        # model.save_es_val_history(es_val_filepath)
+        model.save_loss_history(loss_filepath)
+        model.save_es_val_history(es_val_filepath)
 
     except Exception as exc:
         print("Something went wrong during computation with parameters " +

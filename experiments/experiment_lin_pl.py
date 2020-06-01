@@ -40,31 +40,24 @@ db_pw = urllib.parse.quote_plus(sys.argv[5])
 db_db = sys.argv[6]
 
 scenarios = [
-    # "CPMP-2015",
-    # "MIP-2016",
-    # "CSP-2010",
-    # "SAT11-HAND",
-    # "SAT11-INDU",
-    "SAT11-RAND",
-    # "CSP-Minizinc-Time-2016",
-    # "MAXSAT-WPMS-2016",
-    # "MAXSAT-PMS-2016",
-    # "QBF-2016"
+    "CPMP-2015",
+    "MIP-2016",
+    "CSP-2010",
+    "SAT11-HAND",
+    "SAT11-INDU",
+    "SAT11-RAND"
 ]
-lambda_values = [1.0]
+lambda_values = [0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
 max_pairs_per_instance = 5
 maxiter = 100
-seeds = [1,2,3,4,5]
+seeds = [1,2,3,4,5,15]
 use_quadratic_transform_values = [True, False]
-# use_quadratic_transform_values = [True]
 use_max_inverse_transform_values = ["max_cutoff"]
-# use_max_inverse_transform_values = ["max_cutoff"]
 scale_target_to_unit_interval_values = [True]
-# scale_target_to_unit_interval_values = [True]
 regularization_params_values = [0.001]
 use_weighted_samples_values = [False]
 
-splits = [8, 9, 10]
+splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 params = [
     scenarios, lambda_values, splits, seeds, use_quadratic_transform_values,
