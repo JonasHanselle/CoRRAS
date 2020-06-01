@@ -1,6 +1,0 @@
-acd7f99607c5ae06e9cf1e2e03d47cab3b6c31e2 commit	refs/heads/dev
-86755cc599c96cc0c9159bf5d867c4912fd37a75 commit	refs/heads/master
-86755cc599c96cc0c9159bf5d867c4912fd37a75 commit	refs/remotes/origin/HEAD
-ebd833d30849df70edfbd3490d094336460fbb61 commit	refs/remotes/origin/dev
-86755cc599c96cc0c9159bf5d867c4912fd37a75 commit	refs/remotes/origin/master
-ed60eb680046f6b0c41b2911a82dc4b3fe9906f9 commit	refs/stash
