@@ -22,6 +22,6 @@ The scripts take 6 input arguments. The first two arguments are used to parallel
 
 After running the experiments, the raw predictions are stored in the specified database. The scripts provided in the "evaluation" folder can then be used to evaluate the resutls in terms of several performance measures such as Kendall's Tau or the penalized average runtime. The scripts take 4 arguments, namely the database credentials. The evaluations will be stored in a csv file locally in the "evaluations" folder. There will be one csv file per database table, containing the names of the problem instances of the respective scenario, the configuration and the achieved performances. Following the above example, the call may look as follows
 
-`python3 experiment_lin_pl.py 1 0 db_url db_user db_password db_name`
+`python3 evaluation_lin_pl.py db_url db_user db_password db_name`
 
 These results can be plotted using the script in the folder "plots" in order to reproduce the papers plots. The papers table can be reproduced using the "table_ki2020.py" script.
