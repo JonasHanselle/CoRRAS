@@ -4,7 +4,7 @@ This repository contains the code for "Combined Ranking and Regression for Algor
 ## Installation
 ### Requirements
 CoRRAS runs with Python 3.6.8. Most of the dependencies can be installed using the requirements.txt file and pip
-`pip install -r requirements.txt`. The ASlibScenario package can be downloaded and installed from the [original repository](https://github.com/mlindauer/ASlibScenario). 
+`pip install -r requirements.txt`. The ASlibScenario package provided by Marius Lindauer can be downloaded and installed from the [original repository](https://github.com/mlindauer/ASlibScenario). 
 
 ## Reproducing Experimental Results
 Before trying to run the experiments, make sure to download the benchmark In order to reproduce the experimental results, the python scripts in the "experiments" folder can be used. The following table illustrates which script corresponds to which approach:
