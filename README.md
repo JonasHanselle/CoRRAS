@@ -1,5 +1,5 @@
 # Combined Ranking and Regression for Algorithm Selection
-This repository contains the code for "Combined Ranking and Regression for Algorithm Selection" (CoRRAS). 
+This repository contains the code for corresponding to the paper "Hybrid Ranking and Regression for Algorithm Selection" by Jonas Hanselle, Alexander Tornede, Marcel Wever and Eyke Hüllermeier https://link.springer.com/chapter/10.1007/978-3-030-58285-2_5.
 
 ## Installation
 ### Requirements
