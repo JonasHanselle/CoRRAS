@@ -14,6 +14,7 @@ from scipy.stats import kendalltau
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import PolynomialFeatures
+import sqlalchemy
 
 # Corras
 import Corras.Model.neural_net_hinge as nn_hinge
@@ -30,6 +31,8 @@ import urllib
 result_path = "./results-nnh-new/"
 loss_path = "./losses-nnh-new/"
 
+print(sys.argv)
+
 total_shards = int(sys.argv[1])
 shard_number = int(sys.argv[2])
 
@@ -44,30 +47,32 @@ scenarios = [
     "SAT11-RAND"
 ]
 
+scenarios = ["MIP-2016"]
+
 epsilon_value = 1.0
 max_pairs_per_instance = 5
-maxiter = 1000
-seeds = [1, 2, 3, 4, 5]
+maxiter = 5
 
-learning_rates = 0.001
-batch_sizes = 128
-es_patiences = 8
-es_intervals = 8
-es_val_ratios = 0.3
-layer_sizes_vals = [32]
-activation_functions = "sigmoid"
-use_max_inverse_transform_values = "max_cutoff"
-scale_target_to_unit_interval_values = True
-use_weighted_samples_values = False
+learning_rate = 0.001
+batch_size = 128
+es_patience = 8
+es_interval = 8
+es_val_ratio = 0.3
+layer_sizes_val = [32]
+activation_function = "sigmoid"
+use_max_inverse_transform_value = "max_cutoff"
+scale_target_to_unit_interval_value = True
+use_weighted_samples_value = False
+
+lambda_value = 0.5
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+splits = [1]
 
-params = [
-    scenarios, lambda_values, epsilon_values, splits, seeds, learning_rates,
-    es_intervals, es_patiences, es_val_ratios, batch_sizes, layer_sizes_vals,
-    activation_functions, use_weighted_samples_values,
-    scale_target_to_unit_interval_values, use_max_inverse_transform_values
-]
+seeds = [1, 2, 3, 4, 5]
+seeds = [1]
+
+params = [scenarios, splits, seeds]
 
 param_product = list(product(*params))
 
@@ -88,13 +93,14 @@ engine = sql.create_engine("mysql://" + db_user + ":" + db_pw + "@" + db_url +
                            pool_recycle=300,
                            pool_size=1)
 
-for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_interval, es_patience, es_val_ratio, batch_size, layer_size, activation_function, use_weighted_samples, scale_target_to_unit_interval, use_max_inverse_transform in shard:
+for scenario_name, split, seed in shard:
 
     # table_name = "neural-net-squared-hinge-" + scenario_name + "-seeded"
-    table_name = "ki2020_nnh-" + scenario_name
+    table_name = "hyper-test-" + scenario_name
 
     connection = engine.connect()
-    if not engine.dialect.has_table(engine, table_name):
+    insp = sqlalchemy.inspect(engine)
+    if not insp.has_table(table_name):
         pass
     else:
         meta = MetaData(engine)
@@ -114,14 +120,14 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
                 experiments.columns["es_patience"] == es_patience,
                 experiments.columns["es_val_ratio"] == es_val_ratio,
                 experiments.columns["batch_size"] == batch_size,
-                experiments.columns["layer_sizes"] == str(layer_size),
+                experiments.columns["layer_sizes"] == str(layer_sizes_val),
                 experiments.columns["activation_function"] ==
                 activation_function, experiments.
-                columns["use_weighted_samples"] == use_weighted_samples,
+                columns["use_weighted_samples"] == use_weighted_samples_value,
                 experiments.columns["scale_target_to_unit_interval"] ==
-                scale_target_to_unit_interval,
+                scale_target_to_unit_interval_value,
                 experiments.columns["use_max_inverse_transform"] ==
-                use_max_inverse_transform)).limit(1)
+                use_max_inverse_transform_value)).limit(1)
         rs = connection.execute(slct)
         result = rs.first()
         if result == None:
@@ -200,17 +206,17 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
 
         order = "asc"
 
-        if use_max_inverse_transform == "max_cutoff":
+        if use_max_inverse_transform_value == "max_cutoff":
             perf = perf.clip(0, cutoff)
             perf = cutoff - perf
             order = "desc"
-        elif use_max_inverse_transform == "max_par10":
+        elif use_max_inverse_transform_value == "max_par10":
             perf = par10 - perf
             order = "desc"
 
         perf_max = 1
 
-        if scale_target_to_unit_interval:
+        if scale_target_to_unit_interval_value:
             perf_max = np.max(perf)
             perf = perf / perf_max
 
@@ -229,7 +235,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
             skip_value=None)
 
         sample_weights = sample_weights / sample_weights.max()
-        if not use_weighted_samples:
+        if not use_weighted_samples_value:
             sample_weights = np.ones(len(sample_weights))
         print("sample weights", sample_weights)
 
@@ -253,7 +259,7 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
                   early_stop_interval=es_interval,
                   log_losses=False,
                   activation_function=activation_function,
-                  hidden_layer_sizes=layer_size,
+                  hidden_layer_sizes=layer_sizes_val,
                   sample_weights=sample_weights)
 
         for index, row in test_scenario.feature_data.iterrows():
@@ -267,18 +273,20 @@ for scenario_name, lambda_value, epsilon_value, split, seed, learning_rate, es_i
             # predicted_ranking = model.predict_ranking(scaled_row)
             predicted_performances = model.predict_performances(scaled_row)
 
-            if scale_target_to_unit_interval:
+            if scale_target_to_unit_interval_value:
                 predicted_performances = perf_max * predicted_performances
-            if use_max_inverse_transform == "max_cutoff":
+            if use_max_inverse_transform_value == "max_cutoff":
                 predicted_performances = cutoff - predicted_performances
-            elif use_max_inverse_transform == "max_par10":
+            elif use_max_inverse_transform_value == "max_par10":
                 predicted_performances = par10 - predicted_performances
+
+            # selected algorithm 
 
             result_data_corras.append([
                 split, index, lambda_value, epsilon_value, seed, learning_rate,
                 es_interval, es_patience, es_val_ratio, batch_size,
-                str(layer_size), activation_function, use_weighted_samples,
-                scale_target_to_unit_interval, use_max_inverse_transform,
+                str(layer_sizes_val), activation_function, use_weighted_samples_value,
+                scale_target_to_unit_interval_value, use_max_inverse_transform_value,
                 *predicted_performances
             ])
             # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval

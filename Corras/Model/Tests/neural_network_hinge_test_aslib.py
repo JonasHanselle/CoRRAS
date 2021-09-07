@@ -34,7 +34,7 @@ class NeuralNetworkHingeTest(unittest.TestCase):
         self.test_ranking = self.test_scen.performance_rankings
 
     def test_fit(self):
-        model1 = nn.NeuralNetwork()
+        model1 = nnh.NeuralNetwork()
         features, performances, rankings, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
             self.train_inst, self.train_performances, order="asc", skip_value=None)
         rankings = rankings.astype("int32")

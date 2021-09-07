@@ -1,0 +1,1 @@
+id,split,problem_instance,lambda,epsilon,seed,learning_rate,es_interval,es_patience,es_val_ratio,batch_size,layer_sizes,activation_function,CBC_performance,CPLEX_performance,Gurobi_performance,SCIP-cpx_performance,XPRESS_performance

@@ -1,12 +1,12 @@
 import logging
 from Corras.Scenario.aslib_ranking_scenario import ASRankingScenario
 from sklearn.utils import shuffle
-from tensorflow_core.python.data import Dataset
-from tensorflow_core.python.keras.optimizers import Adam
-from tensorflow_core.python.keras import backend as K
-from tensorflow_core.python.keras import layers
-from tensorflow_core import keras
-import tensorflow_core as tf
+from tensorflow.data import Dataset
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend as K
+from tensorflow.keras import layers
+from tensorflow import keras
+import tensorflow as tf
 import pandas as pd
 import numpy as np
 
@@ -88,7 +88,7 @@ class NeuralNetworkSquaredHinge:
             hidden_layer_sizes=hidden_layer_sizes,
             activation_function=activation_function)
 
-        self.network._make_predict_function()
+        # self.network._make_predict_function()
         self.network.summary()
 
         self.loss_history = []
@@ -220,7 +220,6 @@ class NeuralNetworkSquaredHinge:
         Returns:
             np.ndarray -- Estimation of performance values
         """
-        # add constant 1 for bias
         features = np.hstack((features, [1]))
         predictions = self.network(features[:, None].T)
 
@@ -236,10 +235,9 @@ class NeuralNetworkSquaredHinge:
             pd.DataFrame -- Ranking of algorithms
         """
         # compute utility scores
-        features = np.hstack((features, [1]))
-        # features = np.expand_dims(features, axis=0)
-        predictions = self.network(features[:, None].T)
-        return np.argsort(np.argsort(predictions)) + 1
+        return np.argsort(np.argsort(
+            self.predict_performances(features)[0])) + 1
+
 
     def save_loss_history(self, filepath: str):
         """Saves the history of losses after the model has been fit
