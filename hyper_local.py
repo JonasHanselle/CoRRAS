@@ -14,6 +14,7 @@ from scipy.stats import kendalltau
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import PolynomialFeatures
+from skopt.callbacks import DeltaXStopper
 
 # Corras
 import Corras.Model.neural_net_hinge as nn_hinge
@@ -58,9 +59,9 @@ scenarios = ["MIP-2016"]
 
 epsilon_value = 1.0
 max_pairs_per_instance = 5
-maxiter = 200
+maxiter = 10
 
-learning_rate = 0.001
+learning_rate = 0.01
 batch_size = 128
 es_patience = 8
 es_interval = 1
@@ -276,13 +277,13 @@ for scenario_name, split, seed in shard:
                 print("par10", par10)
                 print("tau", tau)
 
-                return par10
-                # return -tau
+                # return par10
+                return -tau
 
             # fit_and_predict(lambda_value=0.5)
             # Minimize using SMBO with random forests
             # minimizer = forest_minimize(fit_and_predict,search_space,n_calls=25, acq_func="LCB", x0=[[0.1],[0.3],[0.5],[0.7],[0.9]])
-            minimizer = forest_minimize(fit_and_predict,search_space,n_calls=50, acq_func="LCB", n_jobs=6, n_initial_points=10, initial_point_generator="sobol")
+            minimizer = forest_minimize(fit_and_predict,search_space,n_calls=50, acq_func="LCB", n_jobs=6, n_initial_points=10, initial_point_generator="sobol", callback=DeltaXStopper(1e-8))
             # plot convergence of objective
             plot_convergence(minimizer)
             plt.savefig("convergence.pdf")
