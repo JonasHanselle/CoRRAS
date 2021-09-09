@@ -6,19 +6,32 @@ import pandas as pd
 
 from itertools import product
 
-# evaluation stuff
-from sklearn.model_selection import KFold
+# model selection and evaluation stuff
+from sklearn.model_selection import KFold, train_test_split
 from scipy.stats import kendalltau
 
 # preprocessing
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import PolynomialFeatures
+from skopt.callbacks import DeltaXStopper
 
 # Corras
 import Corras.Model.neural_net_hinge as nn_hinge
+import Corras.Model.neural_net as nn_pl
 from Corras.Scenario import aslib_ranking_scenario
 from Corras.Util import ranking_util as util
+
+from statistics import mean
+
+# hyperparameter optimization
+from skopt import forest_minimize, gp_minimize
+from skopt.space import Real
+from skopt.utils import use_named_args
+from skopt.plots import plot_convergence, plot_evaluations
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 # Database
 import urllib
@@ -26,7 +39,7 @@ import urllib
 result_path = "./results-nnh-new/"
 loss_path = "./losses-nnh-new/"
 
-print(sys.argv)
+# print(sys.argv)
 
 total_shards = int(sys.argv[1])
 shard_number = int(sys.argv[2])
@@ -46,9 +59,9 @@ scenarios = ["MIP-2016"]
 
 epsilon_value = 1.0
 max_pairs_per_instance = 5
-maxiter = 5
+maxiter = 10
 
-learning_rate = 0.001
+learning_rate = 0.01
 batch_size = 128
 es_patience = 8
 es_interval = 1
@@ -62,10 +75,10 @@ use_weighted_samples_value = False
 lambda_value = 0.5
 
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [1]
+splits = [2]
 
 seeds = [1, 2, 3, 4, 5]
-seeds = [1]
+seeds = [2]
 
 params = [scenarios, splits, seeds]
 
@@ -137,26 +150,34 @@ for scenario_name, split, seed in shard:
         # hyperparameter optimization 
 
         def hyopt():
-
-            train_target_hyopt = train_scenario.performance_data
+            print("HYPERPAREMETER OPTIMIZATION")
             train_features_hyopt = train_scenario.feature_data
+            train_target_hyopt = train_scenario.performance_data
+
+            X_train, X_val, y_train, y_val = train_test_split(
+                train_features_hyopt, train_target_hyopt, test_size=0.33, random_state=seed)
+            
+            print("X_train", X_train)
+            print("y_train", y_train)
+            print("X_val", X_val)
+            print("y_val", y_val)
 
             # preprocessing
             imputer = SimpleImputer()
             scaler = StandardScaler()
 
             # Impute
-            train_features_hyopt[train_features_hyopt.columns] = imputer.fit_transform(
-                train_features_hyopt[train_features_hyopt.columns])
+            X_train[X_train.columns] = imputer.fit_transform(
+                X_train[X_train.columns])
 
             # Standardize
-            train_features_hyopt[train_features_hyopt.columns] = scaler.fit_transform(
-                train_features_hyopt[train_features_hyopt.columns])
+            X_train[X_train.columns] = scaler.fit_transform(
+                X_train[X_train.columns])
 
             cutoff = scenario.algorithm_cutoff_time
             par10 = cutoff * 10
 
-            perf = train_target_hyopt.to_numpy()
+            perf = y_train.to_numpy()
 
             order = "asc"
 
@@ -174,15 +195,15 @@ for scenario_name, split, seed in shard:
                 perf_max = np.max(perf)
                 perf = perf / perf_max
 
-            print("perf", perf)
+            # print("perf", perf)
 
-            train_performances = pd.DataFrame(data=perf,
-                                            index=train_target_hyopt.index,
-                                            columns=train_target_hyopt.columns)
-            print(order)
+            train_target_hyopt = pd.DataFrame(data=perf,
+                                            index=y_train.index,
+                                            columns=y_train.columns)
+            # print(order)
             inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
-                train_features,
-                train_performances,
+                X_train,
+                train_target_hyopt,
                 max_pairs_per_instance=max_pairs_per_instance,
                 seed=seed,
                 order=order,
@@ -191,16 +212,88 @@ for scenario_name, split, seed in shard:
             sample_weights = sample_weights / sample_weights.max()
             if not use_weighted_samples_value:
                 sample_weights = np.ones(len(sample_weights))
-            print("sample weights", sample_weights)
+            # print("sample weights", sample_weights)
 
             rank = rank.astype("int32")
+            search_space = [(Real(0.0, 1.0, "uniform", name='lambda_value'))]
+            @use_named_args(search_space)
+            def fit_and_predict(**params):
+                lambda_value = params["lambda_value"]
+                print("current lambda: ", lambda_value)
+                model = nn_hinge.NeuralNetworkSquaredHinge()
+                model.fit(len(scenario.algorithms),
+                    rank,
+                    inst,
+                    perf,
+                    lambda_value=lambda_value,
+                    regression_loss="Squared",
+                    num_epochs=maxiter,
+                    learning_rate=learning_rate,
+                    batch_size=batch_size,
+                    seed=seed,
+                    patience=es_patience,
+                    es_val_ratio=es_val_ratio,
+                    reshuffle_buffer_size=1000,
+                    early_stop_interval=es_interval,
+                    log_losses=False,
+                    activation_function=activation_function,
+                    hidden_layer_sizes=layer_sizes_val,
+                    sample_weights=sample_weights)
+                par10s = []
+                tau_corrs = []
+                for index, row in X_train.iterrows():
+                    row_values = row.to_numpy().reshape(1, -1)
 
+                    # Impute
+                    imputed_row = imputer.transform(row_values)
+
+                    # Standardize
+                    scaled_row = scaler.transform(imputed_row).flatten()
+                    # predicted_ranking = model.predict_ranking(scaled_row)
+                    predicted_performances = model.predict_performances(scaled_row)
+                    # scenario.performance_data.loc[
+                    #     index].astype("float64").to_numpy()
+
+                    if scale_target_to_unit_interval_value:
+                        predicted_performances = perf_max * predicted_performances
+                    if use_max_inverse_transform_value == "max_cutoff":
+                        predicted_performances = cutoff - predicted_performances
+                    elif use_max_inverse_transform_value == "max_par10":
+                        predicted_performances = - predicted_performances
+                        # predicted_performances = par10 - predicted_performances
+                    true_performances = y_train.loc[
+                        index].astype("float64").to_numpy()
+                    print("true performances", true_performances)
+                    true_ranking = y_train.loc[
+                        index].astype("float64").to_numpy()
+
+                    # calculate rank correlation
+                    corras_ranking = np.argsort(np.argsort(predicted_performances))
+                    tau_corr, tau_p = kendalltau(true_ranking, corras_ranking)
+                    tau_corrs.append(tau_corr)
+                    par10s.append(true_performances[np.argmin(predicted_performances)])
+                par10 = mean(par10s)
+                tau = mean(tau_corrs)
+                print("par10", par10)
+                print("tau", tau)
+
+                # return par10
+                return -tau
+
+            # fit_and_predict(lambda_value=0.5)
+            # Minimize using SMBO with random forests
+            # minimizer = forest_minimize(fit_and_predict,search_space,n_calls=25, acq_func="LCB", x0=[[0.1],[0.3],[0.5],[0.7],[0.9]])
+            minimizer = forest_minimize(fit_and_predict,search_space,n_calls=50, acq_func="LCB", n_jobs=6, n_initial_points=10, initial_point_generator="sobol", callback=DeltaXStopper(1e-8))
+            # plot convergence of objective
+            plot_convergence(minimizer)
+            plt.savefig("convergence.pdf")
+            plot_evaluations(minimizer)
+            plt.savefig("evaluations.pdf")
+            print("x iters: ", minimizer.x_iters)
         hyopt()
-
 
         train_performances = train_scenario.performance_data
         train_features = train_scenario.feature_data
-
 
         # preprocessing
         imputer = SimpleImputer()
@@ -219,7 +312,7 @@ for scenario_name, split, seed in shard:
 
         perf = train_performances.to_numpy()
 
-        order = "asc"
+        order = "desc"
 
         if use_max_inverse_transform_value == "max_cutoff":
             perf = perf.clip(0, cutoff)
@@ -235,12 +328,12 @@ for scenario_name, split, seed in shard:
             perf_max = np.max(perf)
             perf = perf / perf_max
 
-        print("perf", perf)
+        # print("perf", perf)
 
         train_performances = pd.DataFrame(data=perf,
                                           index=train_performances.index,
                                           columns=train_performances.columns)
-        print(order)
+        # print(order)
         inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
             train_features,
             train_performances,
@@ -252,17 +345,36 @@ for scenario_name, split, seed in shard:
         sample_weights = sample_weights / sample_weights.max()
         if not use_weighted_samples_value:
             sample_weights = np.ones(len(sample_weights))
-        print("sample weights", sample_weights)
+        # print("sample weights", sample_weights)
 
         rank = rank.astype("int32")
 
+        # model = nn_hinge.NeuralNetworkSquaredHinge()
+        # model.fit(len(scenario.algorithms),
+        #           rank,
+        #           inst,
+        #           perf,
+        #           lambda_value=lambda_value,
+        #           epsilon_value=epsilon_value,
+        #           regression_loss="Squared",
+        #           num_epochs=maxiter,
+        #           learning_rate=learning_rate,
+        #           batch_size=batch_size,
+        #           seed=seed,
+        #           patience=es_patience,
+        #           es_val_ratio=es_val_ratio,
+        #           reshuffle_buffer_size=1000,
+        #           early_stop_interval=es_interval,
+        #           log_losses=False,
+        #           activation_function=activation_function,
+        #           hidden_layer_sizes=layer_sizes_val,
+        #           sample_weights=sample_weights)
         model = nn_hinge.NeuralNetworkSquaredHinge()
         model.fit(len(scenario.algorithms),
                   rank,
                   inst,
                   perf,
                   lambda_value=lambda_value,
-                  epsilon_value=epsilon_value,
                   regression_loss="Squared",
                   num_epochs=maxiter,
                   learning_rate=learning_rate,
@@ -309,7 +421,7 @@ for scenario_name, split, seed in shard:
         performance_cols_corras = [
             x + "_performance" for x in scenario.performance_data.columns
         ]
-        print("perf corr", len(performance_cols_corras))
+        # print("perf corr", len(performance_cols_corras))
         result_columns_corras = [
             "split", "problem_instance", "lambda", "epsilon", "seed",
             "learning_rate", "es_interval", "es_patience", "es_val_ratio",
@@ -317,7 +429,7 @@ for scenario_name, split, seed in shard:
             "use_weighted_samples", "scale_target_to_unit_interval",
             "use_max_inverse_transform"
         ]
-        print("result len", len(result_columns_corras))
+        # print("result len", len(result_columns_corras))
         result_columns_corras += performance_cols_corras
         results_corras = pd.DataFrame(data=result_data_corras,
                                       columns=result_columns_corras)
