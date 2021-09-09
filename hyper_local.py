@@ -55,7 +55,9 @@ scenarios = [
     "SAT11-RAND"
 ]
 
-scenarios = ["MIP-2016"]
+# scenarios = [
+#     "SAT11-RAND"
+# ]
 
 epsilon_value = 1.0
 max_pairs_per_instance = 5
@@ -63,7 +65,7 @@ maxiter = 10
 
 learning_rate = 0.01
 batch_size = 128
-es_patience = 8
+es_patience = 3
 es_interval = 1
 es_val_ratio = 0.3
 layer_sizes_val = [32]
@@ -122,197 +124,64 @@ for scenario_name, split, seed in shard:
     es_val_filepath = loss_path + es_val_filename
     exists = os.path.exists(filepath)
     result_data_corras = []
-    try:
-        scenario_path = "./aslib_data-aslib-v4.0/" + scenario_name
-        scenario = aslib_ranking_scenario.ASRankingScenario()
-        scenario.read_scenario(scenario_path)
-        if not exists:
-            performance_cols_corras = [
-                x + "_performance" for x in scenario.performance_data.columns
-            ]
+    # try:
+    scenario_path = "./aslib_data-aslib-v4.0/" + scenario_name
+    scenario = aslib_ranking_scenario.ASRankingScenario()
+    scenario.read_scenario(scenario_path)
+    if not exists:
+        performance_cols_corras = [
+            x + "_performance" for x in scenario.performance_data.columns
+        ]
 
-            result_columns_corras = [
-                "split", "problem_instance", "lambda", "epsilon", "seed",
-                "learning_rate", "es_interval", "es_patience", "es_val_ratio",
-                "batch_size", "layer_sizes", "activation_function"
-            ]
-            result_columns_corras += performance_cols_corras
+        result_columns_corras = [
+            "split", "problem_instance", "lambda", "epsilon", "seed",
+            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
+            "batch_size", "layer_sizes", "activation_function"
+        ]
+        result_columns_corras += performance_cols_corras
 
-            results_corras = pd.DataFrame(data=[],
-                                          columns=result_columns_corras)
-            results_corras.to_csv(filepath, index_label="id")
+        results_corras = pd.DataFrame(data=[],
+                                        columns=result_columns_corras)
+        results_corras.to_csv(filepath, index_label="id")
 
-        test_scenario, train_scenario = scenario.get_split(split)
+    test_scenario, train_scenario = scenario.get_split(split)
 
-        train_performances = train_scenario.performance_data
-        train_features = train_scenario.feature_data
+    train_performances = train_scenario.performance_data
+    train_features = train_scenario.feature_data
 
-        # hyperparameter optimization 
+    # hyperparameter optimization 
 
-        def hyopt():
-            print("HYPERPAREMETER OPTIMIZATION")
-            train_features_hyopt = train_scenario.feature_data
-            train_target_hyopt = train_scenario.performance_data
+    def hyopt():
+        print("HYPERPAREMETER OPTIMIZATION")
+        train_features_hyopt = train_scenario.feature_data
+        train_target_hyopt = train_scenario.performance_data
 
-            X_train, X_val, y_train, y_val = train_test_split(
-                train_features_hyopt, train_target_hyopt, test_size=0.33, random_state=seed)
-            
-            print("X_train", X_train)
-            print("y_train", y_train)
-            print("X_val", X_val)
-            print("y_val", y_val)
-
-            # preprocessing
-            imputer = SimpleImputer()
-            scaler = StandardScaler()
-
-            # Impute
-            X_train[X_train.columns] = imputer.fit_transform(
-                X_train[X_train.columns])
-
-            # Standardize
-            X_train[X_train.columns] = scaler.fit_transform(
-                X_train[X_train.columns])
-
-            cutoff = scenario.algorithm_cutoff_time
-            par10 = cutoff * 10
-
-            perf = y_train.to_numpy()
-
-            order = "asc"
-
-            if use_max_inverse_transform_value == "max_cutoff":
-                perf = perf.clip(0, cutoff)
-                perf = cutoff - perf
-                order = "desc"
-            elif use_max_inverse_transform_value == "max_par10":
-                perf = par10 - perf
-                order = "desc"
-
-            perf_max = 1
-
-            if scale_target_to_unit_interval_value:
-                perf_max = np.max(perf)
-                perf = perf / perf_max
-
-            # print("perf", perf)
-
-            train_target_hyopt = pd.DataFrame(data=perf,
-                                            index=y_train.index,
-                                            columns=y_train.columns)
-            # print(order)
-            inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
-                X_train,
-                train_target_hyopt,
-                max_pairs_per_instance=max_pairs_per_instance,
-                seed=seed,
-                order=order,
-                skip_value=None)
-
-            sample_weights = sample_weights / sample_weights.max()
-            if not use_weighted_samples_value:
-                sample_weights = np.ones(len(sample_weights))
-            # print("sample weights", sample_weights)
-
-            rank = rank.astype("int32")
-            search_space = [(Real(0.0, 1.0, "uniform", name='lambda_value'))]
-            @use_named_args(search_space)
-            def fit_and_predict(**params):
-                lambda_value = params["lambda_value"]
-                print("current lambda: ", lambda_value)
-                model = nn_hinge.NeuralNetworkSquaredHinge()
-                model.fit(len(scenario.algorithms),
-                    rank,
-                    inst,
-                    perf,
-                    lambda_value=lambda_value,
-                    regression_loss="Squared",
-                    num_epochs=maxiter,
-                    learning_rate=learning_rate,
-                    batch_size=batch_size,
-                    seed=seed,
-                    patience=es_patience,
-                    es_val_ratio=es_val_ratio,
-                    reshuffle_buffer_size=1000,
-                    early_stop_interval=es_interval,
-                    log_losses=False,
-                    activation_function=activation_function,
-                    hidden_layer_sizes=layer_sizes_val,
-                    sample_weights=sample_weights)
-                par10s = []
-                tau_corrs = []
-                for index, row in X_train.iterrows():
-                    row_values = row.to_numpy().reshape(1, -1)
-
-                    # Impute
-                    imputed_row = imputer.transform(row_values)
-
-                    # Standardize
-                    scaled_row = scaler.transform(imputed_row).flatten()
-                    # predicted_ranking = model.predict_ranking(scaled_row)
-                    predicted_performances = model.predict_performances(scaled_row)
-                    # scenario.performance_data.loc[
-                    #     index].astype("float64").to_numpy()
-
-                    if scale_target_to_unit_interval_value:
-                        predicted_performances = perf_max * predicted_performances
-                    if use_max_inverse_transform_value == "max_cutoff":
-                        predicted_performances = cutoff - predicted_performances
-                    elif use_max_inverse_transform_value == "max_par10":
-                        predicted_performances = - predicted_performances
-                        # predicted_performances = par10 - predicted_performances
-                    true_performances = y_train.loc[
-                        index].astype("float64").to_numpy()
-                    print("true performances", true_performances)
-                    true_ranking = y_train.loc[
-                        index].astype("float64").to_numpy()
-
-                    # calculate rank correlation
-                    corras_ranking = np.argsort(np.argsort(predicted_performances))
-                    tau_corr, tau_p = kendalltau(true_ranking, corras_ranking)
-                    tau_corrs.append(tau_corr)
-                    par10s.append(true_performances[np.argmin(predicted_performances)])
-                par10 = mean(par10s)
-                tau = mean(tau_corrs)
-                print("par10", par10)
-                print("tau", tau)
-
-                # return par10
-                return -tau
-
-            # fit_and_predict(lambda_value=0.5)
-            # Minimize using SMBO with random forests
-            # minimizer = forest_minimize(fit_and_predict,search_space,n_calls=25, acq_func="LCB", x0=[[0.1],[0.3],[0.5],[0.7],[0.9]])
-            minimizer = forest_minimize(fit_and_predict,search_space,n_calls=50, acq_func="LCB", n_jobs=6, n_initial_points=10, initial_point_generator="sobol", callback=DeltaXStopper(1e-8))
-            # plot convergence of objective
-            plot_convergence(minimizer)
-            plt.savefig("convergence.pdf")
-            plot_evaluations(minimizer)
-            plt.savefig("evaluations.pdf")
-            print("x iters: ", minimizer.x_iters)
-        hyopt()
-
-        train_performances = train_scenario.performance_data
-        train_features = train_scenario.feature_data
+        X_train, X_val, y_train, y_val = train_test_split(
+            train_features_hyopt, train_target_hyopt, test_size=0.33, random_state=seed)
+        
+        print("X_train", X_train)
+        print("y_train", y_train)
+        print("X_val", X_val)
+        print("y_val", y_val)
 
         # preprocessing
         imputer = SimpleImputer()
         scaler = StandardScaler()
 
         # Impute
-        train_features[train_features.columns] = imputer.fit_transform(
-            train_features[train_features.columns])
+        X_train[X_train.columns] = imputer.fit_transform(
+            X_train[X_train.columns])
 
         # Standardize
-        train_features[train_features.columns] = scaler.fit_transform(
-            train_features[train_features.columns])
+        X_train[X_train.columns] = scaler.fit_transform(
+            X_train[X_train.columns])
 
         cutoff = scenario.algorithm_cutoff_time
         par10 = cutoff * 10
 
-        perf = train_performances.to_numpy()
+        perf = y_train.to_numpy()
 
-        order = "desc"
+        order = "asc"
 
         if use_max_inverse_transform_value == "max_cutoff":
             perf = perf.clip(0, cutoff)
@@ -330,13 +199,13 @@ for scenario_name, split, seed in shard:
 
         # print("perf", perf)
 
-        train_performances = pd.DataFrame(data=perf,
-                                          index=train_performances.index,
-                                          columns=train_performances.columns)
+        train_target_hyopt = pd.DataFrame(data=perf,
+                                        index=y_train.index,
+                                        columns=y_train.columns)
         # print(order)
         inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
-            train_features,
-            train_performances,
+            X_train,
+            train_target_hyopt,
             max_pairs_per_instance=max_pairs_per_instance,
             seed=seed,
             order=order,
@@ -348,101 +217,236 @@ for scenario_name, split, seed in shard:
         # print("sample weights", sample_weights)
 
         rank = rank.astype("int32")
+        search_space = [(Real(0.0, 1.0, "uniform", name='lambda_value'))]
+        @use_named_args(search_space)
+        def fit_and_predict(**params):
+            lambda_value = params["lambda_value"]
+            print("current lambda: ", lambda_value)
+            model = nn_hinge.NeuralNetworkSquaredHinge()
+            model.fit(len(scenario.algorithms),
+                rank,
+                inst,
+                perf,
+                lambda_value=lambda_value,
+                regression_loss="Squared",
+                num_epochs=maxiter,
+                learning_rate=learning_rate,
+                batch_size=batch_size,
+                seed=seed,
+                patience=es_patience,
+                es_val_ratio=es_val_ratio,
+                reshuffle_buffer_size=1000,
+                early_stop_interval=es_interval,
+                log_losses=False,
+                activation_function=activation_function,
+                hidden_layer_sizes=layer_sizes_val,
+                sample_weights=sample_weights)
+            par10s = []
+            tau_corrs = []
+            for index, row in X_train.iterrows():
+                row_values = row.to_numpy().reshape(1, -1)
 
-        # model = nn_hinge.NeuralNetworkSquaredHinge()
-        # model.fit(len(scenario.algorithms),
-        #           rank,
-        #           inst,
-        #           perf,
-        #           lambda_value=lambda_value,
-        #           epsilon_value=epsilon_value,
-        #           regression_loss="Squared",
-        #           num_epochs=maxiter,
-        #           learning_rate=learning_rate,
-        #           batch_size=batch_size,
-        #           seed=seed,
-        #           patience=es_patience,
-        #           es_val_ratio=es_val_ratio,
-        #           reshuffle_buffer_size=1000,
-        #           early_stop_interval=es_interval,
-        #           log_losses=False,
-        #           activation_function=activation_function,
-        #           hidden_layer_sizes=layer_sizes_val,
-        #           sample_weights=sample_weights)
-        model = nn_hinge.NeuralNetworkSquaredHinge()
-        model.fit(len(scenario.algorithms),
-                  rank,
-                  inst,
-                  perf,
-                  lambda_value=lambda_value,
-                  regression_loss="Squared",
-                  num_epochs=maxiter,
-                  learning_rate=learning_rate,
-                  batch_size=batch_size,
-                  seed=seed,
-                  patience=es_patience,
-                  es_val_ratio=es_val_ratio,
-                  reshuffle_buffer_size=1000,
-                  early_stop_interval=es_interval,
-                  log_losses=False,
-                  activation_function=activation_function,
-                  hidden_layer_sizes=layer_sizes_val,
-                  sample_weights=sample_weights)
+                # Impute
+                imputed_row = imputer.transform(row_values)
 
-        for index, row in test_scenario.feature_data.iterrows():
-            row_values = row.to_numpy().reshape(1, -1)
+                # Standardize
+                scaled_row = scaler.transform(imputed_row).flatten()
+                # predicted_ranking = model.predict_ranking(scaled_row)
+                predicted_performances = model.predict_performances(scaled_row)
+                # scenario.performance_data.loc[
+                #     index].astype("float64").to_numpy()
 
-            # Impute
-            imputed_row = imputer.transform(row_values)
+                if scale_target_to_unit_interval_value:
+                    predicted_performances = perf_max * predicted_performances
+                if use_max_inverse_transform_value == "max_cutoff":
+                    predicted_performances = cutoff - predicted_performances
+                elif use_max_inverse_transform_value == "max_par10":
+                    predicted_performances = - predicted_performances
+                    # predicted_performances = par10 - predicted_performances
+                true_performances = y_train.loc[
+                    index].astype("float64").to_numpy()
+                print("true performances", true_performances)
+                true_ranking = y_train.loc[
+                    index].astype("float64").to_numpy()
 
-            # Standardize
-            scaled_row = scaler.transform(imputed_row).flatten()
-            # predicted_ranking = model.predict_ranking(scaled_row)
-            predicted_performances = model.predict_performances(scaled_row)
+                # calculate rank correlation
+                corras_ranking = np.argsort(np.argsort(predicted_performances))
+                tau_corr, tau_p = kendalltau(true_ranking, corras_ranking, nan_policy="raise")
+                tau_corrs.append(tau_corr)
+                par10s.append(true_performances[np.argmin(predicted_performances)])
+            par10 = mean(par10s)
+            tau = mean(tau_corrs)
+            print("par10", par10)
+            print("tau", tau)
 
-            if scale_target_to_unit_interval_value:
-                predicted_performances = perf_max * predicted_performances
-            if use_max_inverse_transform_value == "max_cutoff":
-                predicted_performances = cutoff - predicted_performances
-            elif use_max_inverse_transform_value == "max_par10":
-                predicted_performances = par10 - predicted_performances
+            # return par10
+            return par10
 
-            # selected algorithm 
+        # fit_and_predict(lambda_value=0.5)
+        # Minimize using SMBO with random forests
+        # minimizer = forest_minimize(fit_and_predict,search_space,n_calls=25, acq_func="LCB", x0=[[0.1],[0.3],[0.5],[0.7],[0.9]])
+        minimizer = forest_minimize(fit_and_predict,search_space,n_calls=50, acq_func="LCB", n_jobs=-1, n_initial_points=10, initial_point_generator="sobol", callback=DeltaXStopper(1e-8))
+        # plot convergence of objective
+        plt.clf()
+        plot_convergence(minimizer)
+        plt.savefig(f"convergence-{scenario_name}.pdf")
+        plt.clf()
+        # plot_evaluations(minimizer)
+        # plt.savefig("evaluations.pdf")
+        print("x iters: ", minimizer.x_iters)
+    hyopt()
 
-            result_data_corras.append([
-                split, index, lambda_value, epsilon_value, seed, learning_rate,
-                es_interval, es_patience, es_val_ratio, batch_size,
-                str(layer_sizes_val), activation_function, use_weighted_samples_value,
-                scale_target_to_unit_interval_value, use_max_inverse_transform_value,
-                *predicted_performances
-            ])
-            # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
+    train_performances = train_scenario.performance_data
+    train_features = train_scenario.feature_data
 
-        performance_cols_corras = [
-            x + "_performance" for x in scenario.performance_data.columns
-        ]
-        # print("perf corr", len(performance_cols_corras))
-        result_columns_corras = [
-            "split", "problem_instance", "lambda", "epsilon", "seed",
-            "learning_rate", "es_interval", "es_patience", "es_val_ratio",
-            "batch_size", "layer_sizes", "activation_function",
-            "use_weighted_samples", "scale_target_to_unit_interval",
-            "use_max_inverse_transform"
-        ]
-        # print("result len", len(result_columns_corras))
-        result_columns_corras += performance_cols_corras
-        results_corras = pd.DataFrame(data=result_data_corras,
-                                      columns=result_columns_corras)
-        # results_corras.to_csv(filepath, index_label="id",
-        #                         mode="a", header=False)
-        # connection = engine.connect()
-        # results_corras.to_sql(name=table_name,
-        #                       con=connection,
-        #                       if_exists="append")
-        # connection.close()
-        # model.save_loss_history(loss_filepath)
-        # model.save_es_val_history(es_val_filepath)
+    # preprocessing
+    imputer = SimpleImputer()
+    scaler = StandardScaler()
 
-    except Exception as exc:
-        print("Something went wrong during computation with parameters " +
-              params_string + " message: " + str(exc))
+    # Impute
+    train_features[train_features.columns] = imputer.fit_transform(
+        train_features[train_features.columns])
+
+    # Standardize
+    train_features[train_features.columns] = scaler.fit_transform(
+        train_features[train_features.columns])
+
+    cutoff = scenario.algorithm_cutoff_time
+    par10 = cutoff * 10
+
+    perf = train_performances.to_numpy()
+
+    order = "desc"
+
+    if use_max_inverse_transform_value == "max_cutoff":
+        perf = perf.clip(0, cutoff)
+        perf = cutoff - perf
+        order = "desc"
+    elif use_max_inverse_transform_value == "max_par10":
+        perf = par10 - perf
+        order = "desc"
+
+    perf_max = 1
+
+    if scale_target_to_unit_interval_value:
+        perf_max = np.max(perf)
+        perf = perf / perf_max
+
+    # print("perf", perf)
+
+    train_performances = pd.DataFrame(data=perf,
+                                        index=train_performances.index,
+                                        columns=train_performances.columns)
+    # print(order)
+    inst, perf, rank, sample_weights = util.construct_numpy_representation_with_ordered_pairs_of_rankings_and_features_and_weights(
+        train_features,
+        train_performances,
+        max_pairs_per_instance=max_pairs_per_instance,
+        seed=seed,
+        order=order,
+        skip_value=None)
+
+    sample_weights = sample_weights / sample_weights.max()
+    if not use_weighted_samples_value:
+        sample_weights = np.ones(len(sample_weights))
+    # print("sample weights", sample_weights)
+
+    rank = rank.astype("int32")
+
+    # model = nn_hinge.NeuralNetworkSquaredHinge()
+    # model.fit(len(scenario.algorithms),
+    #           rank,
+    #           inst,
+    #           perf,
+    #           lambda_value=lambda_value,
+    #           epsilon_value=epsilon_value,
+    #           regression_loss="Squared",
+    #           num_epochs=maxiter,
+    #           learning_rate=learning_rate,
+    #           batch_size=batch_size,
+    #           seed=seed,
+    #           patience=es_patience,
+    #           es_val_ratio=es_val_ratio,
+    #           reshuffle_buffer_size=1000,
+    #           early_stop_interval=es_interval,
+    #           log_losses=False,
+    #           activation_function=activation_function,
+    #           hidden_layer_sizes=layer_sizes_val,
+    #           sample_weights=sample_weights)
+    model = nn_hinge.NeuralNetworkSquaredHinge()
+    model.fit(len(scenario.algorithms),
+                rank,
+                inst,
+                perf,
+                lambda_value=lambda_value,
+                regression_loss="Squared",
+                num_epochs=maxiter,
+                learning_rate=learning_rate,
+                batch_size=batch_size,
+                seed=seed,
+                patience=es_patience,
+                es_val_ratio=es_val_ratio,
+                reshuffle_buffer_size=1000,
+                early_stop_interval=es_interval,
+                log_losses=False,
+                activation_function=activation_function,
+                hidden_layer_sizes=layer_sizes_val,
+                sample_weights=sample_weights)
+
+    for index, row in test_scenario.feature_data.iterrows():
+        row_values = row.to_numpy().reshape(1, -1)
+
+        # Impute
+        imputed_row = imputer.transform(row_values)
+
+        # Standardize
+        scaled_row = scaler.transform(imputed_row).flatten()
+        # predicted_ranking = model.predict_ranking(scaled_row)
+        predicted_performances = model.predict_performances(scaled_row)
+
+        if scale_target_to_unit_interval_value:
+            predicted_performances = perf_max * predicted_performances
+        if use_max_inverse_transform_value == "max_cutoff":
+            predicted_performances = cutoff - predicted_performances
+        elif use_max_inverse_transform_value == "max_par10":
+            predicted_performances = par10 - predicted_performances
+
+        # selected algorithm 
+
+        result_data_corras.append([
+            split, index, lambda_value, epsilon_value, seed, learning_rate,
+            es_interval, es_patience, es_val_ratio, batch_size,
+            str(layer_sizes_val), activation_function, use_weighted_samples_value,
+            scale_target_to_unit_interval_value, use_max_inverse_transform_value,
+            *predicted_performances
+        ])
+        # scenario_name, lambda_value, split, seed, use_quadratic_transform, use_max_inverse_transform, scale_target_to_unit_interval
+
+    performance_cols_corras = [
+        x + "_performance" for x in scenario.performance_data.columns
+    ]
+    # print("perf corr", len(performance_cols_corras))
+    result_columns_corras = [
+        "split", "problem_instance", "lambda", "epsilon", "seed",
+        "learning_rate", "es_interval", "es_patience", "es_val_ratio",
+        "batch_size", "layer_sizes", "activation_function",
+        "use_weighted_samples", "scale_target_to_unit_interval",
+        "use_max_inverse_transform"
+    ]
+    # print("result len", len(result_columns_corras))
+    result_columns_corras += performance_cols_corras
+    results_corras = pd.DataFrame(data=result_data_corras,
+                                    columns=result_columns_corras)
+    # results_corras.to_csv(filepath, index_label="id",
+    #                         mode="a", header=False)
+    # connection = engine.connect()
+    # results_corras.to_sql(name=table_name,
+    #                       con=connection,
+    #                       if_exists="append")
+    # connection.close()
+    # model.save_loss_history(loss_filepath)
+    # model.save_es_val_history(es_val_filepath)
+
+    # except Exception as exc:
+    #     print("Something went wrong during computation with parameters " +
+    #           params_string + " message: " + str(exc))
