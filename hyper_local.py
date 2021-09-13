@@ -36,8 +36,8 @@ import matplotlib.pyplot as plt
 # Database
 import urllib
 
-result_path = "./results-nnh-new/"
-loss_path = "./losses-nnh-new/"
+result_path = "./results-nnh-new-hyper/"
+loss_path = "./losses-nnh-new-hyper/"
 
 # print(sys.argv)
 
@@ -56,17 +56,17 @@ scenarios = [
 ]
 
 # scenarios = [
-#     "SAT11-RAND"
+#     "MIP-2016"
 # ]
 
 epsilon_value = 1.0
 max_pairs_per_instance = 5
-maxiter = 10
+maxiter = 1000
 
-learning_rate = 0.01
+learning_rate = 0.001
 batch_size = 128
-es_patience = 3
-es_interval = 1
+es_patience = 8
+es_interval = 8
 es_val_ratio = 0.3
 layer_sizes_val = [32]
 activation_function = "sigmoid"
@@ -74,13 +74,8 @@ use_max_inverse_transform_value = "max_cutoff"
 scale_target_to_unit_interval_value = True
 use_weighted_samples_value = False
 
-lambda_value = 0.5
-
+seeds = [1,2,3,4,5,15]
 splits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-splits = [2]
-
-seeds = [1, 2, 3, 4, 5]
-seeds = [2]
 
 params = [scenarios, splits, seeds]
 
@@ -104,7 +99,6 @@ for scenario_name, split, seed in shard:
 
     params_string = "-".join([
         scenario_name,
-        str(lambda_value),
         str(epsilon_value),
         str(split),
         str(seed),
@@ -129,6 +123,7 @@ for scenario_name, split, seed in shard:
     scenario = aslib_ranking_scenario.ASRankingScenario()
     scenario.read_scenario(scenario_path)
     if not exists:
+        print("FILE DOES NOT EXIST")
         performance_cols_corras = [
             x + "_performance" for x in scenario.performance_data.columns
         ]
@@ -143,6 +138,7 @@ for scenario_name, split, seed in shard:
         results_corras = pd.DataFrame(data=[],
                                         columns=result_columns_corras)
         results_corras.to_csv(filepath, index_label="id")
+        print("CREATED")
 
     test_scenario, train_scenario = scenario.get_split(split)
 
@@ -288,13 +284,23 @@ for scenario_name, split, seed in shard:
         minimizer = forest_minimize(fit_and_predict,search_space,n_calls=50, acq_func="LCB", n_jobs=-1, n_initial_points=10, initial_point_generator="sobol", callback=DeltaXStopper(1e-8))
         # plot convergence of objective
         plt.clf()
+        plt.cla()
+        plt.close()
         plot_convergence(minimizer)
-        plt.savefig(f"convergence-{scenario_name}.pdf")
+        plt.savefig(f"./figures/convergence-{scenario_name}-{split}-{seed}.pdf")
         plt.clf()
-        # plot_evaluations(minimizer)
+        plt.cla()
+        plt.close()
+        plot_evaluations(minimizer)
+        plt.savefig(f"./figures/evaluations-{scenario_name}-{split}-{seed}.pdf")
+
         # plt.savefig("evaluations.pdf")
         print("x iters: ", minimizer.x_iters)
-    hyopt()
+        return minimizer.x
+
+    lambda_value = hyopt()[0]
+
+    print(f"FINAL LAMBDA VALUE AFTER OPTIMIZATION: {lambda_value}")
 
     train_performances = train_scenario.performance_data
     train_features = train_scenario.feature_data
@@ -352,27 +358,7 @@ for scenario_name, split, seed in shard:
     # print("sample weights", sample_weights)
 
     rank = rank.astype("int32")
-
-    # model = nn_hinge.NeuralNetworkSquaredHinge()
-    # model.fit(len(scenario.algorithms),
-    #           rank,
-    #           inst,
-    #           perf,
-    #           lambda_value=lambda_value,
-    #           epsilon_value=epsilon_value,
-    #           regression_loss="Squared",
-    #           num_epochs=maxiter,
-    #           learning_rate=learning_rate,
-    #           batch_size=batch_size,
-    #           seed=seed,
-    #           patience=es_patience,
-    #           es_val_ratio=es_val_ratio,
-    #           reshuffle_buffer_size=1000,
-    #           early_stop_interval=es_interval,
-    #           log_losses=False,
-    #           activation_function=activation_function,
-    #           hidden_layer_sizes=layer_sizes_val,
-    #           sample_weights=sample_weights)
+    print("BEGIN FITTING ORIGINAL MODEL")
     model = nn_hinge.NeuralNetworkSquaredHinge()
     model.fit(len(scenario.algorithms),
                 rank,
@@ -437,8 +423,8 @@ for scenario_name, split, seed in shard:
     result_columns_corras += performance_cols_corras
     results_corras = pd.DataFrame(data=result_data_corras,
                                     columns=result_columns_corras)
-    # results_corras.to_csv(filepath, index_label="id",
-    #                         mode="a", header=False)
+    results_corras.to_csv(filepath, index_label="id",
+                            mode="a", header=False)
     # connection = engine.connect()
     # results_corras.to_sql(name=table_name,
     #                       con=connection,
