@@ -42,7 +42,7 @@ isort==4.3.21
 jaxlib==0.1.32
 jdcal==1.4.1
 jeepney==0.4.2
-joblib==0.14.0
+joblib==1.2.0
 Keras-Applications==1.0.8
 Keras-Preprocessing==1.1.0
 keyring==21.1.0
