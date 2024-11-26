@@ -16,7 +16,7 @@ cffi==1.14.0
 chardet==3.0.4
 Click==7.0
 commonmark==0.9.1
-cryptography==2.8
+cryptography==3.2
 cvxopt==1.2.3
 cvxpy==1.0.25
 cycler==0.10.0
